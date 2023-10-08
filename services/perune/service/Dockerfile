@@ -4,7 +4,7 @@ RUN apk update && apk add socat
 
 WORKDIR /var/perune
 
-COPY --chown=nobody:nogroup perune entrypoint.sh ./
+COPY perune entrypoint.sh ./
 
 RUN mkdir database
 
