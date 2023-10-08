@@ -140,7 +140,7 @@ def main() -> None:
     flag_id = sys.argv[2]
 
     # io = pwn.process('./perune')
-    io = pwn.remote(host, 1337)
+    io = pwn.remote(host, 18484)
 
     try:
         flag = attack(io, flag_id.encode())
