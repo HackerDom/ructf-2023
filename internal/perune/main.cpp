@@ -22,7 +22,7 @@ int main() {
                 CallPerune();
                 break;
             case 5:
-                return 5;
+                return 0;
             default:
                 return 0;
         }
@@ -80,7 +80,7 @@ size_t MakeGift(void) {
 
     if (GiftPassword.size() > kMaxPasswordSize) {
         std::cout << "{-} Invalid password size!" << std::endl;
-        std::exit(-2);
+        std::exit(0);
     }
 
     Gift* pGift = new Gift(type, GiftCount, GiftPassword);    
@@ -136,7 +136,7 @@ size_t MakePrayer(void) {
 
     if (PrayerText.size() > kMaxPrayerTextSize) {
         std::cout << "{-} Invalid prayer text size!" << std::endl;
-        std::exit(-2);
+        std::exit(0);
     }
 
     Prayer* pPrayer = new Prayer(PrayerText, pGift->GetLink());
@@ -226,7 +226,7 @@ Gift* GetGift() {
 
     if (password.size() > kMaxPasswordSize) {
         std::cout << "{-} Invalid password size!" << std::endl;
-        std::exit(-2);
+        std::exit(0);
     }
 
     if (pGift->GetPassword() != password) {
@@ -387,7 +387,7 @@ void trim(std::string& buf) {
 void AddObjectToCache(Object* pObj) {
     if ((gCache.size() + 1) > kMaxCacheSize) {
         std::cout << "{-} Too many requests! Try again later!" << std::endl;
-        exit(-1);
+        std::exit(0);
     }
     gCache.emplace(pObj->Uuid(), pObj);
 };
