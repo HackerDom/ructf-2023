@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+option go_package = "../config";
+
+package config;
+
+message ServerConfig {
+  uint32 grpc_port = 1;
+}
