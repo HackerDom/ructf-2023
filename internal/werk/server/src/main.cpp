@@ -17,8 +17,5 @@ int main(int argc, char **argv) {
 
     LOG(INFO) << "Starting server at path '" << path << "'...";
 
-    werk::server::Page p{};
-    LOG(INFO) << sizeof(p.memory);
-
     return 0;
 }
