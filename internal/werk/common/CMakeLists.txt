@@ -7,6 +7,7 @@ set(HEADERS
         include/arch/opcodes.hpp
         include/arch/types.hpp
         include/arch/registers.hpp
+        include/arch/constants.hpp
         )
 
 set(SOURCES
