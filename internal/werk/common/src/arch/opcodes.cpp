@@ -58,7 +58,7 @@ namespace werk::arch::opcodes {
         allOpcodes.insert(kShr);
     }
 
-    bool OpcodesManager::IsValidOpcodeName(std::string_view name) {
+    bool OpcodesManager::IsValidOpcodeName(std::string_view name) const {
         auto it = allOpcodes.find(name);
 
         return it != allOpcodes.end();

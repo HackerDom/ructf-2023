@@ -11,7 +11,7 @@ target_include_directories(asm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(asm_tests ${HEADERS} ${SOURCES}
         tests/main.cpp
-        tests/sample_tests.cpp
+        tests/lexer_tests.cpp
         )
 target_include_directories(asm_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(asm_tests common glog::glog gtest)

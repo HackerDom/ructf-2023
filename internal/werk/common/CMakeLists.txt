@@ -5,11 +5,13 @@ set(HEADERS
         include/utils/strings.hpp
         include/arch/opcodes.hpp
         include/arch/types.hpp
+        include/arch/registers.hpp
         )
 
 set(SOURCES
         src/utils/strings.cpp
         src/arch/opcodes.cpp
+        src/arch/registers.cpp
         )
 
 add_library(common ${SOURCES} ${HEADERS})
@@ -21,6 +23,7 @@ add_executable(common_tests
         tests/main.cpp
         tests/arch/opcodes_tests.cpp
         tests/utils/strings_tests.cpp
+        tests/arch/registers_tests.cpp
         )
 target_include_directories(common_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(common_tests glog::glog gtest)

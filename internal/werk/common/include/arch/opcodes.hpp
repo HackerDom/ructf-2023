@@ -11,11 +11,11 @@ namespace werk::arch::opcodes {
         OpcodesManager();
 
         // case-insensitive
-        [[nodiscard]] bool IsValidOpcodeName(std::string_view name);
+        [[nodiscard]] bool IsValidOpcodeName(std::string_view name) const;
 
     private:
         std::unordered_set<std::string_view,
-                utils::CaseInsensitiveStringsHash,
-                utils::CaseInsensitiveStringsEquals> allOpcodes;
+                utils::CaseInsensitiveStringViewsHash,
+                utils::CaseInsensitiveStringViewsEquals> allOpcodes;
     };
 }

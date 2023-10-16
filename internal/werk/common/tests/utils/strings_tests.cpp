@@ -2,21 +2,21 @@
 
 #include <utils/strings.hpp>
 
-TEST(CaseInsensitiveStringsHash, IsCaseInsensitive) {
-    auto h = werk::utils::CaseInsensitiveStringsHash();
+TEST(CaseInsensitiveStringViewsHash, IsCaseInsensitive) {
+    auto h = werk::utils::CaseInsensitiveStringViewsHash();
 
     ASSERT_EQ(h.operator()("Mov"), h.operator()("mov"));
     ASSERT_NE(h.operator()("mov"), h.operator()("mov "));
 }
 
-TEST(CaseInsensitiveStringsHash, IsSameAsLoweredStdHash) {
-    auto h = werk::utils::CaseInsensitiveStringsHash();
+TEST(CaseInsensitiveStringViewsHash, IsSameAsLoweredStdHash) {
+    auto h = werk::utils::CaseInsensitiveStringViewsHash();
 
     ASSERT_EQ(h.operator()("ThIs is tExT!"), std::hash<std::string>().operator()("this is text!"));
 }
 
-TEST(CaseInsensitiveStringsEquals, IsCaseInsensitive) {
-    auto e = werk::utils::CaseInsensitiveStringsEquals();
+TEST(CaseInsensitiveStringViewsEquals, IsCaseInsensitive) {
+    auto e = werk::utils::CaseInsensitiveStringViewsEquals();
 
     ASSERT_TRUE(e.operator()("", ""));
     ASSERT_TRUE(e.operator()("aaa", "aaa"));
