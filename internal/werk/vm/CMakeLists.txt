@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 3.16)
 project(vm)
 
-set(HEADERS )
+set(HEADERS
+        include/vm.hpp
+        )
 
-set(SOURCES )
+set(SOURCES
+        src/vm.cpp
+        )
 
-add_executable(vm ${HEADERS} ${SOURCES} src/main.cpp)
+add_library(vm ${HEADERS} ${SOURCES})
 target_link_libraries(vm glog::glog)
 target_include_directories(vm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
