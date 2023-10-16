@@ -10,6 +10,8 @@ namespace werk::vm {
 
         virtual void Tick(int opsCount);
 
+        virtual bool Stopped();
+
     private:
         void *memory;
     };
