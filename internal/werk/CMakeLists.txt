@@ -9,5 +9,6 @@ set(BUILD_TESTING OFF)
 add_subdirectory(googletest)
 add_subdirectory(glog)
 
+add_subdirectory(common)
 add_subdirectory(asm)
 add_subdirectory(vm)
