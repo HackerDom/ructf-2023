@@ -1,8 +1,19 @@
-//
-// Created by rkhapov on 10/16/23.
-//
+#pragma once
 
-#ifndef WERK_DEFER_HPP
-#define WERK_DEFER_HPP
+#include <functional>
 
-#endif //WERK_DEFER_HPP
+class Defer {
+public:
+    typedef std::function<void()> HandlerT;
+
+    template<class F, class ...Args>
+    explicit Defer(F &&f, Args &&...args) : handler(std::bind(std::forward<F>(f), std::forward<Args>(args)...)) {
+    }
+
+    ~Defer() {
+        handler();
+    }
+
+private:
+    const HandlerT handler;
+};
