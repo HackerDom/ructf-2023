@@ -3,6 +3,7 @@ project(common)
 
 set(HEADERS
         include/utils/strings.hpp
+        include/utils/defer.hpp
         include/arch/opcodes.hpp
         include/arch/types.hpp
         include/arch/registers.hpp
