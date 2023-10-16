@@ -134,12 +134,3 @@ jmp moV
             Token(Token::Type::Eof, "")
     }, "");
 }
-
-TEST(Lexer, Imm) {
-    const char *text = R"(
-1337
-0bcdf
-
-deadbeed
-)";
-}
