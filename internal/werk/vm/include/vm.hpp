@@ -6,8 +6,9 @@ namespace werk::vm {
     class Vm {
     public:
         explicit Vm(void *memory);
+        virtual ~Vm() = default;
 
-        void Tick();
+        virtual void Tick(int opsCount);
 
     private:
         void *memory;

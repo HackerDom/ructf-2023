@@ -7,7 +7,7 @@ namespace werk::vm {
         LOG(INFO) << "some vm started on page " << memory;
     }
 
-    void Vm::Tick() {
-        LOG(INFO) << "tick on vm at memory " << memory;
+    void Vm::Tick(int opsCount) {
+        LOG(INFO) << opsCount << " ticks on vm with memory at " << memory;
     }
 }
