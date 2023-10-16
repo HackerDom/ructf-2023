@@ -2,18 +2,24 @@
 
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
+#include <memory>
+
+#include <arch/opcodes.hpp>
+#include <arch/registers.hpp>
 
 namespace werk::assembler {
     struct Token {
         enum Type {
             Opcode = 0,
-            LabelDefinition = 1,
+            Label = 1,
             Immediate = 2,
             Address = 3,
             RegisterName = 4,
-            LabelName = 5,
-            Eof = 6,
+            Colon = 5,
+            Comma = 6,
+            Eof = 7,
         };
 
         const Type type;
@@ -32,6 +38,11 @@ namespace werk::assembler {
 
     class Lexer {
     public:
+        Lexer(std::shared_ptr<arch::opcodes::OpcodesManager> om,
+              std::shared_ptr<arch::registers::RegistersManager> rm) : opcodesManager(std::move(om)),
+                                                                       registersManager(std::move(rm)) {
+        }
+
         struct TokenizeResult {
             bool Success;
             std::string ErrorMessage;
@@ -39,5 +50,15 @@ namespace werk::assembler {
         };
 
         TokenizeResult Tokenize(std::string_view text);
+
+    private:
+        std::shared_ptr<arch::opcodes::OpcodesManager> opcodesManager;
+        std::shared_ptr<arch::registers::RegistersManager> registersManager;
+
+        using TokenReadResult = std::pair<Token, std::string>;
+
+        TokenReadResult readImm(std::string_view text, int &i);
+        TokenReadResult readAddress(std::string_view text, int &i);
+        TokenReadResult readOpcodeOrLabel(std::string_view text, int &i);
     };
 }

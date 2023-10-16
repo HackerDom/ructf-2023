@@ -6,7 +6,7 @@
 #include <memory>
 
 namespace werk::utils {
-    struct CaseInsensitiveStringsHash {
+    struct CaseInsensitiveStringViewsHash {
         std::size_t operator()(const std::string_view &key) const {
             std::string lower;
             lower.reserve(key.size());
@@ -19,8 +19,32 @@ namespace werk::utils {
         }
     };
 
-    struct CaseInsensitiveStringsEquals {
+    struct CaseInsensitiveStringHash {
+        std::size_t operator()(const std::string &key) const {
+            std::string lower;
+            lower.reserve(key.size());
+
+            for (const auto &c: key) {
+                lower.push_back(static_cast<char>(std::tolower(c)));
+            }
+
+            return std::hash<std::string>().operator()(lower);
+        }
+    };
+
+    struct CaseInsensitiveStringViewsEquals {
         bool operator()(const std::string_view &left, const std::string_view &right) const {
+            return left.size() == right.size()
+                   && std::equal(left.begin(), left.end(), right.begin(),
+                                 [](char a, char b) {
+                                     return std::tolower(a) == std::tolower(b);
+                                 }
+            );
+        }
+    };
+
+    struct CaseInsensitiveStringEquals {
+        bool operator()(const std::string &left, const std::string &right) const {
             return left.size() == right.size()
                    && std::equal(left.begin(), left.end(), right.begin(),
                                  [](char a, char b) {
