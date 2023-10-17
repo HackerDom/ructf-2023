@@ -16,4 +16,8 @@ namespace werk::vm {
 
         return false;
     }
+
+    int Vm::GetTotalTicksCount() const {
+        return 0;
+    }
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <atomic>
+#include <thread>
 #include <unordered_map>
 
 #include <pages_pool.hpp>
@@ -13,7 +14,11 @@ namespace werk::server {
                 std::shared_ptr<Scheduler> scheduler,
                 std::shared_ptr<PagesPool> pagesPool);
 
+        ~Interpreter();
+
         vd_t Create(uint8_t *code, std::size_t codeSize);
+
+        bool StartExecutorThread();
 
     private:
         std::shared_ptr<Scheduler> scheduler;
@@ -24,5 +29,10 @@ namespace werk::server {
 
         std::atomic<vd_t> currentDescriptor;
         vd_t generateDescriptor();
+
+        std::shared_ptr<std::thread> executorThread;
+        std::atomic<bool> executorThreadStop;
+
+        void executorThreadTask();
     };
 }
