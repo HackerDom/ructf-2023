@@ -6,14 +6,14 @@ set(HEADERS
         include/scheduler.hpp
         include/types.hpp
         include/interpreter.hpp
-        include/vd_generator.hpp
+        include/server.hpp
         )
 
 set(SOURCES
         src/scheduler.cpp
         src/pages_pool.cpp
         src/interpreter.cpp
-        src/vd_generator.cpp
+        src/server.cpp
         )
 
 add_executable(server ${HEADERS} ${SOURCES} src/main.cpp)

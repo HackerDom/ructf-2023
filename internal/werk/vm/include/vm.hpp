@@ -10,6 +10,8 @@ namespace werk::vm {
 
         virtual void Tick(int opsCount);
 
+        [[nodiscard]] virtual int GetTotalTicksCount() const;
+
         virtual bool Stopped();
 
     private:

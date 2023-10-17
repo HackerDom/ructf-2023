@@ -6,7 +6,7 @@ namespace werk::server {
     vd_t Interpreter::generateDescriptor() {
         do {
             ++currentDescriptor;
-        } while(currentDescriptor == kEmptyVmDescriptor);
+        } while (currentDescriptor == kEmptyVmDescriptor);
 
         return currentDescriptor;
     }
@@ -14,6 +14,13 @@ namespace werk::server {
     Interpreter::Interpreter(std::shared_ptr<Scheduler> scheduler, std::shared_ptr<PagesPool> pagesPool)
             : scheduler(std::move(scheduler)), pagesPool(std::move(pagesPool)) {
         currentDescriptor = kEmptyVmDescriptor;
+    }
+
+    Interpreter::~Interpreter() {
+        if (executorThread != nullptr) {
+            executorThreadStop = true;
+            executorThread->join();
+        }
     }
 
     vd_t Interpreter::Create(uint8_t *code, std::size_t codeSize) {
@@ -24,7 +31,7 @@ namespace werk::server {
         }
 
         std::memcpy(
-                reinterpret_cast<void*>(page.page->memory + arch::constants::kProgramLoadOffset),
+                reinterpret_cast<void *>(page.page->memory + arch::constants::kProgramLoadOffset),
                 code,
                 codeSize
         );
@@ -39,6 +46,28 @@ namespace werk::server {
         scheduler->Append(vm);
 
         return vd;
+    }
+
+    bool Interpreter::StartExecutorThread() {
+        if (executorThread != nullptr) {
+            return false;
+        }
+
+        executorThreadStop = false;
+
+        executorThread = std::make_shared<std::thread>([this] {
+            this->executorThreadTask();
+        });
+
+        return true;
+    }
+
+    void Interpreter::executorThreadTask() {
+        while (!this->executorThreadStop) {
+            this->scheduler->TickAll();
+
+            //TODO: check vms for too long run
+        }
     }
 }
 
