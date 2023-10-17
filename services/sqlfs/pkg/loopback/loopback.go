@@ -8,8 +8,16 @@ import (
 
 	"github.com/hanwen/go-fuse/v2/fs"
 	"github.com/hanwen/go-fuse/v2/fuse"
+	"github.com/rs/zerolog"
 
-	sqlimpl "sqlfs/pkg/sql"
+	"sqlfs/pkg/store"
+)
+
+const (
+	GB            = 1024 * 1024 * 1024
+	FS_SIZE_LIMIT = 5 * GB
+	FS_BLOCK_SIZE = 4096
+	MAX_FILESIZE  = 100
 )
 
 // LoopbackRoot holds the parameters for creating a new loopback
@@ -49,6 +57,8 @@ type LoopbackNode struct {
 
 	// RootData points back to the root of the loopback filesystem.
 	RootData *LoopbackRoot
+
+	store store.Store
 }
 
 var _ = (fs.NodeStatfser)((*LoopbackNode)(nil))
@@ -72,12 +82,41 @@ var _ = (fs.NodeRmdirer)((*LoopbackNode)(nil))
 var _ = (fs.NodeRenamer)((*LoopbackNode)(nil))
 
 func (n *LoopbackNode) Statfs(ctx context.Context, out *fuse.StatfsOut) syscall.Errno {
-	s, err := sqlimpl.GetStatfs(ctx, n.RootData.Db)
-	if err != syscall.F_OK {
-		return err
+	logger := zerolog.Ctx(ctx)
+
+	st := &syscall.Statfs_t{
+		Type:   0xEF53,
+		Bsize:  FS_BLOCK_SIZE,
+		Blocks: FS_SIZE_LIMIT / FS_BLOCK_SIZE,
+		Fsid: syscall.Fsid{
+			X__val: [2]int32{0xEF53, 0xCAFEBAB},
+		},
+		Namelen: 50,
+		Frsize:  4096,
 	}
 
-	out.FromStatfsT(s)
+	nodeCount, err := n.store.GetNodeCount(ctx)
+	if err != nil {
+		logger.Err(err).Msg("failed to get node count")
+		return syscall.EIO
+	}
+
+	totalSize, err := n.store.GetNodesTotalSize(ctx)
+	if err != nil {
+		logger.Err(err).Msg("failed to get nodes total size")
+		return syscall.EIO
+	}
+
+	st.Bfree = st.Blocks - (totalSize / FS_BLOCK_SIZE)
+	if totalSize%FS_BLOCK_SIZE != 0 {
+		st.Bfree -= 1
+	}
+
+	st.Bavail = st.Bfree
+	st.Files = nodeCount
+	st.Ffree = (FS_SIZE_LIMIT-GB)/MAX_FILESIZE - nodeCount
+
+	out.FromStatfsT(st)
 	return fs.OK
 }
 
@@ -93,7 +132,7 @@ func (n *LoopbackNode) Lookup(ctx context.Context, name string, out *fuse.EntryO
 
 	p := filepath.Join(n.Path(n.Root()), name)
 	var err syscall.Errno
-	st, err = sqlimpl.GetStat(ctx, p, n.RootData.Db)
+	st, err = store.GetStat(ctx, p, n.RootData.Db)
 	if err != syscall.F_OK {
 		return nil, err
 	}
@@ -111,7 +150,7 @@ func (n *LoopbackNode) Lookup(ctx context.Context, name string, out *fuse.EntryO
 
 func (n *LoopbackNode) Mknod(ctx context.Context, name string, mode, rdev uint32, out *fuse.EntryOut) (*fs.Inode, syscall.Errno) {
 	p := filepath.Join(n.Path(n.Root()), name)
-	st, err := sqlimpl.Create(ctx, p, mode, 0, 1, n.RootData.Db)
+	st, err := store.Create(ctx, p, mode, 0, 1, n.RootData.Db)
 	if err != syscall.F_OK {
 		return nil, err
 	}
@@ -130,7 +169,7 @@ func (n *LoopbackNode) Mknod(ctx context.Context, name string, mode, rdev uint32
 
 func (n *LoopbackNode) Mkdir(ctx context.Context, name string, mode uint32, out *fuse.EntryOut) (*fs.Inode, syscall.Errno) {
 	p := filepath.Join(n.Path(n.Root()), name)
-	st, err := sqlimpl.Create(ctx, p, mode|syscall.S_IFDIR, 4096, 2, n.RootData.Db)
+	st, err := store.Create(ctx, p, mode|syscall.S_IFDIR, 4096, 2, n.RootData.Db)
 	if err != syscall.F_OK {
 		return nil, err
 	}
@@ -148,11 +187,11 @@ func (n *LoopbackNode) Mkdir(ctx context.Context, name string, mode uint32, out 
 }
 
 func (n *LoopbackNode) Rmdir(ctx context.Context, name string) syscall.Errno {
-	return sqlimpl.Rmdir(ctx, n.Path(n.Root()), name, n.RootData.Db)
+	return store.Rmdir(ctx, n.Path(n.Root()), name, n.RootData.Db)
 }
 
 func (n *LoopbackNode) Unlink(ctx context.Context, name string) syscall.Errno {
-	return sqlimpl.Unlink(ctx, n.Path(n.Root()), name, 0, n.RootData.Db)
+	return store.Unlink(ctx, n.Path(n.Root()), name, 0, n.RootData.Db)
 }
 
 func (n *LoopbackNode) Rename(
@@ -165,14 +204,14 @@ func (n *LoopbackNode) Rename(
 	path := n.Path(n.Root())
 	newPath := newParent.EmbeddedInode().Path(n.Root())
 
-	return sqlimpl.Rename(ctx, path, name, newPath, newName, n.RootData.Db)
+	return store.Rename(ctx, path, name, newPath, newName, n.RootData.Db)
 }
 
 var _ = (fs.NodeCreater)((*LoopbackNode)(nil))
 
 func (n *LoopbackNode) Create(ctx context.Context, name string, flags uint32, mode uint32, out *fuse.EntryOut) (inode *fs.Inode, fh fs.FileHandle, fuseFlags uint32, errno syscall.Errno) {
 	p := filepath.Join(n.Path(n.Root()), name)
-	st, err := sqlimpl.Create(ctx, p, mode, 0, 1, n.RootData.Db)
+	st, err := store.Create(ctx, p, mode, 0, 1, n.RootData.Db)
 	if err != syscall.F_OK {
 		return nil, nil, 0, err
 	}
@@ -212,7 +251,7 @@ func (n *LoopbackNode) Readlink(ctx context.Context) ([]byte, syscall.Errno) {
 }
 
 func (n *LoopbackNode) Open(ctx context.Context, flags uint32) (fh fs.FileHandle, fuseFlags uint32, errno syscall.Errno) {
-	ino, err := sqlimpl.GetIno(ctx, n.Path(n.Root()), n.RootData.Db)
+	ino, err := store.GetIno(ctx, n.Path(n.Root()), n.RootData.Db)
 	if err != syscall.F_OK {
 		return 0, 0, err
 	}
@@ -227,7 +266,7 @@ func (n *LoopbackNode) Opendir(ctx context.Context) syscall.Errno {
 
 func (n *LoopbackNode) Readdir(ctx context.Context) (fs.DirStream, syscall.Errno) {
 	// return fs.NewLoopbackDirStream(n.path())
-	stream := sqlimpl.NewDirStream(n.RootData.Db)
+	stream := store.NewDirStream(n.RootData.Db)
 	if err := stream.Init(ctx, n.Path(n.Root())); err != syscall.F_OK {
 		return nil, err
 	}
@@ -248,7 +287,7 @@ func (n *LoopbackNode) Getattr(ctx context.Context, f fs.FileHandle, out *fuse.A
 		}
 	} else {
 		var err syscall.Errno
-		st, err = sqlimpl.GetStat(ctx, n.Path(n.Root()), n.RootData.Db)
+		st, err = store.GetStat(ctx, n.Path(n.Root()), n.RootData.Db)
 		if err != syscall.F_OK {
 			return err
 		}
@@ -304,7 +343,7 @@ func (n *LoopbackNode) Setattr(ctx context.Context, f fs.FileHandle, in *fuse.Se
 			ts[0] = fuse.UtimeToTimespec(ap)
 			ts[1] = fuse.UtimeToTimespec(mp)
 
-			if err := sqlimpl.UpdateTimes(ctx, n.Path(n.Root()), ts[:], n.RootData.Db); err != syscall.F_OK {
+			if err := store.UpdateTimes(ctx, n.Path(n.Root()), ts[:], n.RootData.Db); err != syscall.F_OK {
 				return err
 			}
 		}
@@ -321,7 +360,7 @@ func (n *LoopbackNode) Setattr(ctx context.Context, f fs.FileHandle, in *fuse.Se
 	if ok && fga != nil {
 		fga.Getattr(ctx, out)
 	} else {
-		st, err := sqlimpl.GetStat(ctx, n.Path(n.Root()), n.RootData.Db)
+		st, err := store.GetStat(ctx, n.Path(n.Root()), n.RootData.Db)
 		if err != syscall.F_OK {
 			return err
 		}

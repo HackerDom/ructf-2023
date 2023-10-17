@@ -7,7 +7,7 @@ import (
 
 	"syscall"
 
-	sqlimpl "sqlfs/pkg/sql"
+	"sqlfs/pkg/store"
 
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"golang.org/x/sys/unix"
@@ -46,11 +46,11 @@ var _ = (fs.FileSetattrer)((*loopbackFile)(nil))
 var _ = (fs.FileAllocater)((*loopbackFile)(nil))
 
 func (f *loopbackFile) Read(ctx context.Context, buf []byte, off int64) (res fuse.ReadResult, errno syscall.Errno) {
-	return sqlimpl.NewReadResult(f.ino, len(buf), off, f.db), syscall.F_OK
+	return store.NewReadResult(f.ino, len(buf), off, f.db), syscall.F_OK
 }
 
 func (f *loopbackFile) Write(ctx context.Context, data []byte, off int64) (uint32, syscall.Errno) {
-	return sqlimpl.Write(ctx, data, off, f.ino, f.db)
+	return store.Write(ctx, data, off, f.ino, f.db)
 }
 
 func (f *loopbackFile) Release(ctx context.Context) syscall.Errno {
