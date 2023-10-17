@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
 	"flag"
@@ -15,6 +14,8 @@ import (
 
 	"github.com/hanwen/go-fuse/v2/fs"
 	"github.com/hanwen/go-fuse/v2/fuse"
+	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/stdlib"
 	_ "github.com/lib/pq"
 )
 
@@ -109,15 +110,19 @@ func debug(v interface{}) {
 }
 
 func connectDb() (*sql.DB, error) {
-	dsn := "postgresql://ructf:ructf@postgres:5432/ructf?sslmode=disable"
-	db, err := sql.Open("postgres", dsn)
+	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig: pgx.ConnConfig{
+			Host:     "localhost",
+			Port:     5432,
+			Database: "ructf",
+			User:     "ructf",
+			Password: "ructf",
+		},
+		MaxConnections: 10,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to db: %w", err)
 	}
 
-	if err := db.PingContext(context.Background()); err != nil {
-		return nil, fmt.Errorf("failed to connect to db: %w", err)
-	}
-
-	return db, nil
+	return stdlib.OpenDBFromPool(pool), nil
 }
