@@ -20,6 +20,10 @@ type Store interface {
 	GetNodesTotalSize(context.Context) (uint64, error)
 }
 
-type store struct{
+func NewStore(db *sql.DB) Store {
+	return &store{db: db}
+}
+
+type store struct {
 	db *sql.DB
 }

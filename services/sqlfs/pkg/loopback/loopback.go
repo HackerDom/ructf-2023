@@ -228,11 +228,6 @@ func (n *LoopbackNode) Create(ctx context.Context, name string, flags uint32, mo
 	return ch, lf, 0, 0
 }
 
-func path(n *LoopbackNode) string {
-	path := n.Path(n.Root())
-	return filepath.Join(n.RootData.Path, path)
-}
-
 func (n *LoopbackNode) Symlink(
 	ctx context.Context,
 	target,
@@ -303,7 +298,7 @@ func (n *LoopbackNode) Setattr(ctx context.Context, f fs.FileHandle, in *fuse.Se
 	p := n.path()
 	fsa, ok := f.(fs.FileSetattrer)
 	if ok && fsa != nil {
-		fsa.Setattr(ctx, in, out)
+		_ = fsa.Setattr(ctx, in, out)
 	} else {
 		if m, ok := in.GetMode(); ok {
 			if err := syscall.Chmod(p, m); err != nil {
@@ -358,7 +353,7 @@ func (n *LoopbackNode) Setattr(ctx context.Context, f fs.FileHandle, in *fuse.Se
 
 	fga, ok := f.(fs.FileGetattrer)
 	if ok && fga != nil {
-		fga.Getattr(ctx, out)
+		_ = fga.Getattr(ctx, out)
 	} else {
 		st, err := store.GetStat(ctx, n.Path(n.Root()), n.RootData.Db)
 		if err != syscall.F_OK {

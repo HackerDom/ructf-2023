@@ -22,7 +22,6 @@ func (s *store) GetNodeCount(ctx context.Context) (uint64, error) {
 	return nodeCount, nil
 }
 
-
 func (s *store) GetNodesTotalSize(ctx context.Context) (uint64, error) {
 	query, args, err := nodesTable.Select(goqu.SUM("size")).ToSQL()
 	if err != nil {

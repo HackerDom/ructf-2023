@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -16,7 +15,6 @@ import (
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/stdlib"
-	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -53,7 +51,9 @@ func run(db *sql.DB) {
 			fmt.Println(err)
 			os.Exit(3)
 		}
-		pprof.StartCPUProfile(f)
+		if err := pprof.StartCPUProfile(f); err != nil {
+			panic(err)
+		}
 		defer pprof.StopCPUProfile()
 	}
 
@@ -98,15 +98,8 @@ func run(db *sql.DB) {
 	if !*quiet {
 		fmt.Println("Mounted!")
 	}
-	server.Wait()
-}
 
-func debug(v interface{}) {
-	mv, err := json.Marshal(v)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(mv))
+	server.Wait()
 }
 
 func connectDb() (*sql.DB, error) {
