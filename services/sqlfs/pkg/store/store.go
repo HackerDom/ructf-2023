@@ -2,9 +2,12 @@ package store
 
 import (
 	"context"
-	"database/sql"
+	"sqlfs/pkg/basestore"
+	"sqlfs/pkg/model"
 
 	"github.com/doug-martin/goqu/v9"
+
+	// need to goqu dialect
 	_ "github.com/doug-martin/goqu/v9/dialect/postgres"
 )
 
@@ -18,12 +21,14 @@ var (
 type Store interface {
 	GetNodeCount(context.Context) (uint64, error)
 	GetNodesTotalSize(context.Context) (uint64, error)
+	GetNode(_ context.Context, ino uint64) (*model.Node, error)
+	GetNodeIno(_ context.Context, path string) (uint64, error)
 }
 
-func NewStore(db *sql.DB) Store {
-	return &store{db: db}
+func New(baseStore basestore.BaseStore) Store {
+	return &store{baseStore: baseStore}
 }
 
 type store struct {
-	db *sql.DB
+	baseStore basestore.BaseStore
 }

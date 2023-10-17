@@ -8,13 +8,16 @@ import (
 	"os"
 	"path"
 	"runtime/pprof"
+	"sqlfs/pkg/basestore"
 	"sqlfs/pkg/loopback"
+	"sqlfs/pkg/store"
 	"time"
 
 	"github.com/hanwen/go-fuse/v2/fs"
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/stdlib"
+	"github.com/rs/zerolog"
 )
 
 func main() {
@@ -57,8 +60,10 @@ func run(db *sql.DB) {
 		defer pprof.StopCPUProfile()
 	}
 
+	logger := zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout})
+
 	orig := flag.Arg(1)
-	loopbackRoot, err := loopback.NewLoopbackRoot(orig, db)
+	loopbackRoot, err := loopback.NewLoopbackRoot(orig, db, store.New(basestore.New(db)), &logger)
 	if err != nil {
 		log.Fatalf("NewLoopbackRoot(%s): %v\n", orig, err)
 	}

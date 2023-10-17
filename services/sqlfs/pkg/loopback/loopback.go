@@ -3,6 +3,8 @@ package loopback
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"path/filepath"
 	"syscall"
 
@@ -18,6 +20,7 @@ const (
 	FS_SIZE_LIMIT = 5 * GB
 	FS_BLOCK_SIZE = 4096
 	MAX_FILESIZE  = 100
+	FS_BLOCKS     = FS_SIZE_LIMIT / FS_BLOCK_SIZE
 )
 
 // LoopbackRoot holds the parameters for creating a new loopback
@@ -37,6 +40,9 @@ type LoopbackRoot struct {
 	NewNode func(rootData *LoopbackRoot, parent *fs.Inode, name string, st *syscall.Stat_t) fs.InodeEmbedder
 
 	Db *sql.DB
+
+	store  store.Store
+	logger *zerolog.Logger
 }
 
 func (r *LoopbackRoot) newNode(parent *fs.Inode, name string, st *syscall.Stat_t) fs.InodeEmbedder {
@@ -57,8 +63,6 @@ type LoopbackNode struct {
 
 	// RootData points back to the root of the loopback filesystem.
 	RootData *LoopbackRoot
-
-	store store.Store
 }
 
 var _ = (fs.NodeStatfser)((*LoopbackNode)(nil))
@@ -82,8 +86,6 @@ var _ = (fs.NodeRmdirer)((*LoopbackNode)(nil))
 var _ = (fs.NodeRenamer)((*LoopbackNode)(nil))
 
 func (n *LoopbackNode) Statfs(ctx context.Context, out *fuse.StatfsOut) syscall.Errno {
-	logger := zerolog.Ctx(ctx)
-
 	st := &syscall.Statfs_t{
 		Type:   0xEF53,
 		Bsize:  FS_BLOCK_SIZE,
@@ -95,15 +97,15 @@ func (n *LoopbackNode) Statfs(ctx context.Context, out *fuse.StatfsOut) syscall.
 		Frsize:  4096,
 	}
 
-	nodeCount, err := n.store.GetNodeCount(ctx)
+	nodeCount, err := n.RootData.store.GetNodeCount(ctx)
 	if err != nil {
-		logger.Err(err).Msg("failed to get node count")
+		n.RootData.logger.Err(err).Msg("failed to get node count")
 		return syscall.EIO
 	}
 
-	totalSize, err := n.store.GetNodesTotalSize(ctx)
+	totalSize, err := n.RootData.store.GetNodesTotalSize(ctx)
 	if err != nil {
-		logger.Err(err).Msg("failed to get nodes total size")
+		n.RootData.logger.Err(err).Msg("failed to get nodes total size")
 		return syscall.EIO
 	}
 
@@ -128,24 +130,55 @@ func (n *LoopbackNode) path() string {
 }
 
 func (n *LoopbackNode) Lookup(ctx context.Context, name string, out *fuse.EntryOut) (*fs.Inode, syscall.Errno) {
-	var st *syscall.Stat_t
-
 	p := filepath.Join(n.Path(n.Root()), name)
-	var err syscall.Errno
-	st, err = store.GetStat(ctx, p, n.RootData.Db)
-	if err != syscall.F_OK {
-		return nil, err
+
+	ino, err := n.RootData.store.GetNodeIno(ctx, p)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return nil, syscall.ENOENT
+	case err == nil:
+	default:
+		n.RootData.logger.Err(err).Msg("failed to get ino of node")
+		return nil, syscall.EIO
+	}
+
+	node, err := n.RootData.store.GetNode(ctx, ino)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return nil, syscall.ENOENT
+	case err == nil:
+	default:
+		n.RootData.logger.Err(err).
+			Str("ino", fmt.Sprintf("%d", ino)).
+			Msg("failed to get node by ino")
+		return nil, syscall.EIO
+	}
+
+	st := &syscall.Stat_t{
+		Dev:     node.Dev,
+		Ino:     node.Ino,
+		Nlink:   node.Nlink,
+		Mode:    node.Mode,
+		Uid:     node.Uid,
+		Gid:     node.Gid,
+		Rdev:    node.Rdev,
+		Size:    int64(node.Size),
+		Blksize: FS_BLOCK_SIZE,
+		Blocks:  int64(node.Size / FS_BLOCK_SIZE),
+		Atim:    syscall.Timespec{Sec: node.Atime.Unix(), Nsec: int64(node.Atime.Nanosecond())},
+		Mtim:    syscall.Timespec{Sec: node.Mtime.Unix(), Nsec: int64(node.Mtime.Nanosecond())},
+		Ctim:    syscall.Timespec{Sec: node.Ctime.Unix(), Nsec: int64(node.Ctime.Nanosecond())},
 	}
 
 	out.Attr.FromStat(st)
-
-	node := n.RootData.newNode(n.EmbeddedInode(), name, st)
-	ch := n.NewInode(ctx, node, fs.StableAttr{
+	inodeEmbedder := n.RootData.newNode(n.EmbeddedInode(), name, st)
+	inode := n.NewInode(ctx, inodeEmbedder, fs.StableAttr{
 		Mode: st.Mode,
 		Ino:  st.Ino,
 		Gen:  1,
 	})
-	return ch, 0
+
+	return inode, 0
 }
 
 func (n *LoopbackNode) Mknod(ctx context.Context, name string, mode, rdev uint32, out *fuse.EntryOut) (*fs.Inode, syscall.Errno) {
@@ -367,7 +400,7 @@ func (n *LoopbackNode) Setattr(ctx context.Context, f fs.FileHandle, in *fuse.Se
 // NewLoopbackRoot returns a root node for a loopback file system whose
 // root is at the given root. This node implements all NodeXxxxer
 // operations available.
-func NewLoopbackRoot(rootPath string, db *sql.DB) (fs.InodeEmbedder, error) {
+func NewLoopbackRoot(rootPath string, db *sql.DB, store store.Store, logger *zerolog.Logger) (fs.InodeEmbedder, error) {
 	var st syscall.Stat_t
 	err := syscall.Stat(rootPath, &st)
 	if err != nil {
@@ -375,9 +408,11 @@ func NewLoopbackRoot(rootPath string, db *sql.DB) (fs.InodeEmbedder, error) {
 	}
 
 	root := &LoopbackRoot{
-		Path: rootPath,
-		Dev:  uint64(st.Dev),
-		Db:   db,
+		Path:   rootPath,
+		Dev:    uint64(st.Dev),
+		Db:     db,
+		store:  store,
+		logger: logger,
 	}
 
 	return root.newNode(nil, "", &st), nil
