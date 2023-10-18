@@ -38,7 +38,7 @@ namespace werk::server {
         }
 
         if (std::filesystem::is_socket(socketPath)) {
-            LOG(WARNING) << socketPath << " already exists, deleting...";
+            LOG(WARNING) << socketPath << " already exists, deleting";
             std::error_code errorCode;
             std::filesystem::remove(socketPath, errorCode);
             if (errorCode) {
@@ -72,7 +72,7 @@ namespace werk::server {
         LOG(INFO) << "start listening on " << socketPath << "...";
 
         while (listening) {
-            auto ready = poll(pollFds, 1, 500 /*500 ms*/);
+            auto ready = poll(pollFds, 1, 500 /*ms*/);
             if (ready < 0) {
                 if (errno == EINTR) {
                     return {true, ""};
@@ -106,7 +106,7 @@ namespace werk::server {
         });
 
         timeval timeout{};
-        timeout.tv_sec = 5;
+        timeout.tv_sec = 0;
         timeout.tv_usec = 500 * 1000; // 500 ms
 
         if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
@@ -114,7 +114,7 @@ namespace werk::server {
             return;
         }
 
-        uint64_t command;
+        char command;
         auto nrecv = recv(fd, &command, sizeof(command), MSG_WAITALL);
         if (nrecv == 0) {
             LOG(WARNING) << "client closed connection unexpectedly";
@@ -132,19 +132,52 @@ namespace werk::server {
         }
 
         switch (command) {
-            case 0x4d'56'45'54'41'45'52'43: //CREATEVM
-                write(fd, "CREATE!", 7);
+            case 'R':
+                handleRunRequest(fd);
                 break;
-            case 0x45'54'41'54'53'54'45'47: //GETSTATE
-                write(fd, "STATUS!", 7);
+            case 'S':
+                handleStatusRequest(fd);
                 break;
-            case 0x4c'4c'49'4b'4c'4c'49'4b: //KILLKILL
-                write(fd, "KILL!", 5);
+            case 'K':
+                handleKillRequest(fd);
                 break;
             default:
                 LOG(WARNING) << "unknown command from client";
                 send(fd, "NOCOMMND", 8, 0);
                 break;
+        }
+    }
+
+    void Server::SetRunHandler(Server::RunHandlerT handler) {
+        runHandler = std::move(handler);
+    }
+
+    void Server::SetKillHandler(Server::KillHandlerT handler) {
+        killHandler = std::move(handler);
+    }
+
+    void Server::SetStatusRequestHandler(Server::StatusHandlerT handler) {
+        statusHandler = std::move(handler);
+    }
+
+    void Server::handleRunRequest(int fd) {
+        if (!runHandler) {
+            write(fd, "not implemented", 15);
+            return;
+        }
+    }
+
+    void Server::handleStatusRequest(int fd) {
+        if (!statusHandler) {
+            write(fd, "not implemented", 15);
+            return;
+        }
+    }
+
+    void Server::handleKillRequest(int fd) {
+        if (!killHandler) {
+            write(fd, "not implemented", 15);
+            return;
         }
     }
 }
