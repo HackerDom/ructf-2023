@@ -2,18 +2,20 @@
 
 #include <functional>
 
-class Defer {
-public:
-    typedef std::function<void()> HandlerT;
+namespace werk::utils {
+    class Defer {
+    public:
+        typedef std::function<void()> HandlerT;
 
-    template<class F, class ...Args>
-    explicit Defer(F &&f, Args &&...args) : handler(std::bind(std::forward<F>(f), std::forward<Args>(args)...)) {
-    }
+        template<class F, class ...Args>
+        explicit Defer(F &&f, Args &&...args) : handler(std::bind(std::forward<F>(f), std::forward<Args>(args)...)) {
+        }
 
-    ~Defer() {
-        handler();
-    }
+        ~Defer() {
+            handler();
+        }
 
-private:
-    const HandlerT handler;
-};
+    private:
+        const HandlerT handler;
+    };
+}

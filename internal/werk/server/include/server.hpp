@@ -4,23 +4,35 @@
 #include <filesystem>
 #include <atomic>
 
+#include <utils/thread_pool.hpp>
+
 #include <interpreter.hpp>
 
 namespace werk::server {
     class Server {
     public:
-        explicit Server(std::shared_ptr<Interpreter> interpreter,
-                        std::filesystem::path socketPath) : interpreter(std::move(interpreter)),
-                                                            socketPath(std::move(socketPath)) {
-            // empty
-        }
+        Server(
+                std::shared_ptr<utils::ThreadPool> threadPool,
+                std::filesystem::path socketPath
+        );
 
-        bool Listen();
+        struct ListenResult {
+            bool success;
+            std::string errorMessage;
+        };
+
+        ListenResult Listen();
+
+        void StopListen();
 
     private:
-        std::shared_ptr<Interpreter> interpreter;
+        std::shared_ptr<utils::ThreadPool> threadPool;
         const std::filesystem::path socketPath;
 
         std::atomic_bool listening;
+
+        ListenResult listenInternal();
+
+        void handleClient(int fd);
     };
 }
