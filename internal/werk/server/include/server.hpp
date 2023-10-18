@@ -7,7 +7,7 @@
 
 #include <utils/thread_pool.hpp>
 
-#include <interpreter.hpp>
+#include <models.hpp>
 
 namespace werk::server {
     class Server {
@@ -26,48 +26,13 @@ namespace werk::server {
 
         void StopListen();
 
-        struct RunRequest {
-            std::filesystem::path binaryFilePath;
-        };
-
-        struct RunResponse {
-            bool success;
-            vd_t vd;
-            std::string errorMessage;
-        };
-
         using RunHandlerT = std::function<RunResponse(const RunRequest&)>;
-
         void SetRunHandler(RunHandlerT handler);
 
-        struct KillRequest {
-            vd_t vd;
-        };
-
-        struct KillResponse {
-            bool success;
-        };
-
         using KillHandlerT = std::function<KillResponse(const KillRequest&)>;
-
         void SetKillHandler(KillHandlerT handler);
 
-        struct StatusRequest {
-            vd_t vd;
-        };
-
-        struct StatusResponse {
-            enum Status {
-                RUNNING = 0,
-                EXECUTION_TIMEOUT = 1,
-                NOT_FOUND = 2,
-                KILLED = 3,
-            };
-            Status status;
-        };
-
         using StatusHandlerT = std::function<StatusResponse(const StatusRequest &request)>;
-
         void SetStatusHandler(StatusHandlerT handler);
 
     private:
