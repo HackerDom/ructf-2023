@@ -31,11 +31,8 @@ namespace werk::server {
         };
 
         struct RunResponse {
-            enum Status {
-                OK = 0,
-                FAIL = 1,
-            };
-            Status status;
+            bool success;
+            vd_t vd;
             std::string errorMessage;
         };
 
@@ -71,7 +68,7 @@ namespace werk::server {
 
         using StatusHandlerT = std::function<StatusResponse(const StatusRequest &request)>;
 
-        void SetStatusRequestHandler(StatusHandlerT handler);
+        void SetStatusHandler(StatusHandlerT handler);
 
     private:
         std::shared_ptr<utils::ThreadPool> threadPool;

@@ -156,7 +156,7 @@ namespace werk::server {
         killHandler = std::move(handler);
     }
 
-    void Server::SetStatusRequestHandler(Server::StatusHandlerT handler) {
+    void Server::SetStatusHandler(Server::StatusHandlerT handler) {
         statusHandler = std::move(handler);
     }
 
