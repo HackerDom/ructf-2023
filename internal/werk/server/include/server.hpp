@@ -2,6 +2,7 @@
 
 #include <string>
 #include <filesystem>
+#include <atomic>
 
 #include <interpreter.hpp>
 
@@ -14,10 +15,12 @@ namespace werk::server {
             // empty
         }
 
-        void Listen();
+        bool Listen();
 
     private:
         std::shared_ptr<Interpreter> interpreter;
         const std::filesystem::path socketPath;
+
+        std::atomic_bool listening;
     };
 }
