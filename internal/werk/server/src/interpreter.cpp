@@ -1,5 +1,3 @@
-#include <cstring>
-
 #include <interpreter.hpp>
 
 namespace werk::server {
@@ -26,18 +24,18 @@ namespace werk::server {
         }
     }
 
-    vd_t Interpreter::Create(uint8_t *code, std::size_t codeSize) {
+    RunResponse Interpreter::Run(const RunRequest &request) {
         auto vd = generateDescriptor();
         auto page = pagesPool->Allocate(vd);
         if (!page.success) {
-            return kEmptyVmDescriptor;
+            return {false, kEmptyVmDescriptor, "cant allocate space for vm"};
         }
 
-        std::memcpy(
-                reinterpret_cast<void *>(page.page->memory + arch::constants::kProgramLoadOffset),
-                code,
-                codeSize
-        );
+//        std::memcpy(
+//                reinterpret_cast<void *>(page.page->memory + arch::constants::kProgramLoadOffset),
+//                code,
+//                codeSize
+//        );
 
         auto vm = std::make_shared<vm::Vm>(page.page->memory);
 
@@ -48,7 +46,7 @@ namespace werk::server {
 
         scheduler->Append(vm);
 
-        return vd;
+        return {true, vd, ""};
     }
 
     bool Interpreter::StartExecutorThread() {
@@ -63,6 +61,14 @@ namespace werk::server {
         });
 
         return true;
+    }
+
+    StatusResponse Interpreter::Status(const StatusRequest &request) {
+        return StatusResponse();
+    }
+
+    KillResponse Interpreter::Kill(const KillRequest &request) {
+        return KillResponse();
     }
 
     void Interpreter::executorThreadTask() {

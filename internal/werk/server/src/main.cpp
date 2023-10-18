@@ -3,6 +3,7 @@
 #include <glog/logging.h>
 
 #include <server.hpp>
+#include <interpreter.hpp>
 
 using namespace werk::server;
 using namespace werk::utils;
@@ -29,8 +30,24 @@ int main(int argc, char **argv) {
 
     auto path = std::filesystem::path(std::string(argv[1]));
 
+    auto scheduler = std::make_shared<Scheduler>(500, 1000);
+    auto pagesPool = std::make_shared<PagesPool>(3);
+    auto interpreter = std::make_shared<Interpreter>(scheduler, pagesPool, std::chrono::milliseconds(200));
     auto threadPool = std::make_shared<ThreadPool>(5);
+
     server = std::make_shared<Server>(threadPool, path);
+
+    server->SetRunHandler([interpreter](const RunRequest &request) {
+        return interpreter->Run(request);
+    });
+
+    server->SetStatusHandler([interpreter](const StatusRequest &request) {
+        return interpreter->Status(request);
+    });
+
+    server->SetKillHandler([interpreter](const KillRequest &request) {
+        return interpreter->Kill(request);
+    });
 
     std::signal(SIGCHLD, SIG_IGN);
     std::signal(SIGPIPE, SIG_IGN);

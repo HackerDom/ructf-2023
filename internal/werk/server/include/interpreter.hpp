@@ -7,6 +7,7 @@
 
 #include <pages_pool.hpp>
 #include <scheduler.hpp>
+#include <models.hpp>
 
 namespace werk::server {
     class Interpreter {
@@ -18,9 +19,13 @@ namespace werk::server {
 
         ~Interpreter();
 
-        vd_t Create(uint8_t *code, std::size_t codeSize);
-
         bool StartExecutorThread();
+
+        RunResponse Run(const RunRequest &request);
+
+        StatusResponse Status(const StatusRequest &request);
+
+        KillResponse Kill(const KillRequest &request);
 
     private:
         std::shared_ptr<Scheduler> scheduler;
@@ -30,9 +35,11 @@ namespace werk::server {
         std::mutex vdMapMutex;
 
         std::atomic<vd_t> currentDescriptor;
+
         vd_t generateDescriptor();
 
         const std::chrono::milliseconds sleepPeriod;
+
         void executorThreadTask();
 
         std::shared_ptr<std::thread> executorThread;
