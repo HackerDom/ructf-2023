@@ -36,6 +36,6 @@ namespace werk::server {
         void executorThreadTask();
 
         std::shared_ptr<std::thread> executorThread;
-        std::atomic<bool> executorThreadStop;
+        std::atomic_bool executorThreadStop;
     };
 }

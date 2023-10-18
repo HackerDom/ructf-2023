@@ -3,7 +3,13 @@
 #include <server.hpp>
 
 namespace werk::server {
-    void Server::Listen() {
+    bool Server::Listen() {
+        if (listening) {
+            return false;
+        }
 
+        if (!listening.exchange(true)) {
+
+        }
     }
 }
