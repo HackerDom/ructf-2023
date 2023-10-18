@@ -2,7 +2,7 @@ import os
 import sys
 from subprocess import call
 
-N = 100
+N = 30
 OPENVPN_PATH = "/usr/sbin/openvpn"
 
 if __name__ != "__main__":
