@@ -7,6 +7,7 @@ set(HEADERS
         include/types.hpp
         include/interpreter.hpp
         include/server.hpp
+        include/models.hpp
         )
 
 set(SOURCES
