@@ -3,7 +3,7 @@ import sys
 
 N = 30
 
-SERVER = "188.166.70.229"
+SERVER = "104.248.92.81"
 
 CLIENT_DATA = """mode p2p
 dev game
