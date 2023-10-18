@@ -11,8 +11,11 @@ namespace werk::server {
         return currentDescriptor;
     }
 
-    Interpreter::Interpreter(std::shared_ptr<Scheduler> scheduler, std::shared_ptr<PagesPool> pagesPool)
-            : scheduler(std::move(scheduler)), pagesPool(std::move(pagesPool)) {
+    Interpreter::Interpreter(
+            std::shared_ptr<Scheduler> scheduler,
+            std::shared_ptr<PagesPool> pagesPool,
+            std::chrono::milliseconds sleepPeriodMs)
+            : scheduler(std::move(scheduler)), pagesPool(std::move(pagesPool)), sleepPeriod(sleepPeriodMs) {
         currentDescriptor = kEmptyVmDescriptor;
     }
 
@@ -67,6 +70,8 @@ namespace werk::server {
             this->scheduler->TickAll();
 
             //TODO: check vms for too long run
+
+            std::this_thread::sleep_for(sleepPeriod);
         }
     }
 }

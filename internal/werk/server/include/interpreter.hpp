@@ -3,6 +3,7 @@
 #include <atomic>
 #include <thread>
 #include <unordered_map>
+#include <chrono>
 
 #include <pages_pool.hpp>
 #include <scheduler.hpp>
@@ -12,7 +13,8 @@ namespace werk::server {
     public:
         Interpreter(
                 std::shared_ptr<Scheduler> scheduler,
-                std::shared_ptr<PagesPool> pagesPool);
+                std::shared_ptr<PagesPool> pagesPool,
+                std::chrono::milliseconds sleepPeriodMs);
 
         ~Interpreter();
 
@@ -30,9 +32,10 @@ namespace werk::server {
         std::atomic<vd_t> currentDescriptor;
         vd_t generateDescriptor();
 
+        const std::chrono::milliseconds sleepPeriod;
+        void executorThreadTask();
+
         std::shared_ptr<std::thread> executorThread;
         std::atomic<bool> executorThreadStop;
-
-        void executorThreadTask();
     };
 }
