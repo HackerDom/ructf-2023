@@ -2,6 +2,8 @@
 
 namespace werk::server {
     vd_t Interpreter::generateDescriptor() {
+        //TODO: fix me
+        //randomization?
         do {
             ++currentDescriptor;
         } while (currentDescriptor == kEmptyVmDescriptor);

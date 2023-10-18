@@ -37,6 +37,8 @@ int main(int argc, char **argv) {
 
     server = std::make_shared<Server>(threadPool, path);
 
+    interpreter->StartExecutorThread();
+
     server->SetRunHandler([interpreter](const RunRequest &request) {
         return interpreter->Run(request);
     });
