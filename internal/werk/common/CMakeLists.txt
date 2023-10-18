@@ -13,6 +13,7 @@ set(HEADERS
 
 set(SOURCES
         src/utils/strings.cpp
+        src/utils/thread_pool.cpp
         src/arch/opcodes.cpp
         src/arch/registers.cpp
         )
