@@ -27,4 +27,11 @@ func TestVmClientPlayground(t *testing.T) {
 		log.Fatal(err)
 	}
 	log.Printf("%v", *res)
+
+	res, err = c.Run(&RunRequest{BinaryPath: "binary", SerialOutPath: "serial"})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("%v", *res)
 }
