@@ -99,6 +99,42 @@ namespace werk::server {
         return {true, ""};
     }
 
+    static ssize_t recvAll(int fd, void *buf, std::size_t n) {
+        auto nrecv = recv(fd, buf, n, MSG_WAITALL);
+        if (nrecv == 0) {
+            LOG(WARNING) << "client closed the connection unexpectedly";
+            return 0;
+        } else if (nrecv < 0) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
+                LOG(WARNING) << "command reading timeout: probably hanging client?";
+            }
+            LOG(ERROR) << utils::PError("recv");
+            return -1;
+        } else if (static_cast<std::size_t>(nrecv) != n) {
+            LOG(WARNING) << "not full read, probably hanging client?";
+            LOG(WARNING) << "perror, just in case: " << utils::PError("recv");
+            return -1;
+        }
+
+        return nrecv;
+    }
+
+    static ssize_t sendAll(int fd, const void *buf, std::size_t n) {
+        auto nsend = send(fd, buf, n, 0);
+        if (nsend == 0) {
+            LOG(WARNING) << "client close connection unexpectedly";
+            return 0;
+        } else if (nsend < 0) {
+            LOG(ERROR) << utils::PError("send");
+            return nsend;
+        } else if (static_cast<std::size_t>(nsend) != n) {
+            LOG(WARNING) << "not full send, probably hanging client?";
+            return 1;
+        }
+
+        return nsend;
+    }
+
     void Server::handleClient(int fd) {
         utils::Defer closer([fd] {
             fsync(fd);
@@ -110,41 +146,41 @@ namespace werk::server {
         timeout.tv_usec = 300 * 1000; // 300 ms
 
         if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
-            LOG(ERROR) << utils::PError("setsockopt(SO_RVBTIMEO) for cliend fd");
+            LOG(ERROR) << utils::PError("setsockopt(SO_RVBTIMEO) for client fd");
             return;
         }
 
-        char command;
-        auto nrecv = recv(fd, &command, sizeof(command), MSG_WAITALL);
-        if (nrecv == 0) {
-            LOG(WARNING) << "client closed connection unexpectedly";
-            return;
-        } else if (nrecv < 0) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) {
-                LOG(WARNING) << "command reading timeout: probably hanging client?";
+        auto acceptCommands = true;
+        while (acceptCommands) {
+            int8_t command;
+            auto nrecv = recvAll(fd, &command, sizeof(command));
+            if (nrecv == 0) {
+                LOG(INFO) << "client closed connection";
+                break;
+            } else if (nrecv < 0) {
+                LOG(WARNING) << "reading command failed, closing connection";
+                break;
             }
-            LOG(ERROR) << utils::PError("recv");
-            return;
-        } else if (nrecv != sizeof(command)) {
-            LOG(WARNING) << "not full read, probably hanging client?";
-            LOG(WARNING) << "perror, just in case: " << utils::PError("recv");
-            return;
-        }
 
-        switch (command) {
-            case 'R':
-                handleRunRequest(fd);
-                break;
-            case 'S':
-                handleStatusRequest(fd);
-                break;
-            case 'K':
-                handleKillRequest(fd);
-                break;
-            default:
-                LOG(WARNING) << "unknown command from client";
-                send(fd, "NOCOMMND", 8, 0);
-                break;
+            switch (command) {
+                case 'R':
+                    handleRunRequest(fd);
+                    break;
+                case 'S':
+                    handleStatusRequest(fd);
+                    break;
+                case 'K':
+                    handleKillRequest(fd);
+                    break;
+                case 'Q':
+                    acceptCommands = false;
+                    break;
+                default:
+                    LOG(WARNING) << "unknown command from client";
+                    writeInvalidRequest(fd);
+                    acceptCommands = false;
+                    break;
+            }
         }
     }
 
@@ -162,8 +198,78 @@ namespace werk::server {
 
     void Server::handleRunRequest(int fd) {
         if (!runHandler) {
-            write(fd, "not implemented", 15);
+            writeInvalidRequest(fd);
             return;
+        }
+
+        uint8_t binaryPathLen;
+        if (recvAll(fd, &binaryPathLen, sizeof(binaryPathLen)) <= 0) {
+            LOG(WARNING) << "reading binary path len failed, closing connection";
+            return;
+        }
+
+        uint8_t serialOutPathLen;
+        if (recvAll(fd, &serialOutPathLen, sizeof(serialOutPathLen)) <= 0) {
+            LOG(WARNING) << "reading serial out path len failed, closing connection";
+            return;
+        }
+
+        std::string binaryPath;
+        binaryPath.resize(binaryPathLen);
+        if (recvAll(fd, binaryPath.data(), binaryPath.size()) <= 0) {
+            LOG(WARNING) << "reading binary path failed, closing connection";
+            return;
+        }
+
+        std::string serialOutPath;
+        serialOutPath.resize(serialOutPathLen);
+        if (recvAll(fd, serialOutPath.data(), serialOutPath.size()) <= 0) {
+            LOG(WARNING) << "reading serial out path failed, closing connection";
+            return;
+        }
+
+        auto request = RunRequest{
+                std::filesystem::path(binaryPath),
+                std::filesystem::path(serialOutPath)
+        };
+
+        LOG(INFO) << "request = " << request.String();
+
+        RunResponse response;
+
+        try {
+            response = runHandler(request);
+        } catch (std::exception &e) {
+            LOG(ERROR) << "run handler failed with exception: " << e.what();
+            return;
+        } catch (...) {
+            LOG(ERROR) << "run handler failed with exception";
+            return;
+        }
+
+        LOG(INFO) << "response = " << response.String();
+
+        if (sendAll(fd, &response.success, sizeof(response.success)) < 0) {
+            LOG(WARNING) << "sending success value failed, closing connection";
+            return;
+        }
+
+        if (response.success) {
+            if (sendAll(fd, &response.vd, sizeof(response.vd)) < 0) {
+                LOG(WARNING) << "sending vm descriptor value failed, closing connection";
+                return;
+            }
+        } else {
+            uint16_t len = response.errorMessage.size();
+            if (sendAll(fd, &len, sizeof(len)) < 0) {
+                LOG(WARNING) << "sending error message len failed, closing connection";
+                return;
+            }
+
+            if (sendAll(fd, response.errorMessage.data(), response.errorMessage.size()) <= 0) {
+                LOG(WARNING) << "sending error message failed, closing connection";
+                return;
+            }
         }
     }
 
@@ -179,5 +285,9 @@ namespace werk::server {
             write(fd, "not implemented", 15);
             return;
         }
+    }
+
+    void Server::writeInvalidRequest(int fd) {
+        sendAll(fd, "INVALID", sizeof("INVALID"));
     }
 }

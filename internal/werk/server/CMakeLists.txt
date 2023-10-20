@@ -15,6 +15,7 @@ set(SOURCES
         src/pages_pool.cpp
         src/interpreter.cpp
         src/server.cpp
+        src/models.cpp
         )
 
 add_executable(server ${HEADERS} ${SOURCES} src/main.cpp)

@@ -51,5 +51,7 @@ namespace werk::server {
         RunHandlerT runHandler;
         KillHandlerT killHandler;
         StatusHandlerT statusHandler;
+
+        static void writeInvalidRequest(int fd);
     };
 }
