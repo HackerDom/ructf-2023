@@ -1,30 +1,42 @@
 #pragma once
 
 #include <filesystem>
+#include <string>
 
 #include <types.hpp>
 
 namespace werk::server {
     struct RunRequest {
-        std::filesystem::path binaryFilePath;
+        std::filesystem::path binaryPath;
+        std::filesystem::path serialOutPath;
+
+        [[nodiscard]] std::string String() const;
     };
 
     struct RunResponse {
         bool success;
         vd_t vd;
         std::string errorMessage;
+
+        [[nodiscard]] std::string String() const;
     };
 
     struct KillRequest {
         vd_t vd;
+
+        [[nodiscard]] std::string String() const;
     };
 
     struct KillResponse {
         bool success;
+
+        [[nodiscard]] std::string String() const;
     };
 
     struct StatusRequest {
         vd_t vd;
+
+        [[nodiscard]] std::string String() const;
     };
 
     struct StatusResponse {
@@ -35,5 +47,7 @@ namespace werk::server {
             KILLED = 3,
         };
         Status status;
+
+        [[nodiscard]] std::string String() const;
     };
 }

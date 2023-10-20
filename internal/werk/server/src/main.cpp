@@ -40,7 +40,11 @@ int main(int argc, char **argv) {
     interpreter->StartExecutorThread();
 
     server->SetRunHandler([interpreter](const RunRequest &request) {
-        return interpreter->Run(request);
+        if (request.binaryPath != "error") {
+            return RunResponse{true, 0xdeadbeedcafebabe, ""};
+        }
+        return RunResponse{false, kEmptyVmDescriptor, "some error occurred"};
+//        return interpreter->Run(request);
     });
 
     server->SetStatusHandler([interpreter](const StatusRequest &request) {
