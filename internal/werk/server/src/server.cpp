@@ -107,7 +107,7 @@ namespace werk::server {
 
         timeval timeout{};
         timeout.tv_sec = 0;
-        timeout.tv_usec = 500 * 1000; // 500 ms
+        timeout.tv_usec = 300 * 1000; // 300 ms
 
         if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) < 0) {
             LOG(ERROR) << utils::PError("setsockopt(SO_RVBTIMEO) for cliend fd");
