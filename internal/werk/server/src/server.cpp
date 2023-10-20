@@ -150,6 +150,11 @@ namespace werk::server {
             return;
         }
 
+        if (setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout)) < 0) {
+            LOG(ERROR) << utils::PError("setsockopt(SO_SNDTIMEO) for client fd");
+            return;
+        }
+
         auto acceptCommands = true;
         while (acceptCommands) {
             int8_t command;
