@@ -2,6 +2,8 @@
 
 #include <filesystem>
 #include <string>
+#include <utility>
+#include <memory>
 
 #include <types.hpp>
 
@@ -11,6 +13,8 @@ namespace werk::server {
         std::filesystem::path serialOutPath;
 
         [[nodiscard]] std::string String() const;
+
+        static std::pair<std::shared_ptr<RunRequest>, std::string> ReadFromSocket(int fd);
     };
 
     struct RunResponse {
@@ -19,6 +23,8 @@ namespace werk::server {
         std::string errorMessage;
 
         [[nodiscard]] std::string String() const;
+
+        int WriteToSocket(int fd);
     };
 
     struct KillRequest {
