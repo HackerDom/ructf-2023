@@ -169,13 +169,13 @@ namespace werk::server {
 
             switch (command) {
                 case 'R':
-                    handleRunRequest(fd);
+                    acceptCommands = handleRunRequest(fd);
                     break;
                 case 'S':
-                    handleStatusRequest(fd);
+                    acceptCommands = handleStatusRequest(fd);
                     break;
                 case 'K':
-                    handleKillRequest(fd);
+                    acceptCommands = handleKillRequest(fd);
                     break;
                 case 'Q':
                     acceptCommands = false;
@@ -201,95 +201,52 @@ namespace werk::server {
         statusHandler = std::move(handler);
     }
 
-    void Server::handleRunRequest(int fd) {
+    bool Server::handleRunRequest(int fd) {
         if (!runHandler) {
+            LOG(ERROR) << "run request handler not set";
             writeInvalidRequest(fd);
-            return;
+            return false;
         }
 
-        uint8_t binaryPathLen;
-        if (recvAll(fd, &binaryPathLen, sizeof(binaryPathLen)) <= 0) {
-            LOG(WARNING) << "reading binary path len failed, closing connection";
-            return;
+        auto [request, error] = RunRequest::ReadFromSocket(fd);
+        if (request == nullptr) {
+            LOG(WARNING) << utils::Format("reading run request failed: '%s', closing connection",
+                                          error.c_str());
+            return false;
         }
 
-        uint8_t serialOutPathLen;
-        if (recvAll(fd, &serialOutPathLen, sizeof(serialOutPathLen)) <= 0) {
-            LOG(WARNING) << "reading serial out path len failed, closing connection";
-            return;
-        }
-
-        std::string binaryPath;
-        binaryPath.resize(binaryPathLen);
-        if (recvAll(fd, binaryPath.data(), binaryPath.size()) <= 0) {
-            LOG(WARNING) << "reading binary path failed, closing connection";
-            return;
-        }
-
-        std::string serialOutPath;
-        serialOutPath.resize(serialOutPathLen);
-        if (recvAll(fd, serialOutPath.data(), serialOutPath.size()) <= 0) {
-            LOG(WARNING) << "reading serial out path failed, closing connection";
-            return;
-        }
-
-        auto request = RunRequest{
-                std::filesystem::path(binaryPath),
-                std::filesystem::path(serialOutPath)
-        };
-
-        LOG(INFO) << "request = " << request.String();
+        LOG(INFO) << "request = " << request->String();
 
         RunResponse response;
 
         try {
-            response = runHandler(request);
+            response = runHandler(*request);
         } catch (std::exception &e) {
             LOG(ERROR) << "run handler failed with exception: " << e.what();
-            return;
+            return false;
         } catch (...) {
             LOG(ERROR) << "run handler failed with exception";
-            return;
+            return false;
         }
 
         LOG(INFO) << "response = " << response.String();
 
-        if (sendAll(fd, &response.success, sizeof(response.success)) < 0) {
-            LOG(WARNING) << "sending success value failed, closing connection";
-            return;
+        if (response.WriteToSocket(fd) != 0) {
+            LOG(WARNING) << "writing run request failed, closing connection";
+            return false;
         }
 
-        if (response.success) {
-            if (sendAll(fd, &response.vd, sizeof(response.vd)) < 0) {
-                LOG(WARNING) << "sending vm descriptor value failed, closing connection";
-                return;
-            }
-        } else {
-            uint16_t len = response.errorMessage.size();
-            if (sendAll(fd, &len, sizeof(len)) < 0) {
-                LOG(WARNING) << "sending error message len failed, closing connection";
-                return;
-            }
-
-            if (sendAll(fd, response.errorMessage.data(), response.errorMessage.size()) <= 0) {
-                LOG(WARNING) << "sending error message failed, closing connection";
-                return;
-            }
-        }
+        return true;
     }
 
-    void Server::handleStatusRequest(int fd) {
-        if (!statusHandler) {
-            write(fd, "not implemented", 15);
-            return;
-        }
+    bool Server::handleStatusRequest(int fd) {
+        writeInvalidRequest(fd);
+        return false;
     }
 
-    void Server::handleKillRequest(int fd) {
-        if (!killHandler) {
-            write(fd, "not implemented", 15);
-            return;
-        }
+    bool Server::handleKillRequest(int fd) {
+        writeInvalidRequest(fd);
+        return false;
     }
 
     void Server::writeInvalidRequest(int fd) {

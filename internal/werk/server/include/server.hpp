@@ -44,9 +44,9 @@ namespace werk::server {
         ListenResult listenInternal();
 
         void handleClient(int fd);
-        void handleRunRequest(int fd);
-        void handleKillRequest(int fd);
-        void handleStatusRequest(int fd);
+        bool handleRunRequest(int fd);
+        bool handleKillRequest(int fd);
+        bool handleStatusRequest(int fd);
 
         RunHandlerT runHandler;
         KillHandlerT killHandler;
