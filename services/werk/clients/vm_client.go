@@ -1,9 +1,9 @@
 package clients
 
 import (
+	"encoding/binary"
 	"fmt"
 	"io"
-	"log"
 	"net"
 	"time"
 )
@@ -123,17 +123,9 @@ func (c *VmClient) Run(req *RunRequest) (*RunResponse, error) {
 
 		return &RunResponse{Success: false, ErrorMessage: string(errMsg)}, nil
 	} else if resBinary[0] == 1 {
-		vdBytes := make([]byte, 8)
-		if err := c.read(vdBytes); err != nil {
+		var vd uint64
+		if err := binary.Read(c.conn, binary.LittleEndian, &vd); err != nil {
 			return nil, err
-		}
-
-		log.Printf("%d", len(vdBytes))
-
-		var vd uint64 = 0
-
-		for i := 0; i < 8; i++ {
-			vd = vd | (uint64(vdBytes[i]) << (i * 8))
 		}
 
 		return &RunResponse{Success: true, Vd: vd}, nil
