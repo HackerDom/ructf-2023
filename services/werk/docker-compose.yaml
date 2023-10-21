@@ -3,7 +3,7 @@ version: '2.2'
 services:
   werk:
     build:
-      context: ./back
+      context: .
       dockerfile: Dockerfile
     restart: "always"
     stop_grace_period: 3s
