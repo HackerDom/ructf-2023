@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import uuid
 import urllib.parse
 import base69
