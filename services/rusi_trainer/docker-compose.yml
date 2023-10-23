@@ -1,9 +1,15 @@
-version: '3.1'
-
-
 services:
-  db:
+  rusi-db:
     image: mysql
+    restart: on-failure
+    mem_limit: 1G
+    memswap_limit: 1G
+    cpu_count: 1
+    pids_limit: 128
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: mydatabase
@@ -11,13 +17,24 @@ services:
       MYSQL_PASSWORD: password
     volumes:
       - baikaldata:/var/lib/mysql
+  rusi-trainer-api:
+    build: .
+    command: sh -c "npm run typeormig migration:run && npm run start"
+    restart: on-failure
+    mem_limit: 1G
+    memswap_limit: 1G
+    cpu_count: 1
+    pids_limit: 128
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
     ports:
-      - "3306:3306"
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - "3331:8080"
+      - "41114:3000"
+    env_file:
+      - .env
+    depends_on:
+      - rusi-db
 
 volumes:
   baikaldata:
