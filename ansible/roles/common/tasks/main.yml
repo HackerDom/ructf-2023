@@ -14,6 +14,11 @@
 - name: copy hostname file
   copy: content={{inventory_hostname}} dest=/etc/hostname
 
+- name: Update apt packages
+  become: true
+  apt:
+    update_cache: yes
+
 - name: install basic packages
   apt:
     name:
