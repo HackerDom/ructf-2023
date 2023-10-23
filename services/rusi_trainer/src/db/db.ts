@@ -2,13 +2,13 @@ import { DataSource } from "typeorm"
 
 const AppDataSource = new DataSource({
     type: "mysql",
-    host: "localhost",
+    host: "rusi-db",
     port: 3306,
     username: "root",
     password: "password",
     database: "mydatabase",
-    entities: ["src/db/entity/*{.js,.ts}"],
-    migrations: ["src/db/internal/migrations/*{.js,.ts}"]
+    entities: ["build/src/db/entity/*{.js,.ts}"],
+    migrations: ["build/src/db/internal/migrations/*{.js,.ts}"]
 })
 
 AppDataSource.initialize()
