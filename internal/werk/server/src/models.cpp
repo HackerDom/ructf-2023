@@ -26,25 +26,25 @@ namespace werk::server {
         } header{};
 
         auto nrecv = recv(fd, &header, sizeof(header), MSG_WAITALL);
-        if (nrecv <= 0 || nrecv != sizeof(header)) {
+        if (nrecv != sizeof(header)) {
             return std::make_pair(nullptr, utils::PError("header recv"));
         }
 
-        std::string binaryPath;
-        binaryPath.resize(header.binaryPathLen);
-        nrecv = recv(fd, binaryPath.data(), binaryPath.size(), MSG_WAITALL);
-        if (nrecv <= 0 || static_cast<std::size_t>(nrecv) != binaryPath.size()) {
+        std::string binaryPathStr;
+        binaryPathStr.resize(header.binaryPathLen);
+        nrecv = recv(fd, binaryPathStr.data(), binaryPathStr.size(), MSG_WAITALL);
+        if (static_cast<std::size_t>(nrecv) != binaryPathStr.size()) {
             return std::make_pair(nullptr, utils::PError("binary path recv"));
         }
 
-        std::string serialOutPath;
-        serialOutPath.resize(header.serialOutPathLen);
-        nrecv = recv(fd, serialOutPath.data(), serialOutPath.size(), MSG_WAITALL);
-        if (nrecv <= 0 || static_cast<std::size_t>(nrecv) != serialOutPath.size()) {
+        std::string serialOutPathStr;
+        serialOutPathStr.resize(header.serialOutPathLen);
+        nrecv = recv(fd, serialOutPathStr.data(), serialOutPathStr.size(), MSG_WAITALL);
+        if (static_cast<std::size_t>(nrecv) != serialOutPathStr.size()) {
             return std::make_pair(nullptr, utils::PError("serial out pah recv"));
         }
 
-        auto req = std::make_shared<RunRequest>(std::move(binaryPath), std::move(serialOutPath));
+        auto req = std::make_shared<RunRequest>(std::move(binaryPathStr), std::move(serialOutPathStr));
         return std::make_pair(req, "");
     }
 
