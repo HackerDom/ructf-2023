@@ -67,7 +67,7 @@ func (s *store) GetNode(ctx context.Context, ino uint64) (*model.Node, error) {
 		&ctimeSec,
 		&ctimeNsec,
 	); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to exec query %s: %w", query, err)
 	}
 
 	node.AccessTime = time.Unix(atimeSec, atimeNsec)
@@ -123,4 +123,45 @@ func (s *store) CreateNode(ctx context.Context, mode uint32, size uint64, nlink 
 	}
 
 	return node, nil
+}
+
+func (s *store) DecrementNodeNlink(ctx context.Context, ino uint64) (uint64, error) {
+	query, args, err := nodesTable.Update().Set(
+		goqu.Record{"nlink": goqu.L("nlink - 1")},
+	).Where(goqu.C("ino").Eq(ino)).Returning("nlink").ToSQL()
+	if err != nil {
+		return 0, fmt.Errorf("failed to build query: %w", err)
+	}
+
+	var nlink uint64
+	row := s.QueryRowContext(ctx, query, args...)
+	if err := row.Scan(&nlink); err != nil {
+		return 0, fmt.Errorf("failed to execute query %s: %w", query, err)
+	}
+
+	return nlink, nil
+}
+
+func (s *store) DeleteNode(ctx context.Context, ino uint64) error {
+	query, args, err := nodesTable.Delete().
+		Where(goqu.C("ino").Eq(ino)).ToSQL()
+	if err != nil {
+		return fmt.Errorf("failed to build query: %w", err)
+	}
+
+	r, err := s.ExecContext(ctx, query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to exec query %s: %w", query, err)
+	}
+
+	deleted, err := r.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to exec query %s: %w", query, err)
+	}
+
+	if deleted != 1 {
+		return fmt.Errorf("failed to delete node with query %s: zero rows affected", query)
+	}
+
+	return nil
 }

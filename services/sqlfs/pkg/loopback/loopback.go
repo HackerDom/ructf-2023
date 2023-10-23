@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"path"
 	"path/filepath"
 	"syscall"
 
@@ -23,6 +24,8 @@ const (
 	MAX_FILESIZE  = 100
 	FS_BLOCKS     = FS_SIZE_LIMIT / FS_BLOCK_SIZE
 )
+
+var errFileNotFound = errors.New("file not found")
 
 // LoopbackRoot holds the parameters for creating a new loopback
 // filesystem. Loopback filesystem delegate their operations to an
@@ -182,11 +185,46 @@ func (n *LoopbackNode) Mkdir(ctx context.Context, name string, mode uint32, out 
 }
 
 func (n *LoopbackNode) Rmdir(ctx context.Context, name string) syscall.Errno {
-	return store.Rmdir(ctx, n.Path(n.Root()), name, n.RootData.Db)
+	errDirNotEmpty := errors.New("directory is not empty")
+	errFileNotFound := errors.New("file not found")
+
+	err := n.RootData.store.RunInTransaction(ctx, func(ctx context.Context) error {
+		childCount, err := n.RootData.store.GetEntriesCount(ctx, path.Join(n.Path(n.Root()), name))
+		if err != nil {
+			return fmt.Errorf("failed to get entries: %w", err)
+		}
+
+		if childCount > 0 {
+			return errDirNotEmpty
+		}
+
+		return n.unlink(ctx, name, 1)
+	})
+
+	switch {
+	case errors.Is(err, errDirNotEmpty):
+		return syscall.ENOTEMPTY
+	case errors.Is(err, errFileNotFound):
+		return syscall.ENOENT
+	case err == nil:
+		return syscall.F_OK
+	default:
+		n.RootData.logger.Err(err).Msg("failed to remove directory")
+		return syscall.EIO
+	}
 }
 
 func (n *LoopbackNode) Unlink(ctx context.Context, name string) syscall.Errno {
-	return store.Unlink(ctx, n.Path(n.Root()), name, 0, n.RootData.Db)
+	err := n.unlink(ctx, name, 0)
+	switch {
+	case errors.Is(err, errFileNotFound):
+		return syscall.ENOENT
+	case err == nil:
+		return syscall.F_OK
+	default:
+		n.RootData.logger.Err(err).Msg("failed to unlink")
+		return syscall.EIO
+	}
 }
 
 func (n *LoopbackNode) Rename(
@@ -472,4 +510,32 @@ func nodeToStat(node *model.Node) *syscall.Stat_t {
 		Mtim:    syscall.Timespec{Sec: node.ModifyTime.Unix(), Nsec: int64(node.ModifyTime.Nanosecond())},
 		Ctim:    syscall.Timespec{Sec: node.StatusChangeTime.Unix(), Nsec: int64(node.StatusChangeTime.Nanosecond())},
 	}
+}
+
+func (n *LoopbackNode) unlink(ctx context.Context, name string, deleteNlink uint64) error {
+	return n.RootData.store.RunInTransaction(ctx, func(ctx context.Context) error {
+		ino, err := n.RootData.store.DeleteEntries(ctx, n.Path(n.Root()), name)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return errFileNotFound
+		case err == nil:
+		default:
+			return fmt.Errorf("failed to delete entries: %w", err)
+		}
+
+		nlink, err := n.RootData.store.DecrementNodeNlink(ctx, ino)
+		if err != nil {
+			return fmt.Errorf("failed to decrement node nlink: %w", err)
+		}
+
+		if nlink > deleteNlink {
+			return nil
+		}
+
+		if err := n.RootData.store.DeleteNode(ctx, ino); err != nil {
+			return fmt.Errorf("failed to delete node: %w", err)
+		}
+
+		return nil
+	})
 }
