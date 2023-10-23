@@ -23,12 +23,16 @@ type Store interface {
 	GetNodesTotalSize(context.Context) (uint64, error)
 	GetNode(_ context.Context, ino uint64) (*model.Node, error)
 	GetNodeIno(_ context.Context, path string) (uint64, error)
+	CreateNode(_ context.Context, mode uint32, size uint64, nlink uint64) (*model.Node, error)
+	CreateEntry(_ context.Context, path string, filename string, ino uint64) error
+
+	RunInTransaction(_ context.Context, f func(context.Context) error) error
 }
 
 func New(baseStore basestore.BaseStore) Store {
-	return &store{baseStore: baseStore}
+	return &store{BaseStore: baseStore}
 }
 
 type store struct {
-	baseStore basestore.BaseStore
+	basestore.BaseStore
 }
