@@ -9,8 +9,9 @@ import (
 )
 
 type BaseStore interface {
-	RunInTransaction(ctx context.Context, f func(context.Context) error) error
+	RunInTransaction(_ context.Context, f func(context.Context) error) error
 	QueryRowContext(_ context.Context, query string, args ...any) *sql.Row
+	ExecContext(_ context.Context, query string, args ...any) (sql.Result, error)
 }
 
 func New(db *sql.DB) BaseStore {
@@ -50,4 +51,13 @@ func (bs *baseStore) QueryRowContext(ctx context.Context, query string, args ...
 	}
 
 	return bs.db.QueryRowContext(ctx, query, args...)
+}
+
+func (bs *baseStore) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+	tx, ok := fromContext(ctx)
+	if ok {
+		return tx.ExecContext(ctx, query, args...)
+	}
+
+	return bs.db.ExecContext(ctx, query, args...)
 }

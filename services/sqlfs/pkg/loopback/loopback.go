@@ -12,6 +12,7 @@ import (
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/rs/zerolog"
 
+	"sqlfs/pkg/model"
 	"sqlfs/pkg/store"
 )
 
@@ -84,6 +85,7 @@ var _ = (fs.NodeSymlinker)((*LoopbackNode)(nil))
 var _ = (fs.NodeUnlinker)((*LoopbackNode)(nil))
 var _ = (fs.NodeRmdirer)((*LoopbackNode)(nil))
 var _ = (fs.NodeRenamer)((*LoopbackNode)(nil))
+var _ = (fs.NodeCreater)((*LoopbackNode)(nil))
 
 func (n *LoopbackNode) Statfs(ctx context.Context, out *fuse.StatfsOut) syscall.Errno {
 	st := &syscall.Statfs_t{
@@ -154,22 +156,7 @@ func (n *LoopbackNode) Lookup(ctx context.Context, name string, out *fuse.EntryO
 		return nil, syscall.EIO
 	}
 
-	st := &syscall.Stat_t{
-		Dev:     node.Dev,
-		Ino:     node.Ino,
-		Nlink:   node.Nlink,
-		Mode:    node.Mode,
-		Uid:     node.Uid,
-		Gid:     node.Gid,
-		Rdev:    node.Rdev,
-		Size:    int64(node.Size),
-		Blksize: FS_BLOCK_SIZE,
-		Blocks:  int64(node.Size / FS_BLOCK_SIZE),
-		Atim:    syscall.Timespec{Sec: node.Atime.Unix(), Nsec: int64(node.Atime.Nanosecond())},
-		Mtim:    syscall.Timespec{Sec: node.Mtime.Unix(), Nsec: int64(node.Mtime.Nanosecond())},
-		Ctim:    syscall.Timespec{Sec: node.Ctime.Unix(), Nsec: int64(node.Ctime.Nanosecond())},
-	}
-
+	st := nodeToStat(node)
 	out.Attr.FromStat(st)
 	inodeEmbedder := n.RootData.newNode(n.EmbeddedInode(), name, st)
 	inode := n.NewInode(ctx, inodeEmbedder, fs.StableAttr{
@@ -181,42 +168,17 @@ func (n *LoopbackNode) Lookup(ctx context.Context, name string, out *fuse.EntryO
 	return inode, 0
 }
 
-func (n *LoopbackNode) Mknod(ctx context.Context, name string, mode, rdev uint32, out *fuse.EntryOut) (*fs.Inode, syscall.Errno) {
-	p := filepath.Join(n.Path(n.Root()), name)
-	st, err := store.Create(ctx, p, mode, 0, 1, n.RootData.Db)
-	if err != syscall.F_OK {
-		return nil, err
-	}
-
-	out.Attr.FromStat(st)
-
-	node := n.RootData.newNode(n.EmbeddedInode(), name, st)
-	ch := n.NewInode(ctx, node, fs.StableAttr{
-		Mode: st.Mode,
-		Ino:  st.Ino,
-		Gen:  1,
-	})
-
-	return ch, 0
+func (n *LoopbackNode) Mknod(
+	ctx context.Context,
+	name string,
+	mode, rdev uint32,
+	out *fuse.EntryOut,
+) (*fs.Inode, syscall.Errno) {
+	return n.createNode(ctx, name, mode, 0, 1, out)
 }
 
 func (n *LoopbackNode) Mkdir(ctx context.Context, name string, mode uint32, out *fuse.EntryOut) (*fs.Inode, syscall.Errno) {
-	p := filepath.Join(n.Path(n.Root()), name)
-	st, err := store.Create(ctx, p, mode|syscall.S_IFDIR, 4096, 2, n.RootData.Db)
-	if err != syscall.F_OK {
-		return nil, err
-	}
-
-	out.Attr.FromStat(st)
-
-	node := n.RootData.newNode(n.EmbeddedInode(), name, st)
-	ch := n.NewInode(ctx, node, fs.StableAttr{
-		Mode: st.Mode,
-		Ino:  st.Ino,
-		Gen:  1,
-	})
-
-	return ch, 0
+	return n.createNode(ctx, name, mode|syscall.S_IFDIR, 4096, 2, out)
 }
 
 func (n *LoopbackNode) Rmdir(ctx context.Context, name string) syscall.Errno {
@@ -243,22 +205,13 @@ func (n *LoopbackNode) Rename(
 var _ = (fs.NodeCreater)((*LoopbackNode)(nil))
 
 func (n *LoopbackNode) Create(ctx context.Context, name string, flags uint32, mode uint32, out *fuse.EntryOut) (inode *fs.Inode, fh fs.FileHandle, fuseFlags uint32, errno syscall.Errno) {
-	p := filepath.Join(n.Path(n.Root()), name)
-	st, err := store.Create(ctx, p, mode, 0, 1, n.RootData.Db)
+	ch, err := n.createNode(ctx, name, mode, 0, 1, out)
 	if err != syscall.F_OK {
 		return nil, nil, 0, err
 	}
+	lf := NewLoopbackFile(0, int(ch.StableAttr().Ino), n.RootData.Db)
 
-	node := n.RootData.newNode(n.EmbeddedInode(), name, st)
-	ch := n.NewInode(ctx, node, fs.StableAttr{
-		Mode: st.Mode,
-		Ino:  st.Ino,
-		Gen:  1,
-	})
-	lf := NewLoopbackFile(0, int(st.Ino), n.RootData.Db)
-
-	out.FromStat(st)
-	return ch, lf, 0, 0
+	return ch, lf, 0, syscall.F_OK
 }
 
 func (n *LoopbackNode) Symlink(
@@ -438,4 +391,85 @@ func (n *LoopbackNode) CopyFileRange(ctx context.Context, fhIn fs.FileHandle,
 	offIn uint64, out *fs.Inode, fhOut fs.FileHandle, offOut uint64,
 	len uint64, flags uint64) (uint32, syscall.Errno) {
 	return 0, syscall.ENOSYS
+}
+
+func (n *LoopbackNode) createNode(
+	ctx context.Context,
+	name string,
+	mode uint32,
+	size uint64,
+	nlink uint64,
+	out *fuse.EntryOut,
+) (*fs.Inode, syscall.Errno) {
+	p := filepath.Join(n.Path(n.Root()), name)
+	var node *model.Node
+
+	ino, err := n.RootData.store.GetNodeIno(ctx, p)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		err := n.RootData.store.RunInTransaction(ctx, func(ctx context.Context) error {
+			var err error
+			node, err = n.RootData.store.CreateNode(ctx, mode, size, nlink)
+			if err != nil {
+				return fmt.Errorf("failed to create node: %w", err)
+			}
+
+			if err := n.RootData.store.CreateEntry(ctx, n.Path(n.Root()), name, node.Ino); err != nil {
+				return fmt.Errorf("failed to create entry: %w", err)
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			n.RootData.logger.Err(err).Msg("failed to create node")
+			return nil, syscall.EIO
+		}
+	case err == nil:
+		var err error
+		node, err = n.RootData.store.GetNode(ctx, ino)
+		if err != nil {
+			n.RootData.logger.Err(err).Msg("failed to get node")
+			return nil, syscall.EIO
+		}
+	default:
+		n.RootData.logger.Err(err).Msg("failed to get ino if inode")
+		return nil, syscall.EIO
+	}
+
+	st := nodeToStat(node)
+
+	out.Attr.FromStat(st)
+
+	inode := n.RootData.newNode(n.EmbeddedInode(), name, st)
+	ch := n.NewInode(ctx, inode, fs.StableAttr{
+		Mode: st.Mode,
+		Ino:  st.Ino,
+		Gen:  1,
+	})
+
+	return ch, fuse.F_OK
+}
+
+func nodeToStat(node *model.Node) *syscall.Stat_t {
+	blockCount := node.Size / FS_BLOCK_SIZE
+	if node.Size%FS_BLOCK_SIZE > 0 {
+		blockCount++
+	}
+
+	return &syscall.Stat_t{
+		Dev:     node.Dev,
+		Ino:     node.Ino,
+		Nlink:   node.Nlink,
+		Mode:    node.Mode,
+		Uid:     node.Uid,
+		Gid:     node.Gid,
+		Rdev:    node.Rdev,
+		Size:    int64(node.Size),
+		Blksize: FS_BLOCK_SIZE,
+		Blocks:  int64(blockCount),
+		Atim:    syscall.Timespec{Sec: node.AccessTime.Unix(), Nsec: int64(node.AccessTime.Nanosecond())},
+		Mtim:    syscall.Timespec{Sec: node.ModifyTime.Unix(), Nsec: int64(node.ModifyTime.Nanosecond())},
+		Ctim:    syscall.Timespec{Sec: node.StatusChangeTime.Unix(), Nsec: int64(node.StatusChangeTime.Nanosecond())},
+	}
 }
