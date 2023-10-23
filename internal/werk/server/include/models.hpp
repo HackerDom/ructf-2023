@@ -12,6 +12,11 @@ namespace werk::server {
         std::filesystem::path binaryPath;
         std::filesystem::path serialOutPath;
 
+        RunRequest(std::filesystem::path binaryPath, std::filesystem::path serialOutPath)
+            : binaryPath(std::move(binaryPath)), serialOutPath(std::move(serialOutPath)) {
+            // empty
+        }
+
         [[nodiscard]] std::string String() const;
 
         static std::pair<std::shared_ptr<RunRequest>, std::string> ReadFromSocket(int fd);
