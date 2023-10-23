@@ -1,0 +1,9 @@
+**/node_modules/
+**/build
+node_modules
+build
+.git
+.idea
+.gitignore
+.env
+npm-debug.log
