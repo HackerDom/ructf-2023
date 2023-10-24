@@ -1,0 +1,58 @@
+name: Check rustest
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'services/rustest/**'
+      - 'checkers/rustest/**'
+      - 'sploits/rustest/**'
+jobs:
+  check_service_rustest:
+    name: Check service rustest
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup rustest
+      run: (cd ./services/rustest && docker-compose pull && docker-compose build && docker-compose up --build -d)
+  check_checker_rustest:
+    name: Check checker rustest
+    runs-on: ubuntu-20.04
+    if: ${{ false }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup rustest
+      run: (cd ./services/rustest && docker-compose pull && docker-compose build && docker-compose up --build -d)
+    - name: Sleep some time. Wait service ready
+      run: sleep 30
+    - name: Prepare python for checker
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Setup checker libraries
+      run: if [ -f checkers/rustest/requirements.txt ]; then python -m pip install -r checkers/rustest/requirements.txt; fi
+    - name: Test checker on service
+      run: (cd ./checkers/rustest && ./rustest.checker.py TEST 127.0.0.1)
+  check_sploit_rustest:
+    name: Check sploit rustest
+    runs-on: ubuntu-20.04
+    if: ${{ false }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup rustest
+      run: (cd ./services/rustest && docker-compose pull && docker-compose build && docker-compose up --build -d)
+    - name: Sleep some time. Wait service ready
+      run: sleep 30
+    - name: Prepare python for checker
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Setup checker libraries
+      run: if [ -f checkers/rustest/requirements.txt ]; then python -m pip install -r checkers/rustest/requirements.txt; fi
+    - name: Setup sploit libraries
+      run: if [ -f sploits/rustest/requirements.txt ]; then python -m pip install -r sploits/rustest/requirements.txt; fi
+    - name: Test sploit on service
+      run: (./tools/check_sploit.py rustest)
