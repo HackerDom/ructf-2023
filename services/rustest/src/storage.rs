@@ -385,7 +385,7 @@ impl ETCDRustestStorage {
             tracing::info!(
                 "got revision for offset from etcd, putting it in cache for further usage"
             );
-            
+
             cache.write().await.insert(offset as u64, revision);
             return Ok(Some(revision));
         }
