@@ -7,10 +7,7 @@ on:
       - 'services/hyperborea-legends/**'
       - 'checkers/hyperborea-legends/**'
       - 'sploits/hyperborea-legends/**'
-  workflow_dispatch:
-    inputs:
-      manual_run:
-        required: false
+  workflow_dispatch: {}
 jobs:
   check_service_hyperborea-legends:
     name: Check service hyperborea-legends

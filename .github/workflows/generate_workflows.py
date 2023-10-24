@@ -1,13 +1,18 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 
-SERVICES = ["example"]
+SERVICES = [
+    "example", 
+    "hyperborea-legends", 
+    "rustest"
+]
 
 CHECKERS = ["example"]
 
 SPLOITS = ["example"]
 
-TEMPLATE = """name: Check {service}
+TEMPLATE = """
+name: Check {service}
 on:
   push:
     branches:
@@ -16,6 +21,7 @@ on:
       - 'services/{service}/**'
       - 'checkers/{service}/**'
       - 'sploits/{service}/**'
+  workflow_dispatch: {{}}
 jobs:
   check_service_{service}:
     name: Check service {service}
@@ -65,7 +71,7 @@ jobs:
       run: if [ -f sploits/{service}/requirements.txt ]; then python -m pip install -r sploits/{service}/requirements.txt; fi
     - name: Test sploit on service
       run: (./tools/check_sploit.py {service})
-"""
+"""[1:]
 
 
 def template_bool(var: bool) -> str:
