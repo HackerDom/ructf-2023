@@ -7,6 +7,10 @@ on:
       - 'services/example/**'
       - 'checkers/example/**'
       - 'sploits/example/**'
+  workflow_dispatch:
+    inputs:
+      manual_run:
+        required: false
 jobs:
   check_service_example:
     name: Check service example
