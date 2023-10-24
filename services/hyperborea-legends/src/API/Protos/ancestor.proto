@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option csharp_namespace = "API";
+
+service AncestorServ {
+    rpc GetAncestor(GetAncestorRequest) returns (AncestorData);
+    rpc CreateAncestor(AncestorData) returns (CreateAncestorResponse);
+    rpc AddDirectAncestor(AddDirectAncestorRequest) returns (AddDirectAncestorResponse);
+}
+
+message GetAncestorRequest {
+    bytes id = 1;
+}
+
+message AncestorData {
+    bytes id = 1;
+    string name = 2;
+    string description = 3;
+    string ancestor_type = 4;
+    string burial_place = 5;
+}
+
+message CreateAncestorResponse {
+    bytes id = 1;
+}
+
+message AddDirectAncestorRequest {
+    bytes ancestor_id = 1;
+}
+
+message AddDirectAncestorResponse {
+    bool success = 1;
+}
