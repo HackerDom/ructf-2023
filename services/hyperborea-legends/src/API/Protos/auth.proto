@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+option csharp_namespace = "API";
+
+service Auther {
+    rpc Register (AuthRequest) returns (RegisterReply);
+    rpc Login (AuthRequest) returns (LoginReply);
+}
+
+message AuthRequest {
+    string username = 1;
+    string password = 2;
+    string species_type = 3;
+}
+
+message RegisterReply {
+    bool success = 1;
+}
+
+message LoginReply {
+    string access_token = 1;
+}

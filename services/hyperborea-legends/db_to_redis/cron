@@ -1,0 +1,1 @@
+* * * * * python /code/main.py >>/tmp/out.log 2>/tmp/err.log
