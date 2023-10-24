@@ -7,10 +7,7 @@ on:
       - 'services/rustest/**'
       - 'checkers/rustest/**'
       - 'sploits/rustest/**'
-  workflow_dispatch:
-    inputs:
-      manual_run:
-        required: false
+  workflow_dispatch: {}
 jobs:
   check_service_rustest:
     name: Check service rustest
