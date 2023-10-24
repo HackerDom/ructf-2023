@@ -1,9 +1,11 @@
 import threading
 import uuid
+import random
 
 import requests as requests
 
-URL = 'http://localhost:3000'
+# URL = 'http://localhost:3000'
+URL = 'http://104.248.87.99:13337'
 RUSTEST_ID = '12c09e1b-61f1-4b45-9ead-e8d150969256'
 
 
@@ -68,24 +70,46 @@ def create_rustest(token: str, rustest: dict) -> dict:
     return resp.json()
 
 
-def main():
-    token = login_user('lololozhkin', 'penis228')
-    for i in range(200):
-        rustest = create_rustest(
-            token,
-            dict(
-                name=f'Velikiy test {i + 1}',
-                description=f'Velikiy test {i + 1} pozvolayet proverit russ li polzovatel ili zhe yascher',
-                reward=f'Course{{velikaya_nagrada_{i + 1}}}',
-                questions=[],
-            )
+QUESTION_NUM = 10
+ANSWERS_AMOUNT = 4
+
+
+def gen_test(test_idx: int, question_num: int, answers_num: int) -> dict:
+    questions = []
+    for i in range(question_num):
+        allowed_answers = []
+        for j in range(answers_num):
+            allowed_answers.append(f'Гномий ответ {j + 1}')
+
+        questions.append(
+            {
+                'question': f'Гномий вопрос {i + 1} в гномьем тесте {test_idx}',
+                'allowed_answers': allowed_answers,
+                'correct_idx': random.randint(1, 4),
+            }
         )
 
-        print(rustest)
+    return {
+        'name': f'Великий гномий тест на русса {test_idx + 1}',
+        'description': f'ВеликоГномий тест {i + 1} позволят проверить русс ли гном или же ящер гнусный',
+        'reward': f'GnomFlag{{velikaya_nagrada_{i + 1}}}',
+        'questions': questions,
+    }
+
+
+def main():
+    # token = login_user('lozhkinGnom', 'penis228')
+    # for i in range(200):
+    #     rustest = create_rustest(
+    #         token,
+    #         gen_test(i, QUESTION_NUM, ANSWERS_AMOUNT)
+    #     )
     #
-    # for i in range(2, 40):
-    #     token = register_user(f'user{i}', f'password_{i}')
-    #     print(token)
+    #     print(rustest)
+    #
+    for i in range(400):
+        token = register_user(f'user{i}', f'password_{i}')
+        print(token)
     # win_cnt = 0
     # lose_cnt = 0
     # for i in range(100):
