@@ -184,6 +184,7 @@ pub enum GetRustestResponse {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct GetUsersRequest {
+    #[serde(default)]
     page: usize,
 }
 
@@ -212,6 +213,7 @@ pub struct GetUsersResponse {
 
 #[derive(Clone, Debug, Deserialize, JsonSchema)]
 pub struct GetRustestsRequest {
+    #[serde(default)]
     page: usize,
 }
 
