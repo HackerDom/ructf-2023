@@ -1,5 +1,6 @@
 **/node_modules/
 **/build
+cleaner
 node_modules
 build
 .git

@@ -35,6 +35,20 @@ services:
       - .env
     depends_on:
       - rusi-db
+  cleaner:
+    build: ./cleaner
+    cpus: 1
+    pids_limit: 256
+    mem_limit: 256M
+    memswap_limit: 256M
+    ulimits:
+      nofile:
+        soft: 12000
+        hard: 12000
+    restart: unless-stopped
+    stop_grace_period: 1s
+    depends_on:
+      - rusi-db
 
 volumes:
   baikaldata:
