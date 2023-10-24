@@ -39,7 +39,7 @@ if ! which ansible-playbook > /dev/null; then
 fi
 
 echo "Patching gen/gen_conf_client_prod.py"
-sed -E -i "s/SERVER = \"[0-9a-z.-]+\"/SERVER = \"game.${DOMAIN}\"/" gen/gen_conf_client_prod.py
+sed -E -i "s/SERVER = \"[0-9a-z.-]+\"/SERVER = \"${DOMAIN}\"/" gen/gen_conf_client_prod.py
 
 echo "Patching number of teams"
 sed -E -i "s/N = [0-9]+/N = ${NUMBER_OF_TEAMS}/" gen/gen_conf_server_prod.py

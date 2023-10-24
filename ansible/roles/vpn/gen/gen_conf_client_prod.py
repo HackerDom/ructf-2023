@@ -1,9 +1,9 @@
 import os
 import sys
 
-N = 30
+N = 300
 
-SERVER = "104.248.92.81"
+SERVER = "vpn.ructf.org"
 
 CLIENT_DATA = """mode p2p
 dev game
