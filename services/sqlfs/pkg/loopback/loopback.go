@@ -189,7 +189,10 @@ func (n *LoopbackNode) Rmdir(ctx context.Context, name string) syscall.Errno {
 	errFileNotFound := errors.New("file not found")
 
 	err := n.RootData.store.RunInTransaction(ctx, func(ctx context.Context) error {
-		childCount, err := n.RootData.store.GetEntriesCount(ctx, path.Join(n.Path(n.Root()), name))
+		fullPath := path.Join(n.Path(n.Root()), name)
+		childCount, err := n.RootData.store.GetEntriesCount(
+			ctx, store.WithPath(fullPath),
+		)
 		if err != nil {
 			return fmt.Errorf("failed to get entries: %w", err)
 		}
@@ -234,10 +237,26 @@ func (n *LoopbackNode) Rename(
 	newName string,
 	flags uint32,
 ) syscall.Errno {
-	path := n.Path(n.Root())
+	oldPath := n.Path(n.Root())
 	newPath := newParent.EmbeddedInode().Path(n.Root())
 
-	return store.Rename(ctx, path, name, newPath, newName, n.RootData.Db)
+	_, err := n.RootData.store.GetNodeIno(ctx, path.Join(newPath, newName))
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+	case err == nil:
+		return syscall.EEXIST
+	default:
+		n.RootData.logger.Err(err).Msg("failed to rename node")
+		return syscall.EIO
+	}
+
+	if err := n.RootData.store.UpdateEntries(ctx, oldPath, name, newPath, newName); err != nil {
+		n.RootData.logger.Err(err).Msg("failed to update entries")
+		return syscall.EIO
+	}
+
+	return syscall.F_OK
+	// return store.Rename(ctx, path, name, newPath, newName, n.RootData.Db)
 }
 
 var _ = (fs.NodeCreater)((*LoopbackNode)(nil))
