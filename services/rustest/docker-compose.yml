@@ -18,6 +18,13 @@ services:
       - etcd1:/etcd_data
     ports:
       - 2379:2379
+    restart: always
+
+  rustest:
+    build: "./"
+    ports:
+      - 3000:13337
+    restart: always
 
 volumes:
   etcd1:
