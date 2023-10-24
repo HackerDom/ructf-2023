@@ -15,7 +15,7 @@ use tracing_subscriber::{
     filter, prelude::__tracing_subscriber_SubscriberExt, util::SubscriberInitExt,
 };
 
-use std::{net::SocketAddr, sync::Arc, time::Duration};
+use std::{env, net::SocketAddr, sync::Arc, time::Duration};
 use tracing::Level;
 
 use crate::{
@@ -25,8 +25,12 @@ use crate::{
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    let etcd_url = env::var("ETCD_HOST")
+        .ok()
+        .unwrap_or("http://localhost:2379".to_string());
+    
     let client = Client::connect(
-        ClientConfig::new(["http://localhost:2379".into()]).connect_timeout(Duration::from_secs(5)),
+        ClientConfig::new([etcd_url.into()]).connect_timeout(Duration::from_secs(5)),
     )
     .await?;
 
