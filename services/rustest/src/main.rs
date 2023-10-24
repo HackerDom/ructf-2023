@@ -26,7 +26,7 @@ use crate::{
 #[tokio::main]
 async fn main() -> Result<()> {
     let client = Client::connect(
-        ClientConfig::new(["http://0.0.0.0:2379".into()]).connect_timeout(Duration::from_secs(5)),
+        ClientConfig::new(["http://localhost:2379".into()]).connect_timeout(Duration::from_secs(5)),
     )
     .await?;
 
@@ -52,7 +52,7 @@ async fn main() -> Result<()> {
     let app = routes::build_router(state);
     let normalized_app = NormalizePathLayer::trim_trailing_slash().layer(app);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
     tracing::info!("listening on {}", addr);
     axum::Server::bind(&addr)
         .serve(normalized_app.into_make_service())
