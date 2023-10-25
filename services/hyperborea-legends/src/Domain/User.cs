@@ -4,14 +4,6 @@ namespace Domain;
 
 public class User
 {
-    // public User(int id, string username, string password, SpeciesType species, List<byte[]> directAncestors)
-    // {
-    //     Id = id;
-    //     Username = username;
-    //     Password = password;
-    //     Species = species;
-    //     DirectAncestors = directAncestors.Select(x => new Guid(x)).ToList();
-    // }
     private byte[][] directAncestors { get; set; }
     public int Id { get; set; }
     public required string Username { get; set; }
