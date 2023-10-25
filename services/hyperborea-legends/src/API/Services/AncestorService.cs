@@ -28,15 +28,11 @@ public class AncestorService : AncestorServ.AncestorServBase
         var user = await _jwtAuthManager.GetCacheUserByContext(context);
         if (user != null) isCacheUser = true;
         else user = await _jwtAuthManager.GetUserByContext(context);
-        
+
         var requestId = ParseGuid(request.Id);
 
         var ancestor = await _ancestorRepository.GetByIdAsync(requestId);
         if (ancestor == null) throw new RpcException(new Status(StatusCode.NotFound, "Ancestor not found"));
-
-        if (user.Species != ancestor.Species)
-            throw new RpcException(new Status(StatusCode.PermissionDenied,
-                "You are not allowed to access this ancestor"));
 
         var ancestorData = new AncestorData
         {
@@ -46,27 +42,36 @@ public class AncestorService : AncestorServ.AncestorServBase
             AncestorType = ancestor.Species.ToString()
         };
 
-        var isAuth = user.Id == ancestor.OwnerId;
-        if (isCacheUser)
+        var isAuth = false;
+        if (user.Id == ancestor.OwnerId)
         {
-            Console.WriteLine(1);
-            if (!user.DirectAncestors.Contains(ancestor.Id))
-            {
-                Console.WriteLine(2);
-                user = await _jwtAuthManager.GetUserByContext(context);
-                if (user.DirectAncestors.Contains(ancestor.Id))
-                    isAuth = true;
-            }
-            else isAuth = true;
-        }
-        else if (user.DirectAncestors.Contains(ancestor.Id))
-        {
-            Console.WriteLine(3);
             isAuth = true;
+        }
+        else if (user.Species == SpeciesType.FilthyLizard)
+        {
+            if (isCacheUser)
+            {
+                if (!user.DirectAncestors.Contains(ancestor.Id))
+                {
+                    user = await _jwtAuthManager.GetUserByContext(context);
+                    if (user.DirectAncestors.Contains(ancestor.Id))
+                    {
+                        isAuth = true;
+                    }
+                }
+                else
+                {
+                    isAuth = true;
+                }
+            }
+            else if (user.DirectAncestors.Contains(ancestor.Id))
+            {
+                isAuth = true;
+            }
         }
 
         if (isAuth) ancestorData.BurialPlace = ancestor.BurialPlace;
-        
+
         return await Task.FromResult(ancestorData);
     }
 
@@ -77,7 +82,7 @@ public class AncestorService : AncestorServ.AncestorServBase
     {
         var user = await _jwtAuthManager.GetUserByContext(context);
 
-        var requestId = ParseGuid(request.Id);
+        var requestId = user.Species == SpeciesType.GreatRuss ? Guid.NewGuid() : ParseGuid(request.Id);
 
         if (_ancestorRepository.CheckExistsByIdAsync(requestId).Result)
             throw new RpcException(new Status(StatusCode.AlreadyExists, "Ancestor already exists"));
@@ -92,7 +97,7 @@ public class AncestorService : AncestorServ.AncestorServBase
 
         var ancestor = new Ancestor
         {
-            Id = user.Species == SpeciesType.GreatRuss ? Guid.NewGuid() : requestId,
+            Id = requestId,
             Name = request.Name,
             Description = request.Description,
             Species = species,

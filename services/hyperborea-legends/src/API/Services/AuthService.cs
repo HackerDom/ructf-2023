@@ -18,7 +18,7 @@ public class AuthService : Auther.AutherBase
     }
 
     public override async Task<RegisterReply> Register(
-        AuthRequest request,
+        RegisterRequest request,
         ServerCallContext context
     )
     {
@@ -37,7 +37,7 @@ public class AuthService : Auther.AutherBase
         return await Task.FromResult(new RegisterReply { Success = true });
     }
 
-    public override async Task<LoginReply> Login(AuthRequest request, ServerCallContext context)
+    public override async Task<LoginReply> Login(LoginRequest request, ServerCallContext context)
     {
         var accessToken = await _jwtAuthManager.Authenticate(request.Username, request.Password);
         return await Task.FromResult(new LoginReply { AccessToken = accessToken });
