@@ -388,8 +388,8 @@ impl RussApplication {
         if user_state.cur_round != req.round {
             return Err(RustestApplicationError::InvalidDataProvided {
                 reason: format!(
-                    "user `{}` trying to send answer in test `{}` for invalid round",
-                    req.user_id, req.test_id
+                    "user `{}` trying to send answer for round `{}`, but current round is `{}` in test `{}`",
+                    req.user_id, req.round, user_state.cur_round, req.test_id,
                 ),
             });
         }
@@ -407,7 +407,12 @@ impl RussApplication {
         let increment_points = req.answer == question.correct_idx;
         let next_state = self
             .storage
-            .increment_user_round_on_test(&req.user_id, &req.test_id, increment_points)
+            .increment_user_round_on_test(
+                &req.user_id,
+                &req.test_id,
+                increment_points,
+                Some(user_state),
+            )
             .await
             .context(format!(
                 "cannot submit answer on test `{}` for user `{}`",

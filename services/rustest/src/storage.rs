@@ -83,30 +83,37 @@ impl ETCDRustestStorage {
     /// Increments user round in persistent storage and returns resulting state.
     /// If increment points is true increments points also.
     /// Doesn't check user or rustest existence. Caller must do so.
-    /// If user or rustest don't exist, creating needed keys anyway.
+    /// If user or rustest doesn't exist, creating needed keys anyway.
+    /// If previous_state is not none, uses it as a hint for update. Allows to save one network call.
+    /// If previous_state is None, makes request to etcd storage to retrieve state.
     pub async fn increment_user_round_on_test(
         &self,
         user_id: &str,
         test_id: &str,
         increment_points: bool,
+        previous_state: Option<RustestUserState>,
     ) -> Result<RustestUserState> {
-        let mut state = self
-            .get_user_state_on_test(user_id, test_id)
-            .await
-            .context("cannot increment user round on test")?;
+        let mut new_state = match previous_state {
+            Some(state) => state,
+            None => self
+                .get_user_state_on_test(user_id, test_id)
+                .await
+                .context("cannot increment user round on test")?,
+        };
+
+        new_state.cur_round += 1;
 
         let round_key = format!("/rustest/user/{}/state/{}/cur_round", user_id, test_id);
-        state.cur_round += 1;
         let mut txn_request = TxnRequest::default().and_then(
-            gen_put_request_with_serialized_value(round_key, &state.cur_round)?,
+            gen_put_request_with_serialized_value(round_key, &new_state.cur_round)?,
         );
 
         if increment_points {
             let points_key = format!("/rustest/user/{}/state/{}/points", user_id, test_id);
-            state.points += 1;
+            new_state.points += 1;
             txn_request = txn_request.and_then(gen_put_request_with_serialized_value(
                 points_key,
-                &state.points,
+                &new_state.points,
             )?);
         }
 
@@ -114,7 +121,7 @@ impl ETCDRustestStorage {
             .txn(txn_request)
             .await
             .context("cannot increment user round")
-            .map(|_| state)
+            .map(|_| new_state)
     }
 
     /// Returns user state for provided user on given test.
