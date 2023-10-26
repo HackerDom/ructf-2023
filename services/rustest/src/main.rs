@@ -28,15 +28,22 @@ async fn main() -> Result<()> {
     let etcd_url = env::var("ETCD_HOST")
         .ok()
         .unwrap_or("http://localhost:2379".to_string());
-    
+
     let client = Client::connect(
         ClientConfig::new([etcd_url.into()]).connect_timeout(Duration::from_secs(5)),
     )
     .await?;
 
     let storage = Arc::new(ETCDRustestStorage::new(client));
+    storage.warm_caches(20).await?;
+
     let rus_app = Arc::new(RussApplication::new(Arc::clone(&storage)));
-    let authenticator = Arc::new(Authenticator::new(Arc::clone(&storage)));
+
+    let mut authenticator = Authenticator::new(Arc::clone(&storage));
+    authenticator.init().await?;
+
+    let authenticator = Arc::new(authenticator);
+
     let state = AppState::new(rus_app, authenticator);
 
     let filter = filter::Targets::new()
