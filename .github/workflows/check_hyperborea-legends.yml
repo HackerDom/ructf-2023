@@ -1,0 +1,59 @@
+name: Check hyperborea-legends
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'services/hyperborea-legends/**'
+      - 'checkers/hyperborea-legends/**'
+      - 'sploits/hyperborea-legends/**'
+  workflow_dispatch: {}
+jobs:
+  check_service_hyperborea-legends:
+    name: Check service hyperborea-legends
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup hyperborea-legends
+      run: (cd ./services/hyperborea-legends && docker-compose pull && docker-compose build && docker-compose up --build -d)
+  check_checker_hyperborea-legends:
+    name: Check checker hyperborea-legends
+    runs-on: ubuntu-20.04
+    if: ${{ false }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup hyperborea-legends
+      run: (cd ./services/hyperborea-legends && docker-compose pull && docker-compose build && docker-compose up --build -d)
+    - name: Sleep some time. Wait service ready
+      run: sleep 30
+    - name: Prepare python for checker
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Setup checker libraries
+      run: if [ -f checkers/hyperborea-legends/requirements.txt ]; then python -m pip install -r checkers/hyperborea-legends/requirements.txt; fi
+    - name: Test checker on service
+      run: (cd ./checkers/hyperborea-legends && ./hyperborea-legends.checker.py TEST 127.0.0.1)
+  check_sploit_hyperborea-legends:
+    name: Check sploit hyperborea-legends
+    runs-on: ubuntu-20.04
+    if: ${{ false }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup hyperborea-legends
+      run: (cd ./services/hyperborea-legends && docker-compose pull && docker-compose build && docker-compose up --build -d)
+    - name: Sleep some time. Wait service ready
+      run: sleep 30
+    - name: Prepare python for checker
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Setup checker libraries
+      run: if [ -f checkers/hyperborea-legends/requirements.txt ]; then python -m pip install -r checkers/hyperborea-legends/requirements.txt; fi
+    - name: Setup sploit libraries
+      run: if [ -f sploits/hyperborea-legends/requirements.txt ]; then python -m pip install -r sploits/hyperborea-legends/requirements.txt; fi
+    - name: Test sploit on service
+      run: (./tools/check_sploit.py hyperborea-legends)

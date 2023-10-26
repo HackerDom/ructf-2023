@@ -1,16 +1,15 @@
 import os
 import sys
 
-N = 30
+N = 300
 
-SERVER = "104.248.92.81"
+SERVER = "vpn.ructf.org"
 
 CLIENT_DATA = """mode p2p
 dev game
 dev-type tun
 cipher AES-128-CBC
 remote {0} {1}
-remote-random-hostname
 ifconfig 10.{2}.{3}.2 10.{2}.{3}.1
 route 10.60.0.0 255.252.0.0
 route 10.80.0.0 255.252.0.0
