@@ -51,7 +51,7 @@ impl ETCDRustestStorage {
     }
 
     /// Warms caches before storage starts working.
-    pub async fn warm_caches(&self, page_size: usize) -> Result<()> {
+    pub async fn warm_caches(&self, _page_size: usize) -> Result<()> {
         // self.users_count.store(val, order)
         Ok(())
     }
@@ -412,6 +412,34 @@ impl ETCDRustestStorage {
             .await
             .context("cannot check rustest existence")
             .map(|maybe_test| maybe_test.is_some())
+    }
+
+    pub async fn get_or_create_secret(&self, name: &str, secret_val: &str) -> Result<String> {
+        let key = format!("/rustest/secrets/{}", name);
+        let resp = self
+            .client
+            .txn(
+                TxnRequest::default()
+                    .when_create_revision(key.as_str().into(), TxnCmp::Greater, 0)
+                    .and_then(RangeRequest::new(key.as_str().into()))
+                    .or_else(PutRequest::new(key.as_str(), secret_val)),
+            )
+            .await
+            .context(format!("cannot get or create secret `{}`", name))?;
+
+        let txn_resp = resp.responses.first().ok_or(anyhow!(
+            "unexpected etcd response, expected one range response for secret {}, got 0",
+            name
+        ))?;
+
+        if let TxnOpResponse::Range(range_resp) = txn_resp {
+            // range response -- key existed and value returned
+            let kv = range_resp.kvs.first().ok_or(anyhow!("unexpected etcd response, expected one kv in range response for secret `{}`, but 0 found", name))?;
+            Ok(kv.value_str().to_string())
+        } else {
+            // put response, key didn't exist, and value was set
+            Ok(secret_val.to_string())
+        }
     }
 }
 

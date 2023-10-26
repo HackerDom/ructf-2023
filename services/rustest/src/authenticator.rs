@@ -4,6 +4,7 @@ use std::sync::Arc;
 use aide::OperationIo;
 use anyhow::Context;
 use axum::response::IntoResponse;
+use base64::Engine;
 use hmac::{Hmac, Mac};
 use hyper::StatusCode;
 use jwt::{SignWithKey, VerifyWithKey};
@@ -11,6 +12,7 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256, Sha384};
 use thiserror::Error;
+use tokio::{fs::File, io::AsyncReadExt};
 
 use crate::{dto::User, storage::ETCDRustestStorage};
 
@@ -140,11 +142,42 @@ fn validate_login(login: &str) -> Result<(), AuthenticationError> {
 
 pub struct Authenticator {
     storage: Arc<ETCDRustestStorage>,
+    salt: Option<String>,
+    jwt_secret: Option<Hmac<Sha384>>,
 }
 
 impl Authenticator {
     pub fn new(storage: Arc<ETCDRustestStorage>) -> Self {
-        Self { storage }
+        Self {
+            storage,
+            salt: None,
+            jwt_secret: None,
+        }
+    }
+
+    pub async fn init(&mut self) -> Result<(), AuthenticationError> {
+        let salt_bytes = read_urandom(32).await;
+        let genered_salt = base64::prelude::BASE64_STANDARD_NO_PAD.encode(salt_bytes);
+        let salt = self
+            .storage
+            .get_or_create_secret("salt", &genered_salt)
+            .await
+            .context("cannot init authenticator")?;
+
+        let jwt_bytes = read_urandom(32).await;
+        let genered_jwt_secret = base64::prelude::BASE64_STANDARD_NO_PAD.encode(jwt_bytes);
+        let jwt_secret = self
+            .storage
+            .get_or_create_secret("jwt", &genered_jwt_secret)
+            .await
+            .context("cannot init authenticator")?;
+        let jwt_hmac =
+            Hmac::new_from_slice(jwt_secret.as_bytes()).expect("hmac can use key of any size");
+
+        self.jwt_secret = Some(jwt_hmac);
+        self.salt = Some(salt);
+
+        Ok(())
     }
 
     pub async fn authenticate(
@@ -161,13 +194,13 @@ impl Authenticator {
             None => return Err(AuthenticationError::UserNotFound { login: req.login }),
         };
 
-        let password_hash = Self::hash_password(&req.password);
+        let password_hash = self.hash_password(&req.password);
         if user.hash_password != password_hash {
             return Err(AuthenticationError::InvalidPassword { login: req.login });
         }
 
         Ok(UserLoginResponse {
-            token: Self::generate_token_for_user(&user),
+            token: self.generate_token_for_user(&user),
         })
     }
 
@@ -186,7 +219,7 @@ impl Authenticator {
 
         let user = User {
             login: req.login,
-            hash_password: Self::hash_password(&req.password),
+            hash_password: self.hash_password(&req.password),
             bio: req.bio,
         };
 
@@ -196,32 +229,49 @@ impl Authenticator {
             .context("cannot register user")?;
 
         Ok(RegisterUserResponse {
-            token: Self::generate_token_for_user(&user),
+            token: self.generate_token_for_user(&user),
         })
     }
 
     pub async fn validate_token(&self, token: &str) -> Result<String, AuthenticationError> {
-        let key: Hmac<Sha384> =
-            Hmac::new_from_slice(b"some-secret").expect("hmac can use key of any size");
+        let key = self
+            .jwt_secret
+            .as_ref()
+            .expect("cannot validate token, authenticator is not initialized");
+
         let user_token: UserToken = token
-            .verify_with_key(&key)
+            .verify_with_key(key)
             .map_err(|_| AuthenticationError::InvalidToken)?;
 
         Ok(user_token.login)
     }
 
-    fn generate_token_for_user(user: &User) -> String {
-        let key: Hmac<Sha384> =
-            Hmac::new_from_slice(b"some-secret").expect("hmac can use key of any size");
+    fn generate_token_for_user(&self, user: &User) -> String {
+        let key = self
+            .jwt_secret
+            .as_ref()
+            .expect("cannot generate token for user, authenticator is not initialized");
+
         let user_token = UserToken {
             login: user.login.clone(),
         };
 
-        user_token.sign_with_key(&key).expect("jwt always succeeds")
+        user_token.sign_with_key(key).expect("jwt always succeeds")
     }
 
-    fn hash_password(password: &str) -> String {
-        let salt = "secret_penis_salt228";
+    fn hash_password(&self, password: &str) -> String {
+        let salt = self
+            .salt
+            .as_ref()
+            .expect("cannot hash password, authenticator is not initialized");
         format!("{:x}", Sha256::digest(password.to_string() + salt))
     }
+}
+
+async fn read_urandom(amount: usize) -> Vec<u8> {
+    let mut f = File::open("/dev/urandom").await.unwrap();
+    let mut buf = vec![0u8; amount];
+    f.read_exact(&mut buf).await.unwrap();
+
+    buf
 }
