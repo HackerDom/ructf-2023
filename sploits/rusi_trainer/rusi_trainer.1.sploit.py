@@ -42,7 +42,7 @@ def main():
         print(resp.status_code)
         print(resp.json())
         return
-    result = requests.get(f'{api_url}udar/{urllib.parse.quote_plus(PUBLIC_FLAG_ID.upper())}/',
+    result = requests.get(f'{api_url}udar/{PUBLIC_FLAG_ID.upper()}/',
                           headers={'x-access-token': hacker_token}).json()
     print(result['phonk'])
     return result['phonk']

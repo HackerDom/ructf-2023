@@ -1,6 +1,8 @@
 import random
 
 import gornilo
+
+from generators import generate_while_i
 from utils import wrap_exceptions, random_string
 import api
 PORT = 41114
@@ -20,8 +22,7 @@ def do_put(request: gornilo.PutRequest) -> gornilo.Verdict:
         c.register(username, password)
         token = c.login(username, password)
         print(token)
-        # TODO:
-        name = random_string(50)
+        name = generate_while_i()
         res = c.make_udar(name, request.flag, [], random.randint(1, 4), random_string(100))
         if res is not None:
             print(res)
@@ -31,6 +32,7 @@ def do_put(request: gornilo.PutRequest) -> gornilo.Verdict:
 
 def do_get(request: gornilo.GetRequest) -> gornilo.Verdict:
     print(request.flag_id)
+    print(request.public_flag_id)
     with api.APIClient(request.hostname, PORT, request.flag_id) as c:
         code, data = c.get_udar(request.public_flag_id)
         if code != 200:
