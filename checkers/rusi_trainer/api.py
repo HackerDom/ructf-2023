@@ -78,7 +78,7 @@ class APIClient:
         return data
 
     def get_udar(self, name):
-        resp = self._session.get(self._route(f'/udar/{urllib.parse.quote_plus(name)}/'))
+        resp = self._session.get(self._route(f'/udar/{name}/'))
         if resp.status_code not in (200, 400, 401, 404):
             raise APIProtocolError(f'unexpected status code: {resp.status_code}')
         return resp.status_code, resp.json()
