@@ -26,6 +26,7 @@ etcd-rs = { git = "https://github.com/lololozhkin/etcd-rs.git", branch = "master
 aide = { version = "0.12.0", features = ["axum", "macros"] }
 schemars = "0.8.15"
 base64 = "0.21.5"
+lru = "0.12.0"
 
 [dependencies.uuid]
 version = "1.4.1"

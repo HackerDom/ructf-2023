@@ -1,5 +1,5 @@
 #![forbid(unsafe_code)]
-use std::collections::HashMap;
+use std::{collections::HashMap, num::NonZeroUsize};
 
 use crate::dto::{Rustest, RustestUserState, User};
 use anyhow::{anyhow, bail, Context, Result};
@@ -7,6 +7,7 @@ use etcd_rs::{
     Client, KeyRange, KeyValueOp, PutRequest, RangeRequest, RangeResponse, SortOrder, TxnCmp,
     TxnOpResponse, TxnRequest,
 };
+use lru::LruCache;
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
 use tokio::sync::RwLock;
@@ -32,8 +33,8 @@ pub enum RustestStorageError {
 }
 
 pub struct ETCDRustestStorage {
-    user_cache: RwLock<HashMap<String, User>>,
-    rustest_cache: RwLock<HashMap<String, Rustest>>,
+    user_cache: RwLock<LruCache<String, User>>,
+    rustest_cache: RwLock<LruCache<String, Rustest>>,
     users_offset_to_revision: RwLock<HashMap<u64, i64>>,
     rustests_offset_to_revision: RwLock<HashMap<u64, i64>>,
     client: Client,
@@ -43,8 +44,8 @@ impl ETCDRustestStorage {
     pub fn new(client: Client) -> ETCDRustestStorage {
         ETCDRustestStorage {
             client,
-            user_cache: Default::default(),
-            rustest_cache: Default::default(),
+            user_cache: RwLock::new(LruCache::new(NonZeroUsize::new(10_000).unwrap())),
+            rustest_cache: RwLock::new(LruCache::new(NonZeroUsize::new(10_000).unwrap())),
             users_offset_to_revision: Default::default(),
             rustests_offset_to_revision: Default::default(),
         }
