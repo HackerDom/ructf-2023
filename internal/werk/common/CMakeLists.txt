@@ -4,6 +4,7 @@ project(common)
 set(HEADERS
         include/utils/strings.hpp
         include/utils/defer.hpp
+        include/utils/result.hpp
         include/utils/thread_pool.hpp
         include/arch/opcodes.hpp
         include/arch/types.hpp
@@ -26,6 +27,7 @@ add_executable(common_tests
         ${HEADERS}
         tests/main.cpp
         tests/arch/opcodes_tests.cpp
+        tests/utils/result_tests.cpp
         tests/utils/strings_tests.cpp
         tests/arch/registers_tests.cpp
         )
