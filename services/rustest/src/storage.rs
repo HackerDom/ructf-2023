@@ -10,19 +10,19 @@ use etcd_rs::{
 use lru::LruCache;
 use serde::{de::DeserializeOwned, Serialize};
 use thiserror::Error;
-use tokio::sync::RwLock;
+use tokio::sync::{Mutex, RwLock};
 
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Error)]
 pub enum RustestStorageError {
-    #[error("key `{key:?}` not found in storage")]
+    #[error("key `{key:}` not found in storage")]
     NotFound { key: String },
 
-    #[error("underlying storage error occurred: {reason:?}")]
+    #[error("underlying storage error occurred: {reason:}")]
     UnderlyingStorage { reason: String },
 
-    #[error("cannot deserialize value: {reason:?}")]
+    #[error("cannot deserialize value: {reason:}")]
     Deserialization { reason: String },
 
     #[error("cannot put key to etcd, key `{key:}` already exists")]
@@ -33,8 +33,8 @@ pub enum RustestStorageError {
 }
 
 pub struct ETCDRustestStorage {
-    user_cache: RwLock<LruCache<String, User>>,
-    rustest_cache: RwLock<LruCache<String, Rustest>>,
+    user_cache: Mutex<LruCache<String, User>>,
+    rustest_cache: Mutex<LruCache<String, Rustest>>,
     users_offset_to_revision: RwLock<HashMap<u64, i64>>,
     rustests_offset_to_revision: RwLock<HashMap<u64, i64>>,
     client: Client,
@@ -44,8 +44,8 @@ impl ETCDRustestStorage {
     pub fn new(client: Client) -> ETCDRustestStorage {
         ETCDRustestStorage {
             client,
-            user_cache: RwLock::new(LruCache::new(NonZeroUsize::new(10_000).unwrap())),
-            rustest_cache: RwLock::new(LruCache::new(NonZeroUsize::new(10_000).unwrap())),
+            user_cache: Mutex::new(LruCache::new(NonZeroUsize::new(10_000).unwrap())),
+            rustest_cache: Mutex::new(LruCache::new(NonZeroUsize::new(10_000).unwrap())),
             users_offset_to_revision: Default::default(),
             rustests_offset_to_revision: Default::default(),
         }
@@ -53,13 +53,13 @@ impl ETCDRustestStorage {
 
     /// Warms caches before storage starts working.
     pub async fn warm_caches(&self, _page_size: usize) -> Result<()> {
-        // self.users_count.store(val, order)
         Ok(())
     }
 
     /// Returns test from etcd storage. If test not found, None is returned.
     pub async fn get_rustest(&self, test_id: &str) -> Result<Option<Rustest>> {
-        if let Some(test) = self.rustest_cache.read().await.get(test_id).cloned() {
+        let mut cache_guard = self.rustest_cache.lock().await;
+        if let Some(test) = cache_guard.get(test_id).cloned() {
             return Ok(Some(test));
         }
 
@@ -70,11 +70,7 @@ impl ETCDRustestStorage {
                 .context("cannot fetch rustest")?;
 
         if let Some(test) = test {
-            self.rustest_cache
-                .write()
-                .await
-                .insert(test_id.to_string(), test.clone());
-
+            cache_guard.put(test_id.to_string(), test.clone());
             return Ok(Some(test));
         }
 
@@ -214,9 +210,9 @@ impl ETCDRustestStorage {
         }
 
         self.rustest_cache
-            .write()
+            .lock()
             .await
-            .insert(test.id.clone(), test.clone());
+            .put(test.id.clone(), test.clone());
 
         Ok(test)
     }
@@ -260,16 +256,17 @@ impl ETCDRustestStorage {
         }
 
         self.user_cache
-            .write()
+            .lock()
             .await
-            .insert(user.login.clone(), user.clone());
+            .put(user.login.clone(), user.clone());
 
         Ok(user)
     }
 
     /// Retrieves user from etcd storage or cache. If user doesn't exist, returns None.
     pub async fn get_user(&self, user_id: &str) -> Result<Option<User>> {
-        if let Some(user) = self.user_cache.read().await.get(user_id).cloned() {
+        let mut cache_guard = self.user_cache.lock().await;
+        if let Some(user) = cache_guard.get(user_id).cloned() {
             return Ok(Some(user));
         }
 
@@ -279,11 +276,7 @@ impl ETCDRustestStorage {
             .map_err(|err| anyhow!(err))?;
 
         if let Some(user) = user {
-            self.user_cache
-                .write()
-                .await
-                .insert(user_id.to_string(), user.clone());
-
+            cache_guard.put(user_id.to_string(), user.clone());
             return Ok(Some(user));
         }
 
