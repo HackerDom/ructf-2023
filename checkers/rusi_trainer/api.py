@@ -18,7 +18,7 @@ class APIClient:
             status_forcelist=(500, 502, 503))
         self._token = token
         if token is not None:
-            self._session.headers.update({'x-access-token': token})
+            self.set_token(token)
 
     def __enter__(self):
         return self
@@ -37,6 +37,10 @@ class APIClient:
         if resp.status_code != 201:
             raise APIProtocolError(f'unexpected status code: {resp.status_code}')
 
+    def set_token(self, token):
+        self._session.headers.update({'x-access-token': token})
+        self._token = token
+
     def login(self, username, password):
         resp = self._session.post(self._route('/auth/login/'), json={
             'username': username,
@@ -48,19 +52,22 @@ class APIClient:
         if "accessToken" not in data:
             raise APIValidationError(f'no excepted field in json: accessToken')
         token = data['accessToken']
-        self._session.headers.update({'x-access-token': token})
-        self._token = token
+        if not isinstance(token, str):
+            raise APIValidationError(f'no excepted type of accessToken')
+        self.set_token(token)
         return token
 
     def drink_water(self, key):
-        resp = self._session.get(self._route('/voda/drink/'), params={'lake': key})
+        resp = self._session.post(self._route('/voda/drink/'), params={'lake': key})
+        data = resp.json()
         if resp.status_code == 201:
+            if not isinstance(data, list) or len(data) != 1 or not isinstance(data[0], dict) or "water" not in data[0]:
+                raise APIValidationError(f'Wrong response from drink')
             try:
-                return int(resp.raw)
+                return int(data[0]['water'])
             except Exception:
                 raise APIValidationError(f'cant parse int from resp')
         if resp.status_code == 400:
-            data = resp.json()
             if "details" not in data:
                 raise APIValidationError(f'no excepted field in json: details')
             return data['details']
@@ -81,6 +88,8 @@ class APIClient:
         resp = self._session.get(self._route(f'/udar/{name}/'))
         if resp.status_code not in (200, 400, 401, 404):
             raise APIProtocolError(f'unexpected status code: {resp.status_code}')
+        if resp.status_code == 404:
+            return resp.status_code, None
         return resp.status_code, resp.json()
 
     def make_udar(self, name, phonk, trusted_ids, map_id, description):

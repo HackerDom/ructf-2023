@@ -9,7 +9,7 @@ export class UdarService {
         return udarRepo.findOne({where:{name}, relations: {teacher: true}})
     }
 
-    public async make(params: Udar): Promise<void> {
+    public async learn(params: Udar): Promise<void> {
       await typeormppend.appendOnlyQuery(AppDataSource
       .createQueryBuilder()
       .insert()
