@@ -26,3 +26,8 @@ export interface UdarDto {
     name: string;
 }
 
+
+export interface UdarOutDto extends UdarDto
+{
+    teacherId?: number
+}

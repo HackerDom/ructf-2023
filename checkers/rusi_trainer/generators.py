@@ -27,7 +27,7 @@ def generate_name():
     action = choice(ACTIONS).upper()
     item = choice(ITEMS).upper()
     from_name = choice(NAMES).upper()
-    name = f"{adjective} {action} {item} BY {from_name} SON OF {uuid4().hex[:12]} GOD"
+    name = f"{adjective} {action} {item} FROM {from_name} SON OF {uuid4().hex[:15]} GOD"
     name = do_replacement(name)
     name = random_lowercase(name)
     return name

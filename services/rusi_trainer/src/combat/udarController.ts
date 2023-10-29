@@ -12,7 +12,7 @@ import {AuthError} from "../utils/errors";
 import {UsersService} from "../users/usersService";
 import {decode} from "../utils/base69";
 import {ResponseWithMessage} from "../utils/responces";
-import {UdarDto} from "./udar";
+import {UdarDto, UdarOutDto} from "./udar";
 import {omitField} from "../utils/typesHelp";
 import {TokenPayload} from "../auth/tokenPayload";
 
@@ -25,7 +25,7 @@ export class UdarController extends Controller {
     public async getUdar(
         @Request() request: any,
         @Path() name: string,
-    ): Promise<UdarDto | ResponseWithMessage |null> {
+    ): Promise<UdarOutDto | ResponseWithMessage |null> {
         const service  = new UdarService();
         const udar = await service.get(name);
         if (!udar){
@@ -40,7 +40,10 @@ export class UdarController extends Controller {
                 return null;
             }
         }
-        return omitField(udar, 'teacher');
+        const myTeacherId = udar.teacher.id;
+        const res: UdarOutDto = omitField(udar, 'teacher')
+        res.teacherId = myTeacherId;
+        return res;
     }
 
     @SuccessResponse("201", "Ok")
@@ -62,6 +65,6 @@ export class UdarController extends Controller {
         if (!user)
             throw new AuthError('No access');
         this.setStatus(201);
-        await service.make({...requestBody, teacher: user});
+        await service.learn({...requestBody, teacher: user});
     }
 }
