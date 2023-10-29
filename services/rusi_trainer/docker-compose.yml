@@ -31,6 +31,8 @@ services:
         hard: 32768
     ports:
       - "41114:3000"
+    volumes:
+      - ./secrets:/usr/rusi-trainer/secrets
     env_file:
       - .env
     depends_on:
