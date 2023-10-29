@@ -222,7 +222,10 @@ impl ETCDRustestStorage {
         let path = format!("/rustest/user/{}/rustests/", user_id);
         let resp = self
             .client
-            .get(KeyRange::prefix(path))
+            .get(
+                RangeRequest::new(KeyRange::prefix(path))
+                    .sort_by_create_revision(SortOrder::Descending),
+            )
             .await
             .context("cannot get rustests of user from etcd")?;
 
