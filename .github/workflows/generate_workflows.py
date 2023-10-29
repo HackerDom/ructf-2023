@@ -7,9 +7,15 @@ SERVICES = [
     "rustest"
 ]
 
-CHECKERS = ["example"]
+CHECKERS = [
+    "example",
+    "hyperborea-legends", 
+]
 
-SPLOITS = ["example"]
+SPLOITS = [
+    "example",
+    "hyperborea-legends"
+]
 
 TEMPLATE = """
 name: Check {service}
