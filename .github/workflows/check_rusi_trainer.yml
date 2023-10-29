@@ -1,0 +1,59 @@
+name: Check rusi_trainer
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'services/rusi_trainer/**'
+      - 'checkers/rusi_trainer/**'
+      - 'sploits/rusi_trainer/**'
+  workflow_dispatch: {}
+jobs:
+  check_service_rusi_trainer:
+    name: Check service rusi_trainer
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup rusi_trainer
+      run: (cd ./services/rusi_trainer && docker-compose pull && docker-compose build && docker-compose up --build -d)
+  check_checker_rusi_trainer:
+    name: Check checker rusi_trainer
+    runs-on: ubuntu-20.04
+    if: ${{ true }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup rusi_trainer
+      run: (cd ./services/rusi_trainer && docker-compose pull && docker-compose build && docker-compose up --build -d)
+    - name: Sleep some time. Wait service ready
+      run: sleep 30
+    - name: Prepare python for checker
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Setup checker libraries
+      run: if [ -f checkers/rusi_trainer/requirements.txt ]; then python -m pip install -r checkers/rusi_trainer/requirements.txt; fi
+    - name: Test checker on service
+      run: (cd ./checkers/rusi_trainer && ./rusi_trainer.checker.py TEST 127.0.0.1)
+  check_sploit_rusi_trainer:
+    name: Check sploit rusi_trainer
+    runs-on: ubuntu-20.04
+    if: ${{ true }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup rusi_trainer
+      run: (cd ./services/rusi_trainer && docker-compose pull && docker-compose build && docker-compose up --build -d)
+    - name: Sleep some time. Wait service ready
+      run: sleep 30
+    - name: Prepare python for checker
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Setup checker libraries
+      run: if [ -f checkers/rusi_trainer/requirements.txt ]; then python -m pip install -r checkers/rusi_trainer/requirements.txt; fi
+    - name: Setup sploit libraries
+      run: if [ -f sploits/rusi_trainer/requirements.txt ]; then python -m pip install -r sploits/rusi_trainer/requirements.txt; fi
+    - name: Test sploit on service
+      run: (./tools/check_sploit.py rusi_trainer)

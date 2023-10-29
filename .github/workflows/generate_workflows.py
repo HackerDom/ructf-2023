@@ -4,17 +4,20 @@
 SERVICES = [
     "example", 
     "hyperborea-legends", 
+    "rusi_trainer",
     "rustest"
 ]
 
 CHECKERS = [
     "example",
-    "hyperborea-legends", 
+    "hyperborea-legends",
+    "rusi_trainer",
 ]
 
 SPLOITS = [
     "example",
-    "hyperborea-legends"
+    "hyperborea-legends",
+    "rusi_trainer",
 ]
 
 TEMPLATE = """
