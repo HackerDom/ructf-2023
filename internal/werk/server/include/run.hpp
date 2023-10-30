@@ -20,7 +20,8 @@ namespace werk::server {
         static utils::result<std::shared_ptr<Run>> CreateFromFile(
                 const std::filesystem::path &binaryPath,
                 vd_t vd,
-                void *memory
+                void *memory,
+                std::uint64_t ticksLimit
         );
 
         enum State {
@@ -37,7 +38,7 @@ namespace werk::server {
         [[nodiscard]] State GetState() const;
 
     private:
-        Run(vd_t vd, std::shared_ptr<vm::Vm> vm);
+        Run(vd_t vd, std::shared_ptr<vm::Vm> vm, std::uint64_t ticksLimit);
 
         const vd_t vd;
         const std::shared_ptr<vm::Vm> vm;
@@ -45,5 +46,6 @@ namespace werk::server {
         std::mutex updateMutex;
         State state;
         std::uint64_t totalTicksCount;
+        std::uint64_t ticksLimit;
     };
 }
