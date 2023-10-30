@@ -456,7 +456,10 @@ impl RussApplication {
 
         req.rustest
             .validate()
-            .context("cannot create rustest, rustest is invalid")?;
+            .context("cannot create rustest, rustest is invalid")
+            .map_err(|err| RustestApplicationError::InvalidDataProvided {
+                reason: err.to_string(),
+            })?;
 
         let test = self
             .storage
