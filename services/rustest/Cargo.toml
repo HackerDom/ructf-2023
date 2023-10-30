@@ -1,0 +1,37 @@
+[package]
+name = "rustest"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { version = "1.0.88", features = ["derive"] }
+serde_json = { version = "1.0.107" }
+tracing = { version = "0.1.37" }
+tracing-subscriber = { version = "0.3.17" }
+anyhow = "1.0.75"
+tower = "0.4.13"
+tokio = { version = "1", features = ["full"] }
+hyper = { version = "0.14.27", features = ["full"] }
+axum = { version = "0.6.20", features = ["headers", "http2", "json", "macros"] }
+tower-http = { version = "0.4.4", features = ["full"] }
+thiserror = "1.0"
+sha2 = "0.10"
+digest = "0.10"
+jwt = "0.16.0"
+hmac = "0.12.1"
+dashmap = "5.5.3"
+etcd-rs = { git = "https://github.com/lololozhkin/etcd-rs.git", branch = "master" }
+aide = { version = "0.12.0", features = ["axum", "macros"] }
+schemars = "0.8.15"
+base64 = "0.21.5"
+lru = "0.12.0"
+
+[dependencies.uuid]
+version = "1.4.1"
+features = [
+    "v4",
+    "fast-rng",
+    "macro-diagnostics",
+]

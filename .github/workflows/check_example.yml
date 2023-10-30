@@ -7,6 +7,7 @@ on:
       - 'services/example/**'
       - 'checkers/example/**'
       - 'sploits/example/**'
+  workflow_dispatch: {}
 jobs:
   check_service_example:
     name: Check service example

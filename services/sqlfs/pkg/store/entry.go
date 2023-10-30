@@ -21,7 +21,7 @@ func (s *store) GetNodeIno(ctx context.Context, path string) (uint64, error) {
 	var ino uint64
 	row := s.QueryRowContext(ctx, query, args...)
 	if err := row.Scan(&ino); err != nil {
-		return 0, fmt.Errorf("failed to exec query: %w", err)
+		return 0, fmt.Errorf("failed to exec query %s: %w", query, err)
 	}
 
 	return ino, nil
@@ -38,7 +38,65 @@ func (s *store) CreateEntry(ctx context.Context, path, filename string, ino uint
 	}
 
 	if _, err := s.ExecContext(ctx, query, args...); err != nil {
-		return fmt.Errorf("failed to exec query: %w", err)
+		return fmt.Errorf("failed to exec query %s: %w", query, err)
+	}
+
+	return nil
+}
+
+func (s *store) GetEntriesCount(ctx context.Context, options ...Option) (uint64, error) {
+	ds := enriesTable.Select(goqu.COUNT("*"))
+
+	for _, opt := range options {
+		ds = opt(ds)
+	}
+
+	query, args, err := ds.ToSQL()
+	if err != nil {
+		return 0, fmt.Errorf("failed to build query: %w", err)
+	}
+
+	var count uint64
+	row := s.QueryRowContext(ctx, query, args...)
+	if err := row.Scan(&count); err != nil {
+		return 0, fmt.Errorf("failed to execute query %s: %w", query, err)
+	}
+
+	return count, nil
+}
+
+func (s *store) DeleteEntries(ctx context.Context, path, name string) (uint64, error) {
+	query, args, err := enriesTable.Delete().Where(goqu.Ex{
+		"path":     path,
+		"filename": name,
+	}).Returning("ino").ToSQL()
+	if err != nil {
+		return 0, fmt.Errorf("failed to build query: %w", err)
+	}
+
+	var ino uint64
+	row := s.QueryRowContext(ctx, query, args...)
+	if err := row.Scan(&ino); err != nil {
+		return 0, fmt.Errorf("failed to exec query %s: %w", query, err)
+	}
+
+	return ino, nil
+}
+
+func (s *store) UpdateEntries(ctx context.Context, path, name, newPath, newName string) error {
+	query, args, err := enriesTable.Update().Set(goqu.Record{
+		"path":     newPath,
+		"filename": newName,
+	}).Where(goqu.Ex{
+		"path":     path,
+		"filename": name,
+	}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("failed to build query: %w", err)
+	}
+
+	if _, err := s.ExecContext(ctx, query, args...); err != nil {
+		return fmt.Errorf("failed to exec query %s: %w", query, err)
 	}
 
 	return nil

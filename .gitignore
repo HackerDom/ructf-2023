@@ -1,6 +1,8 @@
 .DS_Store
-__pycache__
-.idea
-.vscode
+/**/__pycache__/
+/**/.idea/
+/**/.vscode/
+/**/target/
+/**/venv/
 *.swp
 
