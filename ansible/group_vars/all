@@ -5,7 +5,7 @@ cs_scoreboard_dir: /home/cs/ctf-scoreboard-client
 pg_cs_user: cs
 pg_cs_pass: 3AdiCpERy4Y89bU6jSX4
 pg_cs_db: cs
-pg_cs_host: 10.10.10.4
+pg_cs_host: 10.10.10.10
 pg_cs_port: 5432
 pg_max_connections: 1024
 pg_shared_buffers: 1GB
@@ -66,9 +66,11 @@ teams: |
   {name => 'NPC', network => '10.60.36.0/24', host => '10.60.36.3', token => 'CLOUD_36_8ab5e634232694ea017a84470005a1fd', tags => ['NPC'] },
 
 services: |
-  {name => 'bookster', path => 'checkers/bookster/bookster.checker.py', timeout => 30, tcp_port => 8900},
-  {name => 'dcs', path => 'checkers/dcs/dcs.checker.py', timeout => 30, tcp_port => 7654},
-  {name => 'hermicache', path => 'checkers/hermicache/hermicache.checker.py', timeout => 30, tcp_port => 8080},
+  {name => 'example', path => 'checkers/example/example.checker.py', timeout => 30, tcp_port => 2222},
+  {name => 'hyperborea-legends', path => 'checkers/hyperborea-legends/hyperborea-legends.checker.py', timeout => 30, tcp_port => 42424},
+  {name => 'rusi_trainer', path => 'checkers/rusi_trainer/rusi_trainer.checker.py', timeout => 30, tcp_port => 41114},
+  {name => 'sqlfs', path => 'checkers/sqlfs/sqlfs.checker.py', timeout => 30, tcp_port => 22},
+  {name => 'werk', path => 'checkers/werk/werk.checker.py', timeout => 30, tcp_port => 7654},
 
 queues: |
   {}

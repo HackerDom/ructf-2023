@@ -102,7 +102,7 @@ function SolveRustest() {
     };
 
     const handleAnswerChange = (event) => {
-        setFormData({ ...formData, answer: (parseInt(event.target.value) + 1) });
+        setFormData({ ...formData, answer: event.target.value });
     };
 
     return (
@@ -138,7 +138,7 @@ function SolveRustest() {
                                         id={`answer-${index}`}
                                         label={answer}
                                         value={index}
-                                        checked={formData.answer - 1 === index}
+                                        checked={formData.answer === index}
                                         onChange={handleAnswerChange}
                                     />
                                 ))}

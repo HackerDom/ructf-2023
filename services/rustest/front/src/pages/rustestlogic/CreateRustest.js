@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Col, Container, Form, Row } from "react-bootstrap";
+import { Button, Card, Col, Container, Form, Row, Alert } from "react-bootstrap";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 function CreateRustest() {
     const navigate = useNavigate();
     const [token, setToken] = useState(localStorage.getItem("jwtToken"));
+    const [error, setError] = useState("");
 
     useEffect(() => {
         setToken(localStorage.getItem("jwtToken"));
@@ -25,7 +26,7 @@ function CreateRustest() {
             {
                 question: "",
                 allowed_answers: ["", ""],
-                correct_idx: 0,
+                correct_idx: "",
             },
         ],
     });
@@ -45,7 +46,7 @@ function CreateRustest() {
                 {
                     question: "",
                     answers: [{ answer: "", isCorrect: false }],
-                    correct_idx: 0,
+                    correct_idx: "",
                 },
             ],
         });
@@ -70,7 +71,7 @@ function CreateRustest() {
 
     const handleCorrectAnswerChange = (questionIndex, answerIndex) => {
         const updatedQuestions = [...formData.questions];
-        updatedQuestions[questionIndex].correct_idx = (parseInt(answerIndex) + 1);
+        updatedQuestions[questionIndex].correct_idx = answerIndex;
         setFormData({ ...formData, questions: updatedQuestions });
     };
 
@@ -83,12 +84,14 @@ function CreateRustest() {
                 },
             })
             .then((response) => {
-                // Обработка успешного создания теста, например, перенаправление на страницу с информацией о тесте
-                console.log("Test created:", response.data);
+                navigate(`/rustest/${response.data.id}/preview`)
             })
-            .catch((error) => {
-                // Обработка ошибки при создании теста
-                console.error("Error creating test", error);
+            .catch((responseError) => {
+                if (responseError.response) {
+                    setError(responseError.response.data);
+                } else {
+                    setError("An error occurred.");
+                }
             });
     };
 
@@ -170,9 +173,9 @@ function CreateRustest() {
                                                     <Form.Check
                                                         type="radio"
                                                         name={`correctAnswer_${questionIndex}`}
-                                                        label={`Answer ${answerIndex + 1}`}
+                                                        label={`Answer ${answerIndex}`}
                                                         id={`answer_${questionIndex}_${answerIndex}`}
-                                                        checked={answerIndex === question.correct_idx - 1}
+                                                        checked={answerIndex === question.correct_idx}
                                                         onChange={() => handleCorrectAnswerChange(questionIndex, answerIndex)}
                                                     />
                                                     <Form.Control
@@ -204,6 +207,11 @@ function CreateRustest() {
                     </Form>
                 </Card.Body>
             </Card>
+            {error && (
+                <Alert variant="danger">
+                    {error}
+                </Alert>
+            )}
         </Container>
     );
 }
