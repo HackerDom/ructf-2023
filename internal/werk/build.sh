@@ -9,8 +9,14 @@ Command:
     run-tests
     build-release
     build-devel
+    install-binaries
     clean
 EOF
+}
+
+do_install_binaries() {
+    cp build/asm/libasm.so ../../services/werk
+    cp build/common/libcommon.so ../../services/werk
 }
 
 do_build_devel() {
@@ -55,6 +61,10 @@ main() {
     clean)
         shift
         do_clean "$@"
+        ;;
+    install-binaries)
+        shift
+        do_install_binaries "$@"
         ;;
     *)
         show_help
