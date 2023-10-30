@@ -23,8 +23,8 @@ namespace werk::utils {
             return {true, std::forward<T>(value), ""};
         }
 
-        static result of_success(T value) {
-            return {true, std::move(value), ""};
+        static result of_success(const T &value) {
+            return {true, value, ""};
         }
 
         static result of_success(T value, std::string message) {
@@ -53,4 +53,7 @@ namespace werk::utils {
                 : success(success), value(std::forward<Args>(args)...), message(std::move(message)) {
         }
     };
+
+    struct empty_result_struct{};
+    typedef result<empty_result_struct> result_no_value;
 }

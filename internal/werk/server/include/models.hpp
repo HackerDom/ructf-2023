@@ -5,21 +5,22 @@
 #include <utility>
 #include <memory>
 
+#include <utils/result.hpp>
+
 #include <types.hpp>
 
 namespace werk::server {
     struct RunRequest {
         std::filesystem::path binaryPath;
-        std::filesystem::path serialOutPath;
 
-        RunRequest(std::filesystem::path binaryPath, std::filesystem::path serialOutPath)
-            : binaryPath(std::move(binaryPath)), serialOutPath(std::move(serialOutPath)) {
+        explicit RunRequest(std::filesystem::path binaryPath)
+            : binaryPath(std::move(binaryPath)) {
             // empty
         }
 
         [[nodiscard]] std::string String() const;
 
-        static std::pair<std::shared_ptr<RunRequest>, std::string> ReadFromSocket(int fd);
+        static utils::result<std::shared_ptr<RunRequest>> ReadFromSocket(int fd);
     };
 
     struct RunResponse {
@@ -36,29 +37,15 @@ namespace werk::server {
         vd_t vd;
 
         [[nodiscard]] std::string String() const;
+
+        static utils::result<std::shared_ptr<KillRequest>> ReadFromSocket(int fd);
     };
 
     struct KillResponse {
         bool success;
 
         [[nodiscard]] std::string String() const;
-    };
 
-    struct StatusRequest {
-        vd_t vd;
-
-        [[nodiscard]] std::string String() const;
-    };
-
-    struct StatusResponse {
-        enum Status {
-            RUNNING = 0,
-            EXECUTION_TIMEOUT = 1,
-            NOT_FOUND = 2,
-            KILLED = 3,
-        };
-        Status status;
-
-        [[nodiscard]] std::string String() const;
+        int WriteToSocket(int fd);
     };
 }
