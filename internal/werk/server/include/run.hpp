@@ -30,14 +30,16 @@ namespace werk::server {
 
         enum State {
             Running,
-            Paused,
             Finished,
             Crashed,
             Killed,
-            Timeout
+            Timeout,
+            InternalError
         };
 
         virtual void Update(int ticksCount);
+
+        void Kill();
 
         [[nodiscard]] State GetState() const;
 
@@ -51,5 +53,7 @@ namespace werk::server {
         State state;
         std::uint64_t totalTicksCount;
         std::uint64_t ticksLimit;
+
+        void updateStatusInternal(vm::Vm::Status status);
     };
 }

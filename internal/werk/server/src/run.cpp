@@ -22,13 +22,39 @@ namespace werk::server {
     }
 
     void Run::Update(int ticksCount) {
-        totalTicksCount += ticksCount;
         if (state == Running) {
-            vm->Tick(ticksCount);
+            totalTicksCount += ticksCount;
+            updateStatusInternal(vm->Tick(ticksCount));
         }
     }
 
     vd_t Run::GetVd() const {
         return vd;
+    }
+
+    void Run::Kill() {
+        state = State::Killed;
+    }
+
+    void Run::updateStatusInternal(vm::Vm::Status status) {
+        switch (status) {
+            case vm::Vm::Running:
+                state = State::Running;
+                break;
+            case vm::Vm::Crashed:
+                state = State::Crashed;
+                break;
+            case vm::Vm::Finished:
+                state = State::Finished;
+                break;
+            default:
+                state = State::InternalError;
+                break;
+        }
+
+        if (totalTicksCount > ticksLimit) {
+            state = State::Timeout;
+            return;
+        }
     }
 }
