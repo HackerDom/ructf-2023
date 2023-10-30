@@ -7,17 +7,17 @@ namespace werk::vm {
         LOG(INFO) << "some vm started on page " << memory;
     }
 
-    void Vm::Tick(int opsCount) {
+    Vm::Status Vm::Tick(int opsCount) {
         LOG(INFO) << opsCount << " ticks on vm with memory at " << memory;
+        serial.push_back('A');
+        return Status::Running;
     }
 
-    bool Vm::Stopped() {
-        LOG(INFO) << "is vm with memory at address " << memory << " stopped?";
-
-        return false;
+    const std::vector<char> &Vm::GetSerial() const {
+        return serial;
     }
 
-    int Vm::GetTotalTicksCount() const {
-        return 0;
+    void *Vm::GetMemory() {
+        return memory;
     }
 }

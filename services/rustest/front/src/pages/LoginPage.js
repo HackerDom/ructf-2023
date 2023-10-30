@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import {Link, useNavigate} from "react-router-dom";
-import { Button, Col, Container, Form, Row } from "react-bootstrap";
+import { Button, Col, Container, Form, Row, Alert } from "react-bootstrap";
 import axios from "axios"; // Импорт Axios
 
 function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const navigate = useNavigate();
+    const [error, setError] = useState("");
 
     const handleLogin = () => {
         const data = {
@@ -19,8 +20,12 @@ function LoginPage() {
                 localStorage.setItem("jwtToken", response.data['token']);
                 navigate('/rustesthub')
             })
-            .catch((error) => {
-                console.error("Ошибка при запросе на сервер", error);
+            .catch((responseError) => {
+                if (responseError.response && responseError.response.status >= 400) {
+                    setError(responseError.response.data);
+                } else {
+                    setError("An error occurred.");
+                }
             });
     };
 
@@ -60,6 +65,11 @@ function LoginPage() {
                                 </Button>
                             </Link>
                         </div>
+                        {error && (
+                            <Alert variant="danger">
+                                {error}
+                            </Alert>
+                        )}
                     </Form>
                 </Col>
             </Row>

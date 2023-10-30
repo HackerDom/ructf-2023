@@ -83,8 +83,7 @@ function CreateRustest() {
                 },
             })
             .then((response) => {
-                // Обработка успешного создания теста, например, перенаправление на страницу с информацией о тесте
-                console.log("Test created:", response.data);
+                navigate(`/rustest/${response.data.id}/preview`)
             })
             .catch((error) => {
                 // Обработка ошибки при создании теста

@@ -1,20 +1,30 @@
 #pragma once
 
+#include <vector>
+
 //TODO: blank interface
 
 namespace werk::vm {
     class Vm {
     public:
+        enum Status {
+            Running,
+            Crashed,
+            Finished
+        };
+
         explicit Vm(void *memory);
         virtual ~Vm() = default;
 
-        virtual void Tick(int opsCount);
+        virtual Status Tick(int opsCount);
 
-        [[nodiscard]] virtual int GetTotalTicksCount() const;
+        [[nodiscard]] virtual const std::vector<char>& GetSerial() const;
 
-        virtual bool Stopped();
+        void *GetMemory();
 
     private:
         void *memory;
+
+        std::vector<char> serial;
     };
 }

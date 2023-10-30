@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import {Link, useNavigate} from "react-router-dom";
-import { Button, Col, Container, Form, Row } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import { Button, Col, Container, Form, Row, Alert } from "react-bootstrap";
 import axios from "axios";
 
 function RegisterPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [bio, setBio] = useState("");
+    const [error, setError] = useState("");
     const navigate = useNavigate();
 
     const handleRegister = () => {
@@ -18,12 +19,15 @@ function RegisterPage() {
 
         axios.post("/api/register", data)
             .then((response) => {
-                console.log("Registration successful", response.data);
                 localStorage.setItem("jwtToken", response.data['token']);
-                navigate("/login");
+                navigate("/rustesthub");
             })
-            .catch((error) => {
-                console.error("Registration error", error);
+            .catch((responseError) => {
+                if (responseError.response && responseError.response.status >= 400) {
+                    setError(responseError.response.data);
+                } else {
+                    setError("An error occurred.");
+                }
             });
     };
 
@@ -74,6 +78,11 @@ function RegisterPage() {
                                 </Button>
                             </Link>
                         </div>
+                        {error && (
+                            <Alert variant="danger">
+                                {error}
+                            </Alert>
+                        )}
                     </Form>
                 </Col>
             </Row>

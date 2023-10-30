@@ -9,7 +9,7 @@ set(SOURCES
         src/vm.cpp
         )
 
-add_library(vm ${HEADERS} ${SOURCES})
+add_library(vm STATIC ${HEADERS} ${SOURCES})
 target_link_libraries(vm glog::glog)
 target_include_directories(vm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
