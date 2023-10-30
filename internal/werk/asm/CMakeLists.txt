@@ -9,6 +9,15 @@ add_executable(asm ${HEADERS} ${SOURCES} src/main.cpp)
 target_link_libraries(asm common glog::glog)
 target_include_directories(asm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+add_library(asmr
+        ${SOURCES}
+        ${HEADERS}
+        include/extern_api.hpp
+        src/extern_api.cpp
+        )
+target_include_directories(asmr PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_link_libraries(asmr common)
+
 add_executable(asm_tests ${HEADERS} ${SOURCES}
         tests/main.cpp
         tests/lexer_tests.cpp

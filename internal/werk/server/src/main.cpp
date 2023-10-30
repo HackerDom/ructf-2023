@@ -32,7 +32,8 @@ int main(int argc, char **argv) {
 
     auto scheduler = std::make_shared<Scheduler>(500, 1000);
     auto pagesPool = std::make_shared<PagesPool>(3);
-    auto interpreter = std::make_shared<Interpreter>(scheduler, pagesPool, std::chrono::milliseconds(200));
+    auto vdGenerator = std::make_shared<VdGenerator>();
+    auto interpreter = std::make_shared<Interpreter>(scheduler, pagesPool, vdGenerator, std::chrono::milliseconds(200));
     auto threadPool = std::make_shared<ThreadPool>(5);
 
     server = std::make_shared<Server>(threadPool, path);

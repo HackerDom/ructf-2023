@@ -10,6 +10,10 @@ namespace werk::utils {
         const T value;
         const std::string message;
 
+        [[nodiscard]] explicit operator bool() const noexcept {
+            return success;
+        }
+
         template<class... Args>
         static result of_emplace_success(Args &&... args) {
             return {true, "", std::piecewise_construct, std::forward<Args>(args)...};
@@ -36,8 +40,8 @@ namespace werk::utils {
         }
 
     private:
-        result(bool success, T value, std::string message)
-                : success(success), value(std::move(value)), message(std::move(message)) {
+        result(bool success, const T &value, std::string message)
+                : success(success), value(value), message(std::move(message)) {
         }
 
         result(bool success, T &&value, std::string message)

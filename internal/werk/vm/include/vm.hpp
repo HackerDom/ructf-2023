@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 //TODO: blank interface
 
 namespace werk::vm {
@@ -10,11 +12,15 @@ namespace werk::vm {
 
         virtual void Tick(int opsCount);
 
-        [[nodiscard]] virtual int GetTotalTicksCount() const;
-
         virtual bool Stopped();
+
+        [[nodiscard]] const std::vector<char>& GetSerial() const;
+
+        void *GetMemory();
 
     private:
         void *memory;
+
+        std::vector<char> serial;
     };
 }
