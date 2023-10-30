@@ -87,8 +87,8 @@ function CreateRustest() {
                 navigate(`/rustest/${response.data.id}/preview`)
             })
             .catch((responseError) => {
-                if (responseError.response && responseError.response.status >= 400) {
-                    setError("Validation error");
+                if (responseError.response) {
+                    setError(responseError.response.data);
                 } else {
                     setError("An error occurred.");
                 }
