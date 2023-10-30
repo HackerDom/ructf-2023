@@ -39,6 +39,13 @@ namespace werk::server {
 
         scheduler->Append(run.value);
 
-        return RunResponse{true, run.value->GetVd(), ""};
+        auto vd = run.value->GetVd();
+
+        {
+            std::lock_guard<std::mutex> _(vdMapMutex);
+            vdToRun[vd] = run.value;
+        }
+
+        return RunResponse{true, vd, ""};
     }
 }
