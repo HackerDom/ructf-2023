@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Card, Col, Container, ListGroup, Row, Spinner } from "react-bootstrap";
-import { useParams } from "react-router-dom";
+import { Card, Container, ListGroup, Row, Spinner } from "react-bootstrap";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 function RustestPage() {
-    // const navigate = useNavigate();
+    const navigate = useNavigate();
+
     const { paramId } = useParams();
     const [isLoading, setIsLoading] = useState(true);
     const [rustestData, setRustestData] = useState(null); // Стейт для хранения данных о рустесте
@@ -30,6 +31,9 @@ function RustestPage() {
             });
     }, [paramId, token]);
 
+    const rediredctToUser = () => {
+        navigate(`/user_rustests/${rustestData.owner}`);
+    };
     return (
         <>
             {isLoading && (
@@ -42,22 +46,13 @@ function RustestPage() {
                     <Card className="mb-4">
                         <Card.Body>
                             <Row>
-                                <Col>
-                                    <h6>ID:</h6>
-                                    <p>{rustestData.id}</p>
-                                </Col>
-                                <Col md={3}>
-                                    <h6>Name:</h6>
-                                    <p>{rustestData.name}</p>
-                                </Col>
-                                <Col md={3}>
-                                    <h6>Owner:</h6>
-                                    <p>{rustestData.owner}</p>
-                                </Col>
+                                <h5>{rustestData.name}</h5>
                             </Row>
                             <Row>
-                                <h6>Description:</h6>
-                                <p>{rustestData.description}</p>
+                                <h6>Owner: <a href="javascript:void(0);" onClick={() => rediredctToUser()}>@{rustestData.owner}</a></h6>
+                            </Row>
+                            <Row>
+                                <h6>{rustestData.description}</h6>
                             </Row>
                         </Card.Body>
                     </Card>

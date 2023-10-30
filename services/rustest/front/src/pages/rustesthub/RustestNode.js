@@ -21,12 +21,11 @@ function RustestNode({ id, name, owner, description, isMytest }) {
         <Card className="m-4 mb-4" style={{ minWidth: '37rem', maxWidth: '37rem' }}>
             <Card.Body>
                 <Row>
-                    <h6>{name}</h6>
+                    <h5>{name}</h5>
                 </Row>
                 <Row>
                     <Col>
-                        <h6>Owner: @{owner}</h6>
-                        <Button onClick={() => redirectToUserTests()}>View other tests of user</Button>
+                        <h6>Owner: <a href="javascript:void(0);" onClick={() => redirectToUserTests()}>@{owner}</a></h6>
                     </Col>
                 </Row>
                 <Row>
