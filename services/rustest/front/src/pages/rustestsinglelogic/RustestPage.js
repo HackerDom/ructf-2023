@@ -86,7 +86,7 @@ function RustestQuestionsList({ questions }) {
                                 as="li"
                                 style={{
                                     backgroundColor:
-                                        answerIndex === question.correct_idx - 1
+                                        answerIndex === question.correct_idx
                                             ? "lightgreen"
                                             : "transparent",
                                 }}
