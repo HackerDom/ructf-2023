@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Pagination, Spinner } from "react-bootstrap";
-import RususerNode from "./RususerNode";
+import RustestNode from "./RustestNode";
+import {Container, Pagination, Spinner} from "react-bootstrap";
 
-function RususerList() {
+function RustestList() {
     const [currentPage, setCurrentPage] = useState(() => {
         const searchParams = new URLSearchParams(window.location.search);
         return Number(searchParams.get("page")) || 0;
@@ -11,7 +11,7 @@ function RususerList() {
 
     const [rustests, setRustests] = useState([]); // Данные о рустестах
     const [pagesTotal, setPagesTotal] = useState(0);
-    const [isLoading, setIsLoading] = useState(false); // Состояние загрузки
+    const [isLoading, setIsLoading] = useState(true); // Состояние загрузки
     const token = localStorage.getItem('jwtToken');
 
     useEffect(() => {
@@ -19,13 +19,13 @@ function RususerList() {
         const fetchData = async (currentPage) => {
             setIsLoading(true); // Устанавливаем состояние загрузки в true
             try {
-                const response = await axios.get(`http://104.248.87.99:13337/users?page=${currentPage}`, {
+                const response = await axios.get(`/api/rustests?page=${currentPage}`, {
                     headers: {
                         "Authorization": "Bearer " + token
                     }
                 });
                 // Присвоить данные из ответа в состояние
-                setRustests(response.data.users);
+                setRustests(response.data.rustests);
                 setPagesTotal(response.data.pages_total);
                 setIsLoading(false); // Завершили загрузку, устанавливаем состояние загрузки в false
             } catch (error) {
@@ -48,15 +48,16 @@ function RususerList() {
     };
 
     return (
-        <div className="m-5">
-            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-                {rustests.map((item) => (
-                    <RususerNode
-                        bio={item.bio}
-                        login={item.login}
-                    />
-                ))}
-            </div>
+        <Container style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {rustests.map((item) => (
+                <RustestNode
+                    key={item.id}
+                    id={item.id}
+                    name={item.name}
+                    owner={item.owner}
+                    description={item.description}
+                />
+            ))}
 
             {/* Пагинация */}
             {!isLoading && (
@@ -76,11 +77,11 @@ function RususerList() {
             {/* Лоадер, который отображается во время загрузки */}
             {isLoading && (
                 <Spinner animation="border" role="status" className="m-3">
-                    <span className="visually-hidden"></span>
+                    <span className="visually-hidden">Loading...</span>
                 </Spinner>
             )}
-        </div>
+        </Container>
     );
 }
 
-export default RususerList;
+export default RustestList;

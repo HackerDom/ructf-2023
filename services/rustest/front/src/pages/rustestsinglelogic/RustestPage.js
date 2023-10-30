@@ -14,7 +14,7 @@ function RustestPage() {
         // Выполнить запрос, но не сохранять данные в состоянии
         setIsLoading(true); // Устанавливаем состояние загрузки в true
         axios
-            .get(`http://104.248.87.99:13337/rustest/${paramId}/preview`, {
+            .get(`/api/rustest/${paramId}/preview`, {
                 headers: {
                     Authorization: "Bearer " + token,
                 },

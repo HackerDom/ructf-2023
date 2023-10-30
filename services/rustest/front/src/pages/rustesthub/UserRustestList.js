@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import RustestNode from "./RustestNode";
-import {Container, Pagination, Spinner} from "react-bootstrap";
+import { Pagination, Spinner } from "react-bootstrap";
+import {useParams} from "react-router-dom";
 
-function RustestList() {
+function UserRustestList() {
     const [currentPage, setCurrentPage] = useState(() => {
         const searchParams = new URLSearchParams(window.location.search);
         return Number(searchParams.get("page")) || 0;
@@ -11,7 +12,8 @@ function RustestList() {
 
     const [rustests, setRustests] = useState([]); // Данные о рустестах
     const [pagesTotal, setPagesTotal] = useState(0);
-    const [isLoading, setIsLoading] = useState(true); // Состояние загрузки
+    const [isLoading, setIsLoading] = useState(false); // Состояние загрузки
+    const { userId } = useParams();
     const token = localStorage.getItem('jwtToken');
 
     useEffect(() => {
@@ -19,7 +21,7 @@ function RustestList() {
         const fetchData = async (currentPage) => {
             setIsLoading(true); // Устанавливаем состояние загрузки в true
             try {
-                const response = await axios.get(`http://104.248.87.99:13337/rustests?page=${currentPage}`, {
+                const response = await axios.get(`/api/user_rustests/${userId}`, {
                     headers: {
                         "Authorization": "Bearer " + token
                     }
@@ -35,7 +37,7 @@ function RustestList() {
         };
 
         fetchData(currentPage); // Загрузить данные для текущей страницы
-    }, [currentPage, token]);
+    }, [currentPage, token, userId]);
 
     const handlePageChange = (newPage) => {
         // Изменяем GET параметры в URL при переключении страницы
@@ -48,7 +50,7 @@ function RustestList() {
     };
 
     return (
-        <Container style={{ display: 'flex', flexWrap: 'wrap' }}>
+        <div className="m-5">
             {rustests.map((item) => (
                 <RustestNode
                     key={item.id}
@@ -60,7 +62,6 @@ function RustestList() {
             ))}
 
             {/* Пагинация */}
-            {!isLoading && (
             <Pagination>
                 <Pagination.Prev
                     onClick={() => handlePageChange(currentPage - 1)}
@@ -72,16 +73,15 @@ function RustestList() {
                     disabled={currentPage === pagesTotal - 1}
                 />
             </Pagination>
-            )}
 
             {/* Лоадер, который отображается во время загрузки */}
             {isLoading && (
-                <Spinner animation="border" role="status" className="m-3">
+                <Spinner animation="border" role="status">
                     <span className="visually-hidden">Loading...</span>
                 </Spinner>
             )}
-        </Container>
+        </div>
     );
 }
 
-export default RustestList;
+export default UserRustestList;

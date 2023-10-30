@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import RustestNode from "./RustestNode";
 import { Pagination, Spinner } from "react-bootstrap";
-import {useParams} from "react-router-dom";
+import RususerNode from "./RususerNode";
 
-function UserRustestList() {
+function RususerList() {
     const [currentPage, setCurrentPage] = useState(() => {
         const searchParams = new URLSearchParams(window.location.search);
         return Number(searchParams.get("page")) || 0;
@@ -13,7 +12,6 @@ function UserRustestList() {
     const [rustests, setRustests] = useState([]); // Данные о рустестах
     const [pagesTotal, setPagesTotal] = useState(0);
     const [isLoading, setIsLoading] = useState(false); // Состояние загрузки
-    const { userId } = useParams();
     const token = localStorage.getItem('jwtToken');
 
     useEffect(() => {
@@ -21,13 +19,13 @@ function UserRustestList() {
         const fetchData = async (currentPage) => {
             setIsLoading(true); // Устанавливаем состояние загрузки в true
             try {
-                const response = await axios.get(`http://104.248.87.99:13337/user_rustests/${userId}`, {
+                const response = await axios.get(`/api/users?page=${currentPage}`, {
                     headers: {
                         "Authorization": "Bearer " + token
                     }
                 });
                 // Присвоить данные из ответа в состояние
-                setRustests(response.data.rustests);
+                setRustests(response.data.users);
                 setPagesTotal(response.data.pages_total);
                 setIsLoading(false); // Завершили загрузку, устанавливаем состояние загрузки в false
             } catch (error) {
@@ -37,7 +35,7 @@ function UserRustestList() {
         };
 
         fetchData(currentPage); // Загрузить данные для текущей страницы
-    }, [currentPage, token, userId]);
+    }, [currentPage, token]);
 
     const handlePageChange = (newPage) => {
         // Изменяем GET параметры в URL при переключении страницы
@@ -51,17 +49,17 @@ function UserRustestList() {
 
     return (
         <div className="m-5">
-            {rustests.map((item) => (
-                <RustestNode
-                    key={item.id}
-                    id={item.id}
-                    name={item.name}
-                    owner={item.owner}
-                    description={item.description}
-                />
-            ))}
+            <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+                {rustests.map((item) => (
+                    <RususerNode
+                        bio={item.bio}
+                        login={item.login}
+                    />
+                ))}
+            </div>
 
             {/* Пагинация */}
+            {!isLoading && (
             <Pagination>
                 <Pagination.Prev
                     onClick={() => handlePageChange(currentPage - 1)}
@@ -73,15 +71,16 @@ function UserRustestList() {
                     disabled={currentPage === pagesTotal - 1}
                 />
             </Pagination>
+            )}
 
             {/* Лоадер, который отображается во время загрузки */}
             {isLoading && (
-                <Spinner animation="border" role="status">
-                    <span className="visually-hidden">Loading...</span>
+                <Spinner animation="border" role="status" className="m-3">
+                    <span className="visually-hidden"></span>
                 </Spinner>
             )}
         </div>
     );
 }
 
-export default UserRustestList;
+export default RususerList;

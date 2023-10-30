@@ -18,6 +18,7 @@ use axum::{
 };
 
 use tower::ServiceBuilder;
+use tower_http::services::{ServeDir, ServeFile};
 use tower_http::{
     cors::{Any, CorsLayer},
     normalize_path::NormalizePathLayer,
@@ -80,9 +81,16 @@ pub fn build_router(state: AppState) -> Router {
         ..Default::default()
     };
 
-    ApiRouter::new()
+    let merged_api = ApiRouter::new()
         .merge(authenticated_routes)
-        .merge(unauthenticated_routes)
+        .merge(unauthenticated_routes);
+
+    let serve_dir =
+        ServeDir::new("static").not_found_service(ServeFile::new("static/index.html"));
+
+    ApiRouter::new()
+        .nest("/api", merged_api)
+        .nest_service("/", serve_dir)
         .finish_api(&mut api)
         .layer(Extension(api))
         .layer(

@@ -1,29 +1,26 @@
 import React, { useState } from "react";
 import {Link, useNavigate} from "react-router-dom";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
-import axios from "axios";
+import axios from "axios"; // Импорт Axios
 
-function RegisterPage() {
+function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [bio, setBio] = useState("");
     const navigate = useNavigate();
 
-    const handleRegister = () => {
+    const handleLogin = () => {
         const data = {
             login: email,
             password: password,
-            bio: bio,
         };
 
-        axios.post("http://104.248.87.99:13337/register", data)
+        axios.post("/api/login", data)
             .then((response) => {
-                console.log("Registration successful", response.data);
                 localStorage.setItem("jwtToken", response.data['token']);
-                navigate("/login");
+                navigate('/rustesthub')
             })
             .catch((error) => {
-                console.error("Registration error", error);
+                console.error("Ошибка при запросе на сервер", error);
             });
     };
 
@@ -31,13 +28,13 @@ function RegisterPage() {
         <Container>
             <Row className="justify-content-center mt-5">
                 <Col md={6}>
-                    <h2>Registration</h2>
+                    <h2>Login</h2>
                     <Form className="mt-4">
                         <Form.Group controlId="formBasicEmail" className="m-2">
                             <Form.Label>Email address</Form.Label>
                             <Form.Control
                                 type="email"
-                                placeholder="Enter your email"
+                                placeholder="Enter email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
@@ -47,30 +44,19 @@ function RegisterPage() {
                             <Form.Label>Password</Form.Label>
                             <Form.Control
                                 type="password"
-                                placeholder="Choose a password"
+                                placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
                         </Form.Group>
 
-                        <Form.Group controlId="formBasicBio" className="m-2">
-                            <Form.Label>Bio</Form.Label>
-                            <Form.Control
-                                as="textarea"
-                                rows={4}
-                                placeholder="Tell us about yourself"
-                                value={bio}
-                                onChange={(e) => setBio(e.target.value)}
-                            />
-                        </Form.Group>
-
                         <div className="text-center">
-                            <Button variant="primary" type="button" className="m-2" onClick={handleRegister}>
-                                Register
+                            <Button variant="primary" type="button" className="m-2" onClick={handleLogin}>
+                                Login
                             </Button>
-                            <Link to="/login">
+                            <Link to="/register">
                                 <Button variant="secondary" className="m-2">
-                                    Login
+                                    Registration
                                 </Button>
                             </Link>
                         </div>
@@ -81,4 +67,4 @@ function RegisterPage() {
     );
 }
 
-export default RegisterPage;
+export default LoginPage;

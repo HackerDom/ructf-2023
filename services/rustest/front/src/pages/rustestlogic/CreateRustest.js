@@ -77,7 +77,7 @@ function CreateRustest() {
     const handleSubmit = (event) => {
         event.preventDefault();
         axios
-            .post("http://104.248.87.99:13337/rustest", formData, {
+            .post("/api/rustest", formData, {
                 headers: {
                     Authorization: "Bearer " + token,
                 },
