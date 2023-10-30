@@ -24,7 +24,7 @@ pub enum RustestApplicationError {
     #[error("invalid data provided: {reason:}")]
     InvalidDataProvided { reason: String },
 
-    #[error("action is anallowed: {action:}")]
+    #[error("action is unallowed: {action:}")]
     ActionNotAllowed { action: String },
 
     #[error("unknown error occurred: {err:}")]
@@ -453,6 +453,10 @@ impl RussApplication {
                 reason: format!("user with id `{}` not found", req.user_id),
             });
         }
+
+        req.rustest
+            .validate()
+            .context("cannot create rustest, rustest is invalid")?;
 
         let test = self
             .storage
