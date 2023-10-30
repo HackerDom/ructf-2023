@@ -4,42 +4,26 @@
 
 #include <gtest/gtest.h>
 
-#include <run_id_generator.hpp>
+#include <vd_generator.hpp>
 
-using werk::server::RunIdGenerator;
+using namespace werk::server;
 
 static void generateAndWrite(
-        const std::shared_ptr<RunIdGenerator> &gen,
-        std::unordered_set<std::string> &out,
+        const std::shared_ptr<VdGenerator> &gen,
+        std::unordered_set<vd_t> &out,
         int count) {
     for (int i = 0; i < count; ++i) {
         auto res = gen->Generate();
         ASSERT_TRUE(res.success);
-        ASSERT_EQ(res.errorMessage, "");
-        ASSERT_EQ(res.id.size(), gen->prefix.size() + RunIdGenerator::kIdLength);
-        for (std::size_t j = 0; j < gen->prefix.size(); ++j) {
-            ASSERT_EQ(res.id[j], gen->prefix[j]);
-        }
 
-        for (std::size_t j = gen->prefix.size(); j < res.id.size(); ++j) {
-            auto found = false;
-            for (char c : RunIdGenerator::kAlphabet) {
-                if (c == res.id[j]) {
-                    found = true;
-                    break;
-                }
-            }
-            ASSERT_TRUE(found);
-        }
-
-        out.insert(std::move(res.id));
+        out.insert(res.value);
     }
 }
 
 TEST(RunIdGenerator, GeneratesDifferentStrings) {
     constexpr int kIdsCount = 1'000'000;
-    auto gen = std::make_shared<RunIdGenerator>("foobar_");
-    std::unordered_set<std::string> allGeneratedIds;
+    auto gen = std::make_shared<VdGenerator>();
+    std::unordered_set<vd_t> allGeneratedIds;
     allGeneratedIds.reserve(kIdsCount);
 
     generateAndWrite(gen, allGeneratedIds, kIdsCount);
@@ -50,8 +34,8 @@ TEST(RunIdGenerator, GeneratesDifferentStrings) {
 TEST(RunIdGenerator, IsThreadSafe) {
     constexpr int kIdsPerThreadCount = 100'000;
     constexpr int kThreadsCount = 8;
-    auto gen = std::make_shared<RunIdGenerator>("zzzzz_");
-    std::vector<std::unordered_set<std::string>> results;
+    auto gen = std::make_shared<VdGenerator>();
+    std::vector<std::unordered_set<vd_t>> results;
     results.resize(kThreadsCount);
     std::vector<std::thread> threads;
 
@@ -61,7 +45,7 @@ TEST(RunIdGenerator, IsThreadSafe) {
         });
     }
 
-    std::unordered_set<std::string> joinedIds;
+    std::unordered_set<vd_t> joinedIds;
     joinedIds.reserve(kIdsPerThreadCount * kThreadsCount);
 
     for (int i = 0; i < kThreadsCount; ++i) {

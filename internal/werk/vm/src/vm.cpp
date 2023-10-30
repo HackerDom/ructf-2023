@@ -9,6 +9,7 @@ namespace werk::vm {
 
     void Vm::Tick(int opsCount) {
         LOG(INFO) << opsCount << " ticks on vm with memory at " << memory;
+        serial.push_back('A');
     }
 
     bool Vm::Stopped() {
@@ -17,7 +18,11 @@ namespace werk::vm {
         return false;
     }
 
-    int Vm::GetTotalTicksCount() const {
-        return 0;
+    const std::vector<char> &Vm::GetSerial() const {
+        return serial;
+    }
+
+    void *Vm::GetMemory() {
+        return memory;
     }
 }
