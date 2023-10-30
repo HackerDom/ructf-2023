@@ -5,6 +5,7 @@
 #include <thread>
 #include <vector>
 #include <random>
+#include <mutex>
 
 #include <vm.hpp>
 
