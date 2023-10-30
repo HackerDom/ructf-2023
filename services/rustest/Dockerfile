@@ -16,6 +16,23 @@ COPY ./src ./src
 RUN rm ./target/release/deps/rustest-* && \ 
     cargo build --release
 
+###############################################################
+
+FROM node:18.18.2-alpine as front_builder
+
+WORKDIR /front
+
+COPY ./front/package*.json ./
+
+RUN npm install
+
+COPY ./front/src ./src/
+COPY ./front/public ./public
+
+RUN npm run build
+
+################################################################
+
 FROM debian:buster-slim
 ARG APP=/usr/src/app
 
@@ -31,6 +48,8 @@ RUN groupadd $APP_USER \
     && mkdir -p ${APP}
 
 COPY --from=builder /rustest/target/release/rustest ${APP}/rustest
+
+COPY --from=front_builder /front/ ${APP}/front
 
 RUN chown -R $APP_USER:$APP_USER ${APP}
 

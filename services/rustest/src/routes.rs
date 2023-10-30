@@ -86,7 +86,7 @@ pub fn build_router(state: AppState) -> Router {
         .merge(unauthenticated_routes);
 
     let serve_dir =
-        ServeDir::new("static").not_found_service(ServeFile::new("static/index.html"));
+        ServeDir::new("front/build").not_found_service(ServeFile::new("front/build/index.html"));
 
     ApiRouter::new()
         .nest("/api", merged_api)
