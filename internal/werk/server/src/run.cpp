@@ -16,4 +16,19 @@ namespace werk::server {
         state = Running;
         totalTicksCount = 0;
     }
+
+    Run::State Run::GetState() const {
+        return state;
+    }
+
+    void Run::Update(int ticksCount) {
+        totalTicksCount += ticksCount;
+        if (state == Running) {
+            vm->Tick(ticksCount);
+        }
+    }
+
+    vd_t Run::GetVd() const {
+        return vd;
+    }
 }

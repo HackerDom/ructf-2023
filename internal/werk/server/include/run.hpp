@@ -17,6 +17,10 @@
 namespace werk::server {
     class Run {
     public:
+        Run(vd_t vd, std::shared_ptr<vm::Vm> vm, std::uint64_t ticksLimit);
+
+        virtual ~Run() = default;
+
         static utils::result<std::shared_ptr<Run>> CreateFromFile(
                 const std::filesystem::path &binaryPath,
                 vd_t vd,
@@ -33,13 +37,13 @@ namespace werk::server {
             Timeout
         };
 
-        void Update(int ticksCount);
+        virtual void Update(int ticksCount);
 
         [[nodiscard]] State GetState() const;
 
-    private:
-        Run(vd_t vd, std::shared_ptr<vm::Vm> vm, std::uint64_t ticksLimit);
+        [[nodiscard]] vd_t GetVd() const;
 
+    private:
         const vd_t vd;
         const std::shared_ptr<vm::Vm> vm;
 

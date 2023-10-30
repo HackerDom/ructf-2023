@@ -9,25 +9,25 @@ namespace werk::server {
             uniformDistribution(minTicks, maxTicks) {
     }
 
-    void Scheduler::Append(std::shared_ptr<vm::Vm> vm) {
-        std::lock_guard<std::mutex> _(vmsListMutex);
+    void Scheduler::Append(std::shared_ptr<Run> vm) {
+        std::lock_guard<std::mutex> _(runsMutex);
 
-        vms.insert(std::move(vm));
+        runs.insert(std::move(vm));
     }
 
-    void Scheduler::Remove(const std::shared_ptr<vm::Vm> &vm) {
-        std::lock_guard<std::mutex> _(vmsListMutex);
+    void Scheduler::Remove(const std::shared_ptr<Run> &run) {
+        std::lock_guard<std::mutex> _(runsMutex);
 
-        vms.erase(vm);
+        runs.erase(run);
     }
 
-    void Scheduler::TickAll() {
-        std::lock_guard<std::mutex> _(vmsListMutex);
+    void Scheduler::UpdateAll() {
+        std::lock_guard<std::mutex> _(runsMutex);
 
-        for (auto &it: vms) {
+        for (auto &it: runs) {
             auto tickCount = uniformDistribution(randomEngine);
 
-            it->Tick(tickCount);
+            it->Update(tickCount);
         }
     }
 }
