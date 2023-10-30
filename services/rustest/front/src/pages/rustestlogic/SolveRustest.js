@@ -14,6 +14,7 @@ function SolveRustest() {
     const [answers, setAnswers] = useState([]);
     const [winState, setWinState] = useState('');
     const [testResult, setTestResult] = useState('');
+    const [rewardState, setRewardState] = useState('');
     const [question, setQuestion] = useState('');
     const token = localStorage.getItem("jwtToken");
 
@@ -31,6 +32,9 @@ function SolveRustest() {
 
                 if (roundResponse.data.final_state) {
                     setTestResult(roundResponse.data.final_state.result)
+                    if (roundResponse.data.final_state.result === "Win") {
+                        setRewardState(roundResponse.data.final_state.reward)
+                    }
                 }
 
                 if (roundResponse.data.round) {
@@ -75,6 +79,9 @@ function SolveRustest() {
 
                 if (response.data.final_state) {
                     setTestResult(response.data.final_state.result)
+                    if (response.data.final_state.result === "Win") {
+                        setRewardState(response.data.final_state.reward)
+                    }
                 }
 
                 if (response.data.round) {
@@ -103,7 +110,7 @@ function SolveRustest() {
             {(winState === 'Final' && testResult === 'Win') && (
                 <Card className="mb-4">
                     <Card.Body>
-                        <h1 className="text-success text-center">Victory!</h1>
+                        <h1 className="text-success text-center">Victory, here is your reward: `{rewardState}`!</h1>
                     </Card.Body>
                 </Card>
             )}

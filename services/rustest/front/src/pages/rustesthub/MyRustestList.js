@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import RustestNode from "./RustestNode";
-import {Container, Pagination, Spinner} from "react-bootstrap";
+import { Container, Spinner } from "react-bootstrap";
 
 function MyRustestList() {
     const [currentPage, setCurrentPage] = useState(() => {
@@ -10,7 +10,7 @@ function MyRustestList() {
     });
 
     const [rustests, setRustests] = useState([]); // Данные о рустестах
-    const [pagesTotal, setPagesTotal] = useState(0);
+    // const [_, setPagesTotal] = useState(0);
     const [isLoading, setIsLoading] = useState(false); // Состояние загрузки
     const token = localStorage.getItem('jwtToken');
 
@@ -26,7 +26,7 @@ function MyRustestList() {
                 });
                 // Присвоить данные из ответа в состояние
                 setRustests(response.data.rustests);
-                setPagesTotal(response.data.pages_total);
+                // setPagesTotal(response.data.pages_total);
                 setIsLoading(false); // Завершили загрузку, устанавливаем состояние загрузки в false
             } catch (error) {
                 console.error("Error fetching data", error);
@@ -36,16 +36,6 @@ function MyRustestList() {
 
         fetchData(currentPage); // Загрузить данные для текущей страницы
     }, [currentPage, token]);
-
-    const handlePageChange = (newPage) => {
-        // Изменяем GET параметры в URL при переключении страницы
-        const searchParams = new URLSearchParams(window.location.search);
-        searchParams.set("page", newPage);
-        const newURL = `${window.location.pathname}?${searchParams.toString()}`;
-        window.history.pushState({ path: newURL }, "", newURL);
-
-        setCurrentPage(newPage); // Обновить текущую страницу
-    };
 
     return (
         <Container style={{ display: 'flex', flexWrap: 'wrap' }}>

@@ -13,6 +13,10 @@ function RustestNode({ id, name, owner, description, isMytest }) {
         navigate(`/rustest/${id}/solve`);
     };
 
+    const redirectToUserTests = () => {
+        navigate(`/user_rustests/${owner}`);
+    };
+
     return <>
         <Card className="m-4 mb-4" style={{ minWidth: '37rem', maxWidth: '37rem' }}>
             <Card.Body>
@@ -21,8 +25,8 @@ function RustestNode({ id, name, owner, description, isMytest }) {
                 </Row>
                 <Row>
                     <Col>
-                        <h6>Owner: </h6> 
-                        <a href="/user_rustests/{owner}">{owner}</a> 
+                        <h6>Owner: @{owner}</h6>
+                        <Button onClick={() => redirectToUserTests()}>View other tests of user</Button>
                     </Col>
                 </Row>
                 <Row>
@@ -31,12 +35,12 @@ function RustestNode({ id, name, owner, description, isMytest }) {
             </Card.Body>
             {isMytest && (
                 <Button className="mx-3 mb-3" variant="primary" onClick={() => redirectToRustestPeview()}>
-                    ViewTestPreview
+                    Preview Rustest
                 </Button>
             )}
             {!isMytest && (
                 <Button className="mx-3 mb-3" variant="danger" onClick={() => redirectToRustestSolve()}>
-                    SolveTest
+                    Check your RussNess
                 </Button>
             )}
         </Card>
