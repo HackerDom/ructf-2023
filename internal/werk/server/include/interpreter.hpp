@@ -4,6 +4,7 @@
 #include <thread>
 #include <unordered_map>
 #include <chrono>
+#include <mutex>
 
 #include <pages_pool.hpp>
 #include <scheduler.hpp>
