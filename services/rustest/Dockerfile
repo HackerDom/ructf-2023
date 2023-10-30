@@ -51,9 +51,9 @@ COPY --from=builder /rustest/target/release/rustest ${APP}/rustest
 
 COPY --from=front_builder /front/ ${APP}/front
 
-RUN chown -R $APP_USER:$APP_USER ${APP}
+# RUN chown -R $APP_USER:$APP_USER ${APP}
+# USER $APP_USER
 
-USER $APP_USER
 WORKDIR ${APP}
 
 CMD ["./rustest"]
