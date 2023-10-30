@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <string>
-#include <filesystem>
 #include <memory>
 #include <vector>
 #include <utility>
@@ -21,13 +20,6 @@ namespace werk::server {
 
         virtual ~Run() = default;
 
-        static utils::result<std::shared_ptr<Run>> CreateFromFile(
-                const std::filesystem::path &binaryPath,
-                vd_t vd,
-                void *memory,
-                std::uint64_t ticksLimit
-        );
-
         enum State {
             Running,
             Finished,
@@ -44,6 +36,8 @@ namespace werk::server {
         [[nodiscard]] State GetState() const;
 
         [[nodiscard]] vd_t GetVd() const;
+
+        [[nodiscard]] std::shared_ptr<vm::Vm> GetVm() const;
 
     private:
         const vd_t vd;

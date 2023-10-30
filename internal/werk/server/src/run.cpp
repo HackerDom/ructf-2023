@@ -3,14 +3,6 @@
 #include <run.hpp>
 
 namespace werk::server {
-    utils::result<std::shared_ptr<Run>> Run::CreateFromFile(
-            const std::filesystem::path &binaryPath,
-            vd_t vd,
-            void *memory,
-            std::uint64_t ticksLimit) {
-        return utils::result<std::shared_ptr<Run>>::of_error("not implemented");
-    }
-
     Run::Run(vd_t vd, std::shared_ptr<vm::Vm> vm, std::uint64_t ticksLimit)
             : vd(vd), vm(std::move(vm)), ticksLimit(ticksLimit) {
         state = Running;
@@ -22,6 +14,8 @@ namespace werk::server {
     }
 
     void Run::Update(int ticksCount) {
+        std::lock_guard<std::mutex> _(updateMutex);
+
         if (state == Running) {
             totalTicksCount += ticksCount;
             updateStatusInternal(vm->Tick(ticksCount));
@@ -56,5 +50,9 @@ namespace werk::server {
             state = State::Timeout;
             return;
         }
+    }
+
+    std::shared_ptr<vm::Vm> Run::GetVm() const {
+        return vm;
     }
 }

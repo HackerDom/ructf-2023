@@ -10,6 +10,7 @@ set(HEADERS
         include/models.hpp
         include/vd_generator.hpp
         include/run.hpp
+        include/run_loader.hpp
         )
 
 set(SOURCES
@@ -20,6 +21,7 @@ set(SOURCES
         src/models.cpp
         src/vd_generator.cpp
         src/run.cpp
+        src/run_loader.cpp
         )
 
 add_executable(interpreter_server ${HEADERS} ${SOURCES} src/main.cpp)
@@ -35,6 +37,7 @@ add_executable(interpreter_server_tests
         tests/interpreter_tests.cpp
         tests/vd_generator_tests.cpp
         tests/run_tests.cpp
+        tests/run_loader_tests.cpp
         )
 target_include_directories(interpreter_server_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(interpreter_server_tests common vm glog::glog gtest)

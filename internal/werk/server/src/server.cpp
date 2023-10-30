@@ -169,13 +169,7 @@ namespace werk::server {
 
             switch (command) {
                 case 'R':
-                    acceptCommands = handleRunRequest(fd);
-                    break;
-                case 'S':
-                    acceptCommands = handleStatusRequest(fd);
-                    break;
-                case 'K':
-                    acceptCommands = handleKillRequest(fd);
+                    acceptCommands = executeHandler<RunRequest, RunResponse, RunHandlerT>(runHandler, fd);
                     break;
                 case 'Q':
                     acceptCommands = false;
@@ -191,62 +185,6 @@ namespace werk::server {
 
     void Server::SetRunHandler(Server::RunHandlerT handler) {
         runHandler = std::move(handler);
-    }
-
-    void Server::SetKillHandler(Server::KillHandlerT handler) {
-        killHandler = std::move(handler);
-    }
-
-    void Server::SetStatusHandler(Server::StatusHandlerT handler) {
-        statusHandler = std::move(handler);
-    }
-
-    bool Server::handleRunRequest(int fd) {
-        if (!runHandler) {
-            LOG(ERROR) << "run request handler not set";
-            writeInvalidRequest(fd);
-            return false;
-        }
-
-        auto [request, error] = RunRequest::ReadFromSocket(fd);
-        if (request == nullptr) {
-            LOG(WARNING) << utils::Format("reading run request failed: '%s', closing connection",
-                                          error.c_str());
-            return false;
-        }
-
-        LOG(INFO) << "request = " << request->String();
-
-        RunResponse response;
-
-        try {
-            response = runHandler(*request);
-        } catch (std::exception &e) {
-            LOG(ERROR) << "run handler failed with exception: " << e.what();
-            return false;
-        } catch (...) {
-            LOG(ERROR) << "run handler failed with exception";
-            return false;
-        }
-
-        LOG(INFO) << "response = " << response.String();
-
-        if (response.WriteToSocket(fd) != 0) {
-            LOG(WARNING) << "writing run request failed, closing connection";
-            return false;
-        }
-
-        return true;
-    }
-
-    bool Server::handleStatusRequest(int fd) {
-        writeInvalidRequest(fd);
-        return false;
-    }
-
-    bool Server::handleKillRequest(int fd) {
-        writeInvalidRequest(fd);
-        return false;
     }
 
     void Server::writeInvalidRequest(int fd) {

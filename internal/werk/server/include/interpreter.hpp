@@ -1,43 +1,28 @@
 #pragma once
 
 #include <atomic>
-#include <thread>
-#include <unordered_map>
 #include <chrono>
 #include <mutex>
 
-#include <pages_pool.hpp>
 #include <scheduler.hpp>
-#include <vd_generator.hpp>
+#include <run_loader.hpp>
 #include <models.hpp>
 
 namespace werk::server {
     class Interpreter {
     public:
         Interpreter(
+                std::shared_ptr<RunLoader> runLoader,
                 std::shared_ptr<Scheduler> scheduler,
-                std::shared_ptr<PagesPool> pagesPool,
-                std::shared_ptr<VdGenerator> vdGenerator,
                 std::chrono::milliseconds sleepPeriodMs);
 
         ~Interpreter();
 
-        bool StartExecutorThread();
-
-        RunResponse Run(const RunRequest &request);
-
-        StatusResponse Status(const StatusRequest &request);
-
-        KillResponse Kill(const KillRequest &request);
+        [[nodiscard]] RunResponse Run(const RunRequest &rq);
 
     private:
-        std::shared_ptr<VdGenerator> vdGenerator;
-        std::shared_ptr<Scheduler> scheduler;
-        std::shared_ptr<PagesPool> pagesPool;
-
-        std::unordered_map<vd_t, std::shared_ptr<vm::Vm>> vdToVm;
-        std::mutex vdMapMutex;
-
+        const std::shared_ptr<RunLoader> runLoader;
+        const std::shared_ptr<Scheduler> scheduler;
         const std::chrono::milliseconds sleepPeriod;
 
         void executorThreadTask();

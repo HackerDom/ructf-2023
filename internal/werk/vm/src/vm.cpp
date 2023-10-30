@@ -4,7 +4,7 @@
 
 namespace werk::vm {
     Vm::Vm(void *memory) : memory(memory) {
-        LOG(INFO) << "some vm started on page " << memory;
+        LOG(INFO) << "some vm started on page " << this->memory;
     }
 
     Vm::Status Vm::Tick(int opsCount) {

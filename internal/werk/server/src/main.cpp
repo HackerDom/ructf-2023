@@ -33,12 +33,11 @@ int main(int argc, char **argv) {
     auto scheduler = std::make_shared<Scheduler>(500, 1000);
     auto pagesPool = std::make_shared<PagesPool>(3);
     auto vdGenerator = std::make_shared<VdGenerator>();
-    auto interpreter = std::make_shared<Interpreter>(scheduler, pagesPool, vdGenerator, std::chrono::milliseconds(200));
+    auto runLoader = std::make_shared<RunLoader>(10000, vdGenerator, pagesPool);
+    auto interpreter = std::make_shared<Interpreter>(runLoader, scheduler, std::chrono::milliseconds(200));
     auto threadPool = std::make_shared<ThreadPool>(5);
 
     server = std::make_shared<Server>(threadPool, path);
-
-    interpreter->StartExecutorThread();
 
     server->SetRunHandler([interpreter](const RunRequest &request) {
         if (request.binaryPath != "error") {
@@ -46,14 +45,6 @@ int main(int argc, char **argv) {
         }
         return RunResponse{false, kEmptyVmDescriptor, "some error occurred"};
 //        return interpreter->Run(request);
-    });
-
-    server->SetStatusHandler([interpreter](const StatusRequest &request) {
-        return interpreter->Status(request);
-    });
-
-    server->SetKillHandler([interpreter](const KillRequest &request) {
-        return interpreter->Kill(request);
     });
 
     std::signal(SIGCHLD, SIG_IGN);

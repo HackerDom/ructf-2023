@@ -5,22 +5,24 @@
 using namespace werk::server;
 using namespace werk::vm;
 
-class TestVm : public Vm {
-public:
-    explicit TestVm(void *m) : Vm(m) {
-    }
+namespace {
+    class TestVm : public Vm {
+    public:
+        explicit TestVm(void *m) : Vm(m) {
+        }
 
-    Vm::Status Tick(int opsCount) override {
-        totalTicks += opsCount;
-        return status;
-    }
+        Vm::Status Tick(int opsCount) override {
+            totalTicks += opsCount;
+            return status;
+        }
 
-    Vm::Status status = Running;
-    int totalTicks = 0;
-};
+        Vm::Status status = Running;
+        int totalTicks = 0;
+    };
+}
 
 std::shared_ptr<Vm> GetVm() {
-    auto vm = std::make_shared<TestVm>(reinterpret_cast<void*>(0xcafebabedeadbeef));
+    auto vm = std::make_shared<TestVm>(reinterpret_cast<void *>(0xcafebabedeadbeef));
 
     return std::static_pointer_cast<Vm>(vm);
 }

@@ -5,7 +5,10 @@
 #include <filesystem>
 #include <functional>
 
+#include <glog/logging.h>
+
 #include <utils/thread_pool.hpp>
+#include <utils/strings.hpp>
 
 #include <models.hpp>
 
@@ -29,12 +32,6 @@ namespace werk::server {
         using RunHandlerT = std::function<RunResponse(const RunRequest&)>;
         void SetRunHandler(RunHandlerT handler);
 
-        using KillHandlerT = std::function<KillResponse(const KillRequest&)>;
-        void SetKillHandler(KillHandlerT handler);
-
-        using StatusHandlerT = std::function<StatusResponse(const StatusRequest &request)>;
-        void SetStatusHandler(StatusHandlerT handler);
-
     private:
         std::shared_ptr<utils::ThreadPool> threadPool;
         const std::filesystem::path socketPath;
@@ -44,14 +41,48 @@ namespace werk::server {
         ListenResult listenInternal();
 
         void handleClient(int fd);
-        bool handleRunRequest(int fd);
-        bool handleKillRequest(int fd);
-        bool handleStatusRequest(int fd);
 
         RunHandlerT runHandler;
-        KillHandlerT killHandler;
-        StatusHandlerT statusHandler;
 
         static void writeInvalidRequest(int fd);
+
+        template <class RequestT, class ResponseT, class HandlerT>
+        bool executeHandler(HandlerT handler, int fd) {
+            if (!handler) {
+                LOG(ERROR) << "run request handler not set";
+                writeInvalidRequest(fd);
+                return false;
+            }
+
+            auto request = RequestT::ReadFromSocket(fd);
+            if (!request) {
+                LOG(WARNING) << utils::Format("reading run request failed: '%s', closing connection",
+                                              request.message.c_str());
+                return false;
+            }
+
+            LOG(INFO) << "request = " << request.value->String();
+
+            ResponseT response;
+
+            try {
+                response = handler(*request.value);
+            } catch (std::exception &e) {
+                LOG(ERROR) << "run handler failed with exception: " << e.what();
+                return false;
+            } catch (...) {
+                LOG(ERROR) << "run handler failed with exception";
+                return false;
+            }
+
+            LOG(INFO) << "response = " << response.String();
+
+            if (response.WriteToSocket(fd) != 0) {
+                LOG(WARNING) << "writing run request failed, closing connection";
+                return false;
+            }
+
+            return true;
+        }
     };
 }
