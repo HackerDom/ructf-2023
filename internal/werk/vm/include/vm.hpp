@@ -10,9 +10,9 @@ namespace werk::vm {
         explicit Vm(void *memory);
         virtual ~Vm() = default;
 
-        virtual void Tick(int opsCount);
+        void Tick(int opsCount);
 
-        virtual bool Stopped();
+        bool Stopped();
 
         [[nodiscard]] const std::vector<char>& GetSerial() const;
 

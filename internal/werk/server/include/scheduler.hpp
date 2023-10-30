@@ -7,22 +7,22 @@
 #include <random>
 #include <mutex>
 
-#include <vm.hpp>
+#include <run.hpp>
 
 namespace werk::server {
     class Scheduler {
     public:
         Scheduler(int minTicks, int maxTicks);
 
-        void Append(std::shared_ptr<vm::Vm> vm);
+        void Append(std::shared_ptr<Run> run);
 
-        void Remove(const std::shared_ptr<vm::Vm> &vm);
+        void Remove(const std::shared_ptr<Run> &run);
 
-        void TickAll();
+        void UpdateAll();
 
     private:
-        std::unordered_set<std::shared_ptr<vm::Vm>> vms;
-        std::mutex vmsListMutex;
+        std::unordered_set<std::shared_ptr<Run>> runs;
+        std::mutex runsMutex;
 
         std::random_device randomDevice;
         std::mt19937 randomEngine;
