@@ -17,6 +17,7 @@ EOF
 do_install_binaries() {
     cp build/asm/libasm.so ../../services/werk
     cp build/common/libcommon.so ../../services/werk
+    cp build/server/interpreter_server ../../services/werk
 }
 
 do_build_devel() {
