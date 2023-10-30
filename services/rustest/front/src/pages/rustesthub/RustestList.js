@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import RustestNode from "./RustestNode";
-import {Container, Pagination, Spinner} from "react-bootstrap";
+import { Container, Pagination, Spinner } from "react-bootstrap";
 
 function RustestList() {
     const [currentPage, setCurrentPage] = useState(() => {
@@ -61,17 +61,34 @@ function RustestList() {
 
             {/* Пагинация */}
             {!isLoading && (
-            <Pagination>
-                <Pagination.Prev
-                    onClick={() => handlePageChange(currentPage - 1)}
-                    disabled={currentPage === 0}
-                />
-                <Pagination.Item active>{currentPage + 1}</Pagination.Item>
-                <Pagination.Next
-                    onClick={() => handlePageChange(currentPage + 1)}
-                    disabled={currentPage === pagesTotal - 1}
-                />
-            </Pagination>
+                <Pagination>
+                    <Pagination.First
+                        onClick={() => handlePageChange(0)}
+                        disabled={currentPage === 0}
+                    />
+                    <Pagination.Prev
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 0}
+                    />
+                    {currentPage >= 1 && (
+                        <Pagination.Item onClick={() => handlePageChange(currentPage - 1)}>{currentPage}</Pagination.Item>
+                    )}
+                    <Pagination.Item active>{currentPage + 1}</Pagination.Item>
+                    {pagesTotal >= currentPage + 2 && (
+                        <Pagination.Item onClick={() => handlePageChange(currentPage + 1)}>{currentPage + 2}</Pagination.Item>
+                    )}
+                    {currentPage + 2 < pagesTotal && (
+                        <Pagination.Ellipsis disabled/>
+                    )}
+                    <Pagination.Next
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === pagesTotal - 1}
+                    />
+                    <Pagination.Last
+                        onClick={() => handlePageChange(pagesTotal - 1)}
+                        disabled={currentPage === pagesTotal - 1}
+                    />
+                </Pagination>
             )}
 
             {/* Лоадер, который отображается во время загрузки */}

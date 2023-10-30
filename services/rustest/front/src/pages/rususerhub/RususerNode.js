@@ -15,17 +15,15 @@ function RususerNode({ bio, login }) {
             <Card.Body>
                 <Row>
                     <Col>
-                        <h6>Login:</h6>
-                        <p>{login}</p>
+                        <h6>@{login}</h6>
                     </Col>
                 </Row>
                 <Row>
-                    <h6>Bio:</h6>
-                    <p>{bio}</p>
+                    <h6>Bio: {bio}</h6>
                 </Row>
             </Card.Body>
             <Button className="m-3" variant="primary" onClick={() => redirectToRustestsList()}>
-                ViewTests
+                View Rustests of user
             </Button>
         </Card>
     );

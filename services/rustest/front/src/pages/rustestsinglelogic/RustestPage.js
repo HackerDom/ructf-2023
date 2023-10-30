@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import {Card, Col, Container, ListGroup, Row, Spinner} from "react-bootstrap";
-import { useNavigate, useParams } from "react-router-dom";
+import { Card, Col, Container, ListGroup, Row, Spinner } from "react-bootstrap";
+import { useParams } from "react-router-dom";
 import axios from "axios";
 
 function RustestPage() {
-    const navigate = useNavigate();
+    // const navigate = useNavigate();
     const { paramId } = useParams();
     const [isLoading, setIsLoading] = useState(true);
     const [rustestData, setRustestData] = useState(null); // Стейт для хранения данных о рустесте
@@ -62,15 +62,15 @@ function RustestPage() {
                         </Card.Body>
                     </Card>
                     {rustestData.questions && (
-                    <Card>
-                        <Card.Body>
+                        <Card>
+                            <Card.Body>
 
                                 <Row className="p-3 m-1">
                                     <h1 className="p-0">Questions:</h1>
                                     <RustestQuestionsList questions={rustestData.questions} />
                                 </Row>
-                        </Card.Body>
-                    </Card>
+                            </Card.Body>
+                        </Card>
                     )}
                 </Container>
             )}
