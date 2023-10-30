@@ -3,6 +3,7 @@
 #include <atomic>
 #include <chrono>
 #include <mutex>
+#include <unordered_map>
 
 #include <scheduler.hpp>
 #include <run_loader.hpp>
@@ -24,6 +25,9 @@ namespace werk::server {
         const std::shared_ptr<RunLoader> runLoader;
         const std::shared_ptr<Scheduler> scheduler;
         const std::chrono::milliseconds sleepPeriod;
+
+        std::unordered_map<vd_t, std::shared_ptr<werk::server::Run>> vdToRun;
+        std::mutex vdMapMutex;
 
         void executorThreadTask();
 
