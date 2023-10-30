@@ -10,6 +10,7 @@ target_link_libraries(asm common glog::glog)
 target_include_directories(asm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_library(asmr
+        SHARED
         ${SOURCES}
         ${HEADERS}
         include/extern_api.hpp
