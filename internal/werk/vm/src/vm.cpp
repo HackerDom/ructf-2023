@@ -7,15 +7,10 @@ namespace werk::vm {
         LOG(INFO) << "some vm started on page " << memory;
     }
 
-    void Vm::Tick(int opsCount) {
+    Vm::Status Vm::Tick(int opsCount) {
         LOG(INFO) << opsCount << " ticks on vm with memory at " << memory;
         serial.push_back('A');
-    }
-
-    bool Vm::Stopped() {
-        LOG(INFO) << "is vm with memory at address " << memory << " stopped?";
-
-        return false;
+        return Status::Running;
     }
 
     const std::vector<char> &Vm::GetSerial() const {

@@ -35,14 +35,14 @@ namespace werk::server {
 //                codeSize
 //        );
 
-        auto vm = std::make_shared<vm::Vm>(page.page->memory);
-
-        {
-            std::lock_guard<std::mutex> _(vdMapMutex);
-            vdToVm[vd.value] = vm;
-        }
-
-        scheduler->Append(vm);
+//        auto vm = std::make_shared<vm::Vm>(page.page->memory);
+//
+//        {
+//            std::lock_guard<std::mutex> _(vdMapMutex);
+//            vdToVm[vd.value] = vm;
+//        }
+//
+//        scheduler->Append(vm);
 
         return {true, vd.value, ""};
     }
@@ -71,7 +71,7 @@ namespace werk::server {
 
     void Interpreter::executorThreadTask() {
         while (!this->executorThreadStop) {
-            this->scheduler->TickAll();
+            this->scheduler->UpdateAll();
 
             //TODO: check vms for too long run
 

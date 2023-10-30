@@ -7,14 +7,18 @@
 namespace werk::vm {
     class Vm {
     public:
+        enum Status {
+            Running,
+            Crashed,
+            Finished
+        };
+
         explicit Vm(void *memory);
         virtual ~Vm() = default;
 
-        virtual void Tick(int opsCount);
+        virtual Status Tick(int opsCount);
 
-        virtual bool Stopped();
-
-        [[nodiscard]] const std::vector<char>& GetSerial() const;
+        [[nodiscard]] virtual const std::vector<char>& GetSerial() const;
 
         void *GetMemory();
 

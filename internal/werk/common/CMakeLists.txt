@@ -19,8 +19,12 @@ set(SOURCES
         src/arch/registers.cpp
         )
 
-add_library(common ${SOURCES} ${HEADERS})
+add_library(common STATIC ${SOURCES} ${HEADERS})
 target_include_directories(common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+add_library(common_shared SHARED ${SOURCES} ${HEADERS})
+set_target_properties(common_shared PROPERTIES OUTPUT_NAME "common")
+target_include_directories(common_shared PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(common_tests
         ${SOURCES}
