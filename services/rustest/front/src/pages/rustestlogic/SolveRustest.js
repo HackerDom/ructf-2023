@@ -19,7 +19,7 @@ function SolveRustest() {
 
     useEffect( () => {
         axios
-            .get(`http://104.248.87.99:13337/rustest/${paramId}/solve`, {
+            .get(`/api/rustest/${paramId}/solve`, {
                 headers: {
                     "Authorization": "Bearer " + token,
                 },
@@ -57,7 +57,7 @@ function SolveRustest() {
 
     const handleSubmit = () => {
         axios
-            .post(`http://104.248.87.99:13337/rustest/${paramId}/submit`, formData, {
+            .post(`/api/rustest/${paramId}/submit`, formData, {
                 headers: {
                     "Authorization": "Bearer " + token,
                 },

@@ -19,7 +19,7 @@ function MyRustestList() {
         const fetchData = async (currentPage) => {
             setIsLoading(true); // Устанавливаем состояние загрузки в true
             try {
-                const response = await axios.get(`http://104.248.87.99:13337/my_rustests?page=${currentPage}`, {
+                const response = await axios.get(`/api/my_rustests?page=${currentPage}`, {
                     headers: {
                         "Authorization": "Bearer " + token
                     }
