@@ -55,7 +55,7 @@ namespace werk::server {
             return RunResultT::of_error(utils::PError("fstat"));
         }
 
-        if (statResult.st_size > (arch::constants::kMemorySize - arch::constants::kProgramLoadOffset)) {
+        if (static_cast<std::size_t>(statResult.st_size) > (arch::constants::kMemorySize - arch::constants::kProgramLoadOffset)) {
             return RunResultT::of_error("program file is too big");
         }
 
