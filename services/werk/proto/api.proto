@@ -6,6 +6,12 @@ package models;
 
 service Werk {
   rpc Hello(HelloRequest) returns (HelloResponse) {};
+  rpc Register(CreateUserRequest) returns (CreateUserResponse) {};
+  rpc CreateImage(CreateImageRequest) returns (CreateImageResponse);
+  rpc RunVM(RunVMRequest) returns (RunVMResponse);
+  rpc GetVMState(GetVMSerialRequest) returns (GetVMStateResponse);
+  rpc KillVM(KillVMRequest) returns (KillVMResponse);
+  rpc GetSerial(GetVMSerialRequest) returns (GetVMSerialResponse);
 }
 
 message HelloRequest {
@@ -14,4 +20,73 @@ message HelloRequest {
 
 message HelloResponse {
   string message = 1;
+}
+
+message CreateUserRequest {
+  string name = 1;
+}
+
+message UserPair {
+  string name = 1;
+  string token = 2;
+}
+
+enum StatusCode {
+  SUCCESS = 0;
+  ERROR = 1;
+}
+
+message CreateUserResponse {
+  UserPair user_pair = 1;
+}
+
+message CreateImageRequest {
+  UserPair user_pair = 1;
+  string text = 2;
+}
+
+message CreateImageResponse {
+  string image_uuid = 1;
+}
+
+message RunVMRequest {
+  UserPair user_pair = 1;
+  string image_uuid = 2;
+}
+
+message RunVMResponse {
+  string run_uuid = 1;
+}
+
+message GetVMStateRequest {
+  UserPair user_pair = 1;
+  string run_uuid = 2;
+}
+
+message GetVMStateResponse {
+  enum VMState {
+    RUNNING = 0;
+    SUCCESS = 1;
+    KILLED = 2;
+    ERROR = 3;
+  }
+
+  VMState state = 1;
+}
+
+message KillVMRequest {
+  UserPair user_pair = 1;
+  string run_uuid = 2;
+}
+
+message KillVMResponse {
+}
+
+message GetVMSerialRequest {
+  UserPair user_pair = 1;
+  string run_uuid = 2;
+}
+
+message GetVMSerialResponse {
+  string data = 1;
 }
