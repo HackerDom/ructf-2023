@@ -22,12 +22,12 @@ do_install_binaries() {
 
 do_build_devel() {
     mkdir -p build && cd build
-    cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j
+    cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j7
 }
 
 do_build_release() {
     mkdir -p build && cd build
-    cmake -DCMAKE_BUILD_TYPE=Release .. && make -j
+    cmake -DCMAKE_BUILD_TYPE=Release .. && make -j7
 }
 
 do_clean() {
