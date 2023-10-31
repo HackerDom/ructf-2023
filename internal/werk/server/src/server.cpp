@@ -217,6 +217,9 @@ namespace werk::server {
                 case 'D':
                     acceptCommands = executeHandler<DeleteRequest, DeleteResponse, DeleteHandlerT>(deleteHandler, fd);
                     break;
+                case 'O':
+                    acceptCommands = executeHandler<GetSerialRequest, GetSerialResponse, GetSerialHandlerT>(getSerialHandler, fd);
+                    break;
                 case 'Q':
                     acceptCommands = false;
                     break;
@@ -243,6 +246,10 @@ namespace werk::server {
 
     void Server::SetDeleteHandler(Server::DeleteHandlerT handler) {
         deleteHandler = std::move(handler);
+    }
+
+    void Server::SetGetSerialHandler(Server::GetSerialHandlerT handler) {
+        getSerialHandler = std::move(handler);
     }
 
     void Server::writeInvalidRequest(int fd) {
