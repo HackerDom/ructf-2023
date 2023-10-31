@@ -85,67 +85,105 @@ func NewVmClientSession(sockPath string, timeout time.Duration) (*VmClient, erro
 }
 
 func (c *VmClient) Run(req *RunRequest) (*RunResponse, error) {
-	if len(req.BinaryPath) > 255 {
+	if len(req.BinaryPath) > 4096 {
 		return nil, fmt.Errorf("too long binary path")
 	}
 
-	if len(req.SerialOutPath) > 255 {
-		return nil, fmt.Errorf("too long serial out path")
+	if err := c.setupWriteTimeout(); err != nil {
+		return nil, err
 	}
-
-	reqBinary := make([]byte, 0)
-
-	reqBinary = append(reqBinary, byte('R'))
-	reqBinary = append(reqBinary, byte(len(req.BinaryPath)))
-	reqBinary = append(reqBinary, byte(len(req.SerialOutPath)))
-	reqBinary = append(reqBinary, []byte(req.BinaryPath)...)
-	reqBinary = append(reqBinary, []byte(req.SerialOutPath)...)
-
-	if err := c.write(reqBinary); err != nil {
+	if err := c.setupReadTimeouts(); err != nil {
 		return nil, err
 	}
 
-	resBinary := make([]byte, 1)
-	if err := c.read(resBinary); err != nil {
+	if err := binary.Write(c.conn, binary.LittleEndian, byte('R')); err != nil {
+		return nil, fmt.Errorf("command write failed: %v", err)
+	}
+
+	if err := binary.Write(c.conn, binary.LittleEndian, uint16(len(req.BinaryPath))); err != nil {
+		return nil, fmt.Errorf("path length write failed: %v", err)
+	}
+
+	if err := c.write([]byte(req.BinaryPath)); err != nil {
 		return nil, err
 	}
 
-	if resBinary[0] == 0 {
-		msgLenBytes := make([]byte, 2)
-		if err := c.read(msgLenBytes); err != nil {
-			return nil, err
-		}
-		msgLen := int(msgLenBytes[0]) | (int(msgLenBytes[1]) << 8)
-		errMsg := make([]byte, msgLen)
-		if err := c.read(errMsg); err != nil {
-			return nil, err
-		}
+	var success uint8
+	var vd uint64
+	var msgLen uint64
 
-		return &RunResponse{Success: false, ErrorMessage: string(errMsg)}, nil
-	} else if resBinary[0] == 1 {
-		var vd uint64
-		if err := binary.Read(c.conn, binary.LittleEndian, &vd); err != nil {
-			return nil, err
-		}
-
-		return &RunResponse{Success: true, Vd: vd}, nil
+	if err := binary.Read(c.conn, binary.LittleEndian, &success); err != nil {
+		return nil, err
+	}
+	if err := binary.Read(c.conn, binary.LittleEndian, &vd); err != nil {
+		return nil, err
+	}
+	if err := binary.Read(c.conn, binary.LittleEndian, &msgLen); err != nil {
+		return nil, err
 	}
 
-	return nil, fmt.Errorf("protocol error (status = %d)", resBinary[0])
+	if success == 1 {
+		return &RunResponse{Success: true, Vd: vd, ErrorMessage: ""}, nil
+	}
+
+	if success == 0 {
+		msgBytes := make([]byte, msgLen)
+		err := c.read(msgBytes)
+		if err != nil {
+			return nil, err
+		}
+
+		return &RunResponse{Success: false, Vd: vd, ErrorMessage: string(msgBytes)}, nil
+	}
+
+	return nil, fmt.Errorf("protocol error (unexpected status = %v)", success)
 }
 
-//func reader(r io.Reader) {
-//	buf := make([]byte, 1024)
-//	for {
-//		reader := bufio.NewReader(r)
-//		io.ReadFull()
-//
-//		reader.Read()
-//
-//		n, err := r.Read(buf[:])
-//		if err != nil {
-//			return
-//		}
-//		println("Client got:", string(buf[0:n]))
-//	}
-//}
+func (c *VmClient) Kill(req *KillRequest) (*KillResponse, error) {
+	if err := c.setupWriteTimeout(); err != nil {
+		return nil, err
+	}
+	if err := c.setupReadTimeouts(); err != nil {
+		return nil, err
+	}
+
+	if err := binary.Write(c.conn, binary.LittleEndian, byte('K')); err != nil {
+		return nil, err
+	}
+	if err := binary.Write(c.conn, binary.LittleEndian, req.Vd); err != nil {
+		return nil, err
+	}
+
+	var success uint8
+	if err := binary.Read(c.conn, binary.LittleEndian, &success); err != nil {
+		return nil, err
+	}
+
+	if success == 0 {
+		return &KillResponse{Success: false}, nil
+	}
+
+	if success == 1 {
+		return &KillResponse{Success: true}, nil
+	}
+
+	return nil, fmt.Errorf("protocol error (unexpected status = %v)", success)
+}
+
+func (c *VmClient) Status(req *StatusRequest) (*StatusResponse, error) {
+	if err := c.setupWriteTimeout(); err != nil {
+		return nil, err
+	}
+	if err := c.setupReadTimeouts(); err != nil {
+		return nil, err
+	}
+
+	if err := binary.Write(c.conn, binary.LittleEndian, byte('S')); err != nil {
+		return nil, err
+	}
+	if err := binary.Write(c.conn, binary.LittleEndian, req.Vd); err != nil {
+		return nil, err
+	}
+
+	return nil, fmt.Errorf("not implemented")
+}
