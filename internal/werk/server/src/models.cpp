@@ -171,6 +171,8 @@ namespace werk::server {
             uint8_t success;
         } header;
 
+        header.success = static_cast<uint8_t>(success);
+
         auto nsend = send(fd, &header, sizeof(header), 0);
         if (nsend != sizeof(header)) {
             return utils::result_no_value::of_error(utils::PError("header send"));

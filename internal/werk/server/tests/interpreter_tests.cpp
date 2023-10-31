@@ -1,4 +1,5 @@
 #include <vector>
+#include <cmath>
 
 #include <gtest/gtest.h>
 
@@ -60,7 +61,7 @@ std::pair<std::shared_ptr<Interpreter>, std::shared_ptr<TestRunLoader>> GetInter
     TestVm::allVms.clear();
     allRuns.clear();
 
-    auto scheduler = std::make_shared<Scheduler>(500, 1000);
+    auto scheduler = std::make_shared<Scheduler>(500, 500);
     auto pagesPool = std::make_shared<PagesPool>(3);
     auto generator = std::make_shared<VdGenerator>();
     auto runLoader = std::make_shared<TestRunLoader>();
@@ -164,4 +165,39 @@ TEST(Interpreter, ShouldReturnFalseWhenVmAlreadyKilled) {
 
     k = interpreter->Kill(KillRequest{res.vd});
     ASSERT_FALSE(k.success);
+}
+
+TEST(Interpreter, NoTicksOnVmAfterDelete) {
+    auto [interpreter, _] = GetInterpreter();
+
+    auto res = interpreter->Run(RunRequest{"~/.bashrc1"});
+    ASSERT_TRUE(res.success);
+
+    auto st = interpreter->Status(StatusRequest{res.vd});
+    ASSERT_TRUE(st.success);
+    ASSERT_EQ(st.state, Run::State::Running);
+
+    auto run = allRuns[0];
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(700));
+
+    auto startTicks = run->GetTotalTicks();
+    ASSERT_GE(startTicks, 2 * 500);
+
+    auto d = interpreter->Delete(DeleteRequest{res.vd});
+    ASSERT_TRUE(d.success);
+
+    st = interpreter->Status(StatusRequest{res.vd});
+    ASSERT_FALSE(st.success);
+
+    d = interpreter->Delete(DeleteRequest{res.vd});
+    ASSERT_FALSE(d.success);
+
+    auto k = interpreter->Kill(KillRequest{res.vd});
+    ASSERT_FALSE(k.success);
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(700));
+
+    // one run can occure between GetTotalTicks and Delete
+    ASSERT_LE(run->GetTotalTicks() - startTicks, 500);
 }
