@@ -31,6 +31,12 @@ namespace werk::server {
         }
     }
 
+    bool Interpreter::HasVms() const {
+        std::lock_guard<std::mutex> _(vdMapMutex);
+
+        return vdToRun.size() != 0;
+    }
+
     RunResponse Interpreter::Run(const RunRequest &rq) {
         auto run = runLoader->LoadFromFile(rq.binaryPath);
         if (!run) {
@@ -52,7 +58,7 @@ namespace werk::server {
     KillResponse Interpreter::Kill(const KillRequest &rq) {
         std::lock_guard<std::mutex> _(vdMapMutex);
 
-        if (auto it = vdToRun.find(rq.vd); it != vdToRun.end()) {
+        if (auto it = vdToRun.find(rq.vd); it != vdToRun.end() && it->second->GetState() == Run::State::Running) {
             it->second->Kill();
             return KillResponse{true};
         }

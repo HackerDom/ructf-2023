@@ -26,6 +26,8 @@ namespace {
     inline std::vector<std::shared_ptr<TestVm>> TestVm::allVms;
 }
 
+std::vector<std::shared_ptr<Run>> allRuns;
+
 class TestRunLoader : public RunLoader {
 public:
     TestRunLoader() : RunLoader(10000, nullptr, nullptr) {
@@ -43,8 +45,10 @@ public:
         auto tvm = std::make_shared<TestVm>(reinterpret_cast<void *>(0xcafebabedeadbeef));
         TestVm::allVms.push_back(tvm);
         auto vm = std::static_pointer_cast<werk::vm::Vm>(tvm);
+        auto run = std::make_shared<Run>(0xa, vm, 10000);
+        allRuns.push_back(run);
 
-        return RunResultT::of_success(std::make_shared<Run>(0xa, vm, 10000));
+        return RunResultT::of_success(run);
     }
 
     bool fail = false;
@@ -54,6 +58,7 @@ public:
 
 std::pair<std::shared_ptr<Interpreter>, std::shared_ptr<TestRunLoader>> GetInterpreter() {
     TestVm::allVms.clear();
+    allRuns.clear();
 
     auto scheduler = std::make_shared<Scheduler>(500, 1000);
     auto pagesPool = std::make_shared<PagesPool>(3);
@@ -120,4 +125,43 @@ TEST(Interpreter, ShouldTickRunnedVms) {
         // at least 3 time ticks from 500 to 1000
         ASSERT_GE(v->totalTicks, 500 * 3);
     }
+}
+
+TEST(Interpreter, ShouldReturnFailWhenKillNotExistingVm) {
+    auto [interpreter, _] = GetInterpreter();
+
+    auto res = interpreter->Run(RunRequest{"~/.bashrc1"});
+    ASSERT_TRUE(res.success);
+
+    auto killRes = interpreter->Kill(KillRequest{res.vd + 1});
+    ASSERT_FALSE(killRes.success);
+}
+
+TEST(Interpreter, ShouldReturnTrueWhenVmExistsAndKillRun) {
+    auto [interpreter, _] = GetInterpreter();
+
+    auto res = interpreter->Run(RunRequest{"~/.bashrc1"});
+    ASSERT_TRUE(res.success);
+
+    ASSERT_EQ(allRuns[0]->GetState(), Run::State::Running);
+
+    auto k = interpreter->Kill(KillRequest{res.vd});
+    ASSERT_TRUE(k.success);
+    ASSERT_EQ(allRuns[0]->GetState(), Run::State::Killed);
+}
+
+TEST(Interpreter, ShouldReturnFalseWhenVmAlreadyKilled) {
+    auto [interpreter, _] = GetInterpreter();
+
+    auto res = interpreter->Run(RunRequest{"~/.bashrc1"});
+    ASSERT_TRUE(res.success);
+
+    ASSERT_EQ(allRuns[0]->GetState(), Run::State::Running);
+
+    auto k = interpreter->Kill(KillRequest{res.vd});
+    ASSERT_TRUE(k.success);
+    ASSERT_EQ(allRuns[0]->GetState(), Run::State::Killed);
+
+    k = interpreter->Kill(KillRequest{res.vd});
+    ASSERT_FALSE(k.success);
 }
