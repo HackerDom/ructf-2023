@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"sqlfs/pkg/model"
 	"syscall"
@@ -47,32 +48,10 @@ func (s *store) GetNode(ctx context.Context, ino uint64) (*model.Node, error) {
 	}
 
 	var node model.Node
-	var atimeNsec, atimeSec, mtimeNsec, mtimeSec, ctimeNsec, ctimeSec int64
 	row := s.QueryRowContext(ctx, query, args...)
-	if err := row.Scan(
-		&node.Dev,
-		&node.Ino,
-		&node.Nlink,
-		&node.Mode,
-		&node.Uid,
-		&node.Gid,
-		&node.Rdev,
-		&node.Size,
-		&node.Blksize,
-		&node.Blocks,
-		&atimeSec,
-		&atimeNsec,
-		&mtimeSec,
-		&mtimeNsec,
-		&ctimeSec,
-		&ctimeNsec,
-	); err != nil {
+	if err := scanNode(&node, row); err != nil {
 		return nil, fmt.Errorf("failed to exec query %s: %w", query, err)
 	}
-
-	node.AccessTime = time.Unix(atimeSec, atimeNsec)
-	node.ModifyTime = time.Unix(mtimeSec, mtimeNsec)
-	node.StatusChangeTime = time.Unix(ctimeSec, ctimeNsec)
 
 	return &node, nil
 }
@@ -162,6 +141,63 @@ func (s *store) DeleteNode(ctx context.Context, ino uint64) error {
 	if deleted != 1 {
 		return fmt.Errorf("failed to delete node with query %s: zero rows affected", query)
 	}
+
+	return nil
+}
+
+func (s *store) GetNodeByEntry(ctx context.Context, path, name string) (*model.Node, error) {
+	query, args, err := nodesTable.
+		Select(
+			"dev", "ino", "nlink", "mode", "uid", "gid", "rdev", "size", "blksize", "blocks",
+			"atime_sec", "atime_nsec", "mtime_sec", "mtime_nsec", "ctime_sec", "ctime_nsec",
+		).
+		Join(
+			goqu.T("entries"),
+			goqu.Using("ino"),
+		).Where(goqu.Ex{
+		"path":     path,
+		"filename": name,
+	}).ToSQL()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build query: %w", err)
+	}
+
+	var node model.Node
+	row := s.QueryRowContext(ctx, query, args...)
+	if err := scanNode(&node, row); err != nil {
+		return nil, fmt.Errorf("failed to exec query %s: %w", query, err)
+	}
+
+	return &node, nil
+}
+
+func scanNode(node *model.Node, row *sql.Row) error {
+	var atimeNsec, atimeSec, mtimeNsec, mtimeSec, ctimeNsec, ctimeSec int64
+
+	if err := row.Scan(
+		&node.Dev,
+		&node.Ino,
+		&node.Nlink,
+		&node.Mode,
+		&node.Uid,
+		&node.Gid,
+		&node.Rdev,
+		&node.Size,
+		&node.Blksize,
+		&node.Blocks,
+		&atimeSec,
+		&atimeNsec,
+		&mtimeSec,
+		&mtimeNsec,
+		&ctimeSec,
+		&ctimeNsec,
+	); err != nil {
+		return fmt.Errorf("failed to scan node: %w", err)
+	}
+
+	node.AccessTime = time.Unix(atimeSec, atimeNsec)
+	node.ModifyTime = time.Unix(mtimeSec, mtimeNsec)
+	node.StatusChangeTime = time.Unix(ctimeSec, ctimeNsec)
 
 	return nil
 }
