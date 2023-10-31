@@ -58,14 +58,18 @@ func main() {
 
 	fmt.Println(runResp)
 
-	getStateResp, err := c.GetVMState(ctx, &models.GetVMStateRequest{
+	fmt.Println(c.GetVMState(ctx, &models.GetVMStateRequest{
 		UserPair: r.UserPair,
 		RunUuid:  runResp.RunUuid,
-	})
+	}))
 
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
+	fmt.Println(c.KillVM(ctx, &models.KillVMRequest{
+		UserPair: r.UserPair,
+		RunUuid:  runResp.RunUuid,
+	}))
 
-	fmt.Println(getStateResp)
+	fmt.Println(c.GetSerial(ctx, &models.GetVMSerialRequest{
+		UserPair: r.UserPair,
+		RunUuid:  runResp.RunUuid,
+	}))
 }

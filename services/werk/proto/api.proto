@@ -10,8 +10,8 @@ service Werk {
   rpc CreateImage(CreateImageRequest) returns (CreateImageResponse);
   rpc RunVM(RunVMRequest) returns (RunVMResponse);
   rpc GetVMState(GetVMStateRequest) returns (GetVMStateResponse);
-//  rpc KillVM(KillVMRequest) returns (KillVMResponse);
-//  rpc GetSerial(GetVMSerialRequest) returns (GetVMSerialResponse);
+  rpc KillVM(KillVMRequest) returns (KillVMResponse);
+  rpc GetSerial(GetVMSerialRequest) returns (GetVMSerialResponse);
 }
 
 message HelloRequest {
