@@ -26,17 +26,16 @@ func initGormDB(cfg *config.Postgres) (*gorm.DB, error) {
 		cfg.Database,
 		cfg.Port,
 	)
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	gormDb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {
 		return nil, errors.New("can not open gorm db: " + err.Error())
 	}
-	fmt.Println("migrate!")
-	if err := db.AutoMigrate(models.UserPairModel{}); err != nil {
+	if err := gormDb.AutoMigrate(models.UserPairModel{}); err != nil {
 		return nil, errors.New("can not migrate gorm db: " + err.Error())
 	}
 
-	return db, nil
+	return gormDb, nil
 }
 
 func main() {
