@@ -9,7 +9,7 @@ service Werk {
   rpc Register(CreateUserRequest) returns (CreateUserResponse);
   rpc CreateImage(CreateImageRequest) returns (CreateImageResponse);
   rpc RunVM(RunVMRequest) returns (RunVMResponse);
-//  rpc GetVMState(GetVMSerialRequest) returns (GetVMStateResponse);
+  rpc GetVMState(GetVMStateRequest) returns (GetVMStateResponse);
 //  rpc KillVM(KillVMRequest) returns (KillVMResponse);
 //  rpc GetSerial(GetVMSerialRequest) returns (GetVMSerialResponse);
 }

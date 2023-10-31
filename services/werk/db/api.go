@@ -74,6 +74,15 @@ func (api *Api) IsImageOwnerCorrect(name, imageUuid string) bool {
 	return asmCodeModel.Owner == name
 }
 
+func (api *Api) IsRunOwnerCorrect(name, runUuid string) bool {
+	var runModel RunModel
+	if err := api.db.First(&runModel, "uuid = ?", runUuid).Error; err != nil {
+		return false
+	}
+
+	return runModel.Owner == name
+}
+
 func (api *Api) CreateRunModel(owner, imageUuid string) (string, error) {
 	runUuid := uuid.New().String()
 
