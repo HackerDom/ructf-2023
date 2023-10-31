@@ -66,4 +66,20 @@ namespace werk::server {
 
         utils::result_no_value WriteToSocket(int fd);
     };
+
+    struct DeleteRequest {
+        vd_t vd;
+
+        [[nodiscard]] std::string String() const;
+
+        static utils::result<std::shared_ptr<DeleteRequest>> ReadFromSocket(int fd);
+    };
+
+    struct DeleteResponse {
+        bool success;
+
+        [[nodiscard]] std::string String() const;
+
+        utils::result_no_value WriteToScoket(int fd);
+    };
 }
