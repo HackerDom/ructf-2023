@@ -3,7 +3,9 @@ package main
 import (
 	"back/db"
 	"back/models"
+	"back/storage"
 	"context"
+	"errors"
 	"fmt"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -11,7 +13,8 @@ import (
 
 type werkServerImpl struct {
 	models.UnimplementedWerkServer
-	dbApi *db.Api
+	dbApi      *db.Api
+	storageApi *storage.Api
 }
 
 func (s *werkServerImpl) Hello(ctx context.Context, in *models.HelloRequest) (*models.HelloResponse, error) {
@@ -28,4 +31,26 @@ func (s *werkServerImpl) Register(ctx context.Context, in *models.CreateUserRequ
 		Name:  in.Name,
 		Token: token,
 	}}, nil
+}
+
+func (s *werkServerImpl) CreateImage(ctx context.Context, in *models.CreateImageRequest) (*models.CreateImageResponse, error) {
+	if !s.dbApi.IsUserPairValid(in.UserPair.Name, in.UserPair.Token) {
+		return nil, status.Error(codes.Unauthenticated, "invalid user pair")
+	}
+
+	translatedAsmCode := []byte(in.Text)
+
+	storageKey, err := s.storageApi.PutObject(translatedAsmCode)
+	if err != nil {
+		return nil, errors.New("can not put object: " + err.Error())
+	}
+
+	asmCodeUuid, err := s.dbApi.CreateAsmCodeModel(in.UserPair.Name, storageKey)
+	if err != nil {
+		return nil, errors.New("can not create asm code: " + err.Error())
+	}
+
+	return &models.CreateImageResponse{
+		ImageUuid: asmCodeUuid,
+	}, nil
 }

@@ -7,9 +7,10 @@ import (
 	"strings"
 )
 
-var alpha = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+var fullAlpha = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890")
+var storageAlpha = []rune("abcdefghijklmnopqrstuvwxyz1234567890")
 
-func RandomString(n int) (string, error) {
+func RandomString(alpha []rune, n int) (string, error) {
 	res := strings.Builder{}
 	for i := 0; i < n; i++ {
 		nBig, err := rand.Int(rand.Reader, big.NewInt(int64(len(alpha))))
@@ -19,4 +20,12 @@ func RandomString(n int) (string, error) {
 		res.WriteRune(alpha[nBig.Int64()])
 	}
 	return res.String(), nil
+}
+
+func RandomToken() (string, error) {
+	return RandomString(fullAlpha, 32)
+}
+
+func RandomStorageKey() (string, error) {
+	return RandomString(storageAlpha, 32)
 }

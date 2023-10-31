@@ -17,7 +17,12 @@ message GRPC {
   uint32 port = 2;
 }
 
+message Storage {
+  string path = 1;
+}
+
 message ServerConfig {
   GRPC grpc = 1;
   Postgres postgres = 2;
+  Storage storage = 3;
 }
