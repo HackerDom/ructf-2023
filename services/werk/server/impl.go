@@ -54,3 +54,22 @@ func (s *werkServerImpl) CreateImage(ctx context.Context, in *models.CreateImage
 		ImageUuid: asmCodeUuid,
 	}, nil
 }
+
+func (s *werkServerImpl) RunVM(ctx context.Context, in *models.RunVMRequest) (*models.RunVMResponse, error) {
+	if !s.dbApi.IsUserPairValid(in.UserPair.Name, in.UserPair.Token) {
+		return nil, status.Error(codes.Unauthenticated, "invalid user pair")
+	}
+
+	if !s.dbApi.IsImageOwnerCorrect(in.UserPair.Name, in.ImageUuid) {
+		return nil, status.Error(codes.NotFound, "user or image uuid not found")
+	}
+
+	return nil, status.Error(codes.Unimplemented, "not implemented yet")
+
+	runUuid, err := s.dbApi.CreateRunModel(in.UserPair.Name, in.ImageUuid)
+	if err != nil {
+		return nil, status.Error(codes.Internal, "can not create run model: "+err.Error())
+	}
+
+	return &models.RunVMResponse{RunUuid: runUuid}, nil
+}

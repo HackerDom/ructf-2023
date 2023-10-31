@@ -32,7 +32,11 @@ func initGormDB(cfg *config.Postgres) (*gorm.DB, error) {
 	if err != nil {
 		return nil, errors.New("can not open gorm db: " + err.Error())
 	}
-	if err := gormDb.AutoMigrate(db.UserPairModel{}, db.AsmCodeModel{}); err != nil {
+	if err := gormDb.AutoMigrate(
+		db.UserPairModel{},
+		db.AsmCodeModel{},
+		db.RunModel{},
+	); err != nil {
 		return nil, errors.New("can not migrate gorm db: " + err.Error())
 	}
 
