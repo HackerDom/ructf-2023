@@ -80,7 +80,7 @@ namespace werk::server {
 
         [[nodiscard]] std::string String() const;
 
-        utils::result_no_value WriteToScoket(int fd);
+        utils::result_no_value WriteToSocket(int fd);
     };
 
     struct GetSerialRequest {
