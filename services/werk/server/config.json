@@ -9,5 +9,8 @@
     "database": "db",
     "username": "postgres",
     "password": "password"
+  },
+  "storage": {
+    "path": "storage"
   }
 }

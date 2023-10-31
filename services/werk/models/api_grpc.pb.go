@@ -25,10 +25,6 @@ type WerkClient interface {
 	Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error)
 	Register(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	CreateImage(ctx context.Context, in *CreateImageRequest, opts ...grpc.CallOption) (*CreateImageResponse, error)
-	RunVM(ctx context.Context, in *RunVMRequest, opts ...grpc.CallOption) (*RunVMResponse, error)
-	GetVMState(ctx context.Context, in *GetVMSerialRequest, opts ...grpc.CallOption) (*GetVMStateResponse, error)
-	KillVM(ctx context.Context, in *KillVMRequest, opts ...grpc.CallOption) (*KillVMResponse, error)
-	GetSerial(ctx context.Context, in *GetVMSerialRequest, opts ...grpc.CallOption) (*GetVMSerialResponse, error)
 }
 
 type werkClient struct {
@@ -66,42 +62,6 @@ func (c *werkClient) CreateImage(ctx context.Context, in *CreateImageRequest, op
 	return out, nil
 }
 
-func (c *werkClient) RunVM(ctx context.Context, in *RunVMRequest, opts ...grpc.CallOption) (*RunVMResponse, error) {
-	out := new(RunVMResponse)
-	err := c.cc.Invoke(ctx, "/models.Werk/RunVM", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *werkClient) GetVMState(ctx context.Context, in *GetVMSerialRequest, opts ...grpc.CallOption) (*GetVMStateResponse, error) {
-	out := new(GetVMStateResponse)
-	err := c.cc.Invoke(ctx, "/models.Werk/GetVMState", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *werkClient) KillVM(ctx context.Context, in *KillVMRequest, opts ...grpc.CallOption) (*KillVMResponse, error) {
-	out := new(KillVMResponse)
-	err := c.cc.Invoke(ctx, "/models.Werk/KillVM", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *werkClient) GetSerial(ctx context.Context, in *GetVMSerialRequest, opts ...grpc.CallOption) (*GetVMSerialResponse, error) {
-	out := new(GetVMSerialResponse)
-	err := c.cc.Invoke(ctx, "/models.Werk/GetSerial", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // WerkServer is the server API for Werk service.
 // All implementations must embed UnimplementedWerkServer
 // for forward compatibility
@@ -109,10 +69,6 @@ type WerkServer interface {
 	Hello(context.Context, *HelloRequest) (*HelloResponse, error)
 	Register(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	CreateImage(context.Context, *CreateImageRequest) (*CreateImageResponse, error)
-	RunVM(context.Context, *RunVMRequest) (*RunVMResponse, error)
-	GetVMState(context.Context, *GetVMSerialRequest) (*GetVMStateResponse, error)
-	KillVM(context.Context, *KillVMRequest) (*KillVMResponse, error)
-	GetSerial(context.Context, *GetVMSerialRequest) (*GetVMSerialResponse, error)
 	mustEmbedUnimplementedWerkServer()
 }
 
@@ -128,18 +84,6 @@ func (UnimplementedWerkServer) Register(context.Context, *CreateUserRequest) (*C
 }
 func (UnimplementedWerkServer) CreateImage(context.Context, *CreateImageRequest) (*CreateImageResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateImage not implemented")
-}
-func (UnimplementedWerkServer) RunVM(context.Context, *RunVMRequest) (*RunVMResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RunVM not implemented")
-}
-func (UnimplementedWerkServer) GetVMState(context.Context, *GetVMSerialRequest) (*GetVMStateResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetVMState not implemented")
-}
-func (UnimplementedWerkServer) KillVM(context.Context, *KillVMRequest) (*KillVMResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method KillVM not implemented")
-}
-func (UnimplementedWerkServer) GetSerial(context.Context, *GetVMSerialRequest) (*GetVMSerialResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetSerial not implemented")
 }
 func (UnimplementedWerkServer) mustEmbedUnimplementedWerkServer() {}
 
@@ -208,78 +152,6 @@ func _Werk_CreateImage_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Werk_RunVM_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RunVMRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WerkServer).RunVM(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/models.Werk/RunVM",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WerkServer).RunVM(ctx, req.(*RunVMRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Werk_GetVMState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetVMSerialRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WerkServer).GetVMState(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/models.Werk/GetVMState",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WerkServer).GetVMState(ctx, req.(*GetVMSerialRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Werk_KillVM_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(KillVMRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WerkServer).KillVM(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/models.Werk/KillVM",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WerkServer).KillVM(ctx, req.(*KillVMRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Werk_GetSerial_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetVMSerialRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(WerkServer).GetSerial(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/models.Werk/GetSerial",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(WerkServer).GetSerial(ctx, req.(*GetVMSerialRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 // Werk_ServiceDesc is the grpc.ServiceDesc for Werk service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -298,22 +170,6 @@ var Werk_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateImage",
 			Handler:    _Werk_CreateImage_Handler,
-		},
-		{
-			MethodName: "RunVM",
-			Handler:    _Werk_RunVM_Handler,
-		},
-		{
-			MethodName: "GetVMState",
-			Handler:    _Werk_GetVMState_Handler,
-		},
-		{
-			MethodName: "KillVM",
-			Handler:    _Werk_KillVM_Handler,
-		},
-		{
-			MethodName: "GetSerial",
-			Handler:    _Werk_GetSerial_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

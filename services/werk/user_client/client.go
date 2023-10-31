@@ -38,4 +38,14 @@ func main() {
 		log.Fatalf("could not greet: %v", err)
 	}
 	fmt.Println(r.UserPair)
+
+	createResp, err := c.CreateImage(ctx, &models.CreateImageRequest{
+		UserPair: r.UserPair,
+		Text:     "my cool code",
+	})
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	fmt.Println(createResp)
 }

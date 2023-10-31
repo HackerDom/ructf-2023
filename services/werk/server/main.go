@@ -2,6 +2,7 @@ package main
 
 import (
 	"back/db"
+	"back/storage"
 	"errors"
 	"flag"
 	"fmt"
@@ -31,7 +32,7 @@ func initGormDB(cfg *config.Postgres) (*gorm.DB, error) {
 	if err != nil {
 		return nil, errors.New("can not open gorm db: " + err.Error())
 	}
-	if err := gormDb.AutoMigrate(models.UserPairModel{}); err != nil {
+	if err := gormDb.AutoMigrate(db.UserPairModel{}, db.AsmCodeModel{}); err != nil {
 		return nil, errors.New("can not migrate gorm db: " + err.Error())
 	}
 
@@ -52,6 +53,13 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
+	storageApi, err := storage.NewApi(cfg.Storage.Path)
+	if err != nil {
+		if err != nil {
+			log.Fatalf("failed to init storage api: " + err.Error())
+		}
+	}
+
 	gormDb, err := initGormDB(cfg.Postgres)
 	if err != nil {
 		log.Fatalf("failed to init gorm db: " + err.Error())
@@ -64,7 +72,7 @@ func main() {
 
 	grpcServer := grpc.NewServer()
 	dbApi := db.NewApi(gormDb)
-	models.RegisterWerkServer(grpcServer, &werkServerImpl{dbApi: dbApi})
+	models.RegisterWerkServer(grpcServer, &werkServerImpl{dbApi: dbApi, storageApi: storageApi})
 
 	reflection.Register(grpcServer)
 
