@@ -29,6 +29,8 @@ namespace werk::server {
 
         [[nodiscard]] DeleteResponse Delete(const DeleteRequest &rq);
 
+        [[nodiscard]] GetSerialResponse GetSerial(const GetSerialRequest &rq);
+
     private:
         const std::shared_ptr<RunLoader> runLoader;
         const std::shared_ptr<Scheduler> scheduler;
