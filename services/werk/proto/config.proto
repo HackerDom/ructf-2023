@@ -4,6 +4,16 @@ option go_package = "../config";
 
 package config;
 
+message Postgres {
+  string host = 1;
+  int32 port = 2;
+  string database = 3;
+  string username = 4;
+  string password = 5;
+}
+
 message ServerConfig {
-  uint32 grpc_port = 1;
+  string grpc_host = 1;
+  uint32 grpc_port = 2;
+  Postgres postgres = 3;
 }
