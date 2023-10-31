@@ -75,4 +75,18 @@ namespace werk::server {
 
         return StatusResponse{false, Run::State::InternalError};
     }
+
+    DeleteResponse Interpreter::Delete(const DeleteRequest &rq) {
+        std::lock_guard<std::mutex> _(vdMapMutex);
+
+        if (auto it = vdToRun.find(rq.vd); it != vdToRun.end()) {
+            scheduler->Remove(it->second);
+
+            vdToRun.erase(it);
+
+            return DeleteResponse{true};
+        }
+
+        return DeleteResponse{false};
+    }
 }

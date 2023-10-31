@@ -55,4 +55,10 @@ namespace werk::server {
     std::shared_ptr<vm::Vm> Run::GetVm() const {
         return vm;
     }
+
+    std::uint64_t Run::GetTotalTicks() const {
+        std::lock_guard<std::mutex> _(updateMutex);
+
+        return totalTicksCount;
+    }
 }

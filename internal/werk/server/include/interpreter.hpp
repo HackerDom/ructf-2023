@@ -27,6 +27,8 @@ namespace werk::server {
 
         [[nodiscard]] StatusResponse Status(const StatusRequest &rq);
 
+        [[nodiscard]] DeleteResponse Delete(const DeleteRequest &rq);
+
     private:
         const std::shared_ptr<RunLoader> runLoader;
         const std::shared_ptr<Scheduler> scheduler;

@@ -39,11 +39,13 @@ namespace werk::server {
 
         [[nodiscard]] std::shared_ptr<vm::Vm> GetVm() const;
 
+        [[nodiscard]] std::uint64_t GetTotalTicks() const;
+
     private:
         const vd_t vd;
         const std::shared_ptr<vm::Vm> vm;
 
-        std::mutex updateMutex;
+        mutable std::mutex updateMutex;
         State state;
         std::uint64_t totalTicksCount;
         std::uint64_t ticksLimit;
