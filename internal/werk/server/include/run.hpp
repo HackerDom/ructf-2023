@@ -41,6 +41,8 @@ namespace werk::server {
 
         [[nodiscard]] std::uint64_t GetTotalTicks() const;
 
+        [[nodiscard]] std::string GetSerial() const;
+
     private:
         const vd_t vd;
         const std::shared_ptr<vm::Vm> vm;
