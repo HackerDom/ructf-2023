@@ -22,7 +22,7 @@ namespace werk::server {
 
         LOG(INFO) << "request = " << request.value->String();
 
-        ResponseT response;
+        ResponseT response{};
 
         try {
             response = handler(*request.value);
@@ -204,6 +204,8 @@ namespace werk::server {
                 break;
             }
 
+            LOG(INFO) << "accept command " << int(command);
+
             switch (command) {
                 case 'R':
                     acceptCommands = executeHandler<RunRequest, RunResponse, RunHandlerT>(runHandler, fd);
@@ -224,7 +226,7 @@ namespace werk::server {
                     acceptCommands = false;
                     break;
                 default:
-                    LOG(WARNING) << "unknown command from client " << command;
+                    LOG(WARNING) << "unknown command from client " << int(command);
                     writeInvalidRequest(fd);
                     acceptCommands = false;
                     break;
