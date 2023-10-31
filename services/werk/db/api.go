@@ -2,12 +2,12 @@ package db
 
 import (
 	"back/models"
-	"crypto/md5"
-	"encoding/hex"
+	"back/utils"
 	"errors"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
+const tokenLength = 32
 
 type Api struct {
 	db *gorm.DB
@@ -17,13 +17,11 @@ func NewApi(db *gorm.DB) *Api {
 	return &Api{db: db}
 }
 
-func GetMD5Hash(text string) string {
-	hash := md5.Sum([]byte(text))
-	return hex.EncodeToString(hash[:])
-}
-
 func (api *Api) CreateUserPair(name string) (string, error) {
-	token := uuid.New().String()
+	token, err := utils.RandomString(tokenLength)
+	if err != nil {
+		return "", errors.New("can not gen random string: " + err.Error())
+	}
 	if err := api.db.Transaction(func(tx *gorm.DB) error {
 		var userPairs []models.UserPairModel
 
@@ -37,7 +35,7 @@ func (api *Api) CreateUserPair(name string) (string, error) {
 
 		if err := tx.Create(&models.UserPairModel{
 			Name:      name,
-			TokenHash: GetMD5Hash(token),
+			TokenHash: utils.GetSHA1Hash(token),
 		}).Error; err != nil {
 			return errors.New("can not create user: " + err.Error())
 		}
