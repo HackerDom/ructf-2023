@@ -12,8 +12,12 @@ message Postgres {
   string password = 5;
 }
 
+message GRPC {
+  string host = 1;
+  uint32 port = 2;
+}
+
 message ServerConfig {
-  string grpc_host = 1;
-  uint32 grpc_port = 2;
-  Postgres postgres = 3;
+  GRPC grpc = 1;
+  Postgres postgres = 2;
 }

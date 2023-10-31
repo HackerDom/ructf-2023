@@ -58,7 +58,7 @@ func main() {
 		log.Fatalf("failed to init gorm db: " + err.Error())
 	}
 
-	listener, err := net.Listen("tcp", fmt.Sprintf("localhost:%d", cfg.GrpcPort))
+	listener, err := net.Listen("tcp", fmt.Sprintf("%v:%d", cfg.Grpc.Host, cfg.Grpc.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
