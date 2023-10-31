@@ -13,12 +13,6 @@
 namespace werk::server {
     template <class RequestT, class ResponseT, class HandlerT>
     bool executeHandler(HandlerT handler, int fd) {
-        if (!handler) {
-            LOG(ERROR) << "run request handler not set";
-            writeInvalidRequest(fd);
-            return false;
-        }
-
         auto request = RequestT::ReadFromSocket(fd);
         if (!request) {
             LOG(WARNING) << utils::Format("reading run request failed: '%s', closing connection",
@@ -212,6 +206,9 @@ namespace werk::server {
                 case 'R':
                     acceptCommands = executeHandler<RunRequest, RunResponse, RunHandlerT>(runHandler, fd);
                     break;
+                case 'K':
+                case 'S':
+                case 'D':
                 case 'Q':
                     acceptCommands = false;
                     break;

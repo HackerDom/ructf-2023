@@ -102,4 +102,44 @@ namespace werk::server {
 
         return utils::result_no_value::of_success();
     }
+
+    std::string StatusRequest::String() const {
+        return utils::Format("StatusRequest(vd=%lx)", vd);
+    }
+
+    std::string StatusResponse::String() const {
+        return utils::Format("StatusResponse(success=%d, state=%d)", success, state);
+    }
+
+    utils::result<std::shared_ptr<StatusRequest>> StatusRequest::ReadFromSocket(int fd) {
+        struct {
+            uint64_t vd;
+        } header;
+        static_assert(sizeof(header.vd) == sizeof(vd));
+
+        auto nrecv = recv(fd, &header, sizeof(header), MSG_WAITALL);
+        if (nrecv != sizeof(header)) {
+            return utils::result<std::shared_ptr<StatusRequest>>::of_error(utils::PError("header recv"));
+        }
+
+        auto req = std::make_shared<StatusRequest>(header.vd);
+        return utils::result<std::shared_ptr<StatusRequest>>::of_success(req);
+    }
+
+    utils::result_no_value StatusResponse::WriteToSocket(int fd) {
+        struct {
+            uint8_t success;
+            uint8_t status;
+        } header;
+
+        header.success = success;
+        header.status = static_cast<uint8_t>(state);
+
+        auto nsend = send(fd, &header, sizeof(header), 0);
+        if (nsend != sizeof(header)) {
+            return utils::result_no_value::of_error(utils::PError("header send"));
+        }
+
+        return utils::result_no_value::of_success();
+    }
 }
