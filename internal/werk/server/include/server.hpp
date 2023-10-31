@@ -38,6 +38,9 @@ namespace werk::server {
         using DeleteHandlerT = std::function<DeleteResponse(const DeleteRequest&)>;
         void SetDeleteHandler(DeleteHandlerT handler);
 
+        using GetSerialHandlerT = std::function<GetSerialResponse(const GetSerialRequest&)>;
+        void SetGetSerialHandler(GetSerialHandlerT handler);
+
     private:
         std::shared_ptr<utils::ThreadPool> threadPool;
         const std::filesystem::path socketPath;
@@ -52,6 +55,7 @@ namespace werk::server {
         KillHandlerT killHandler;
         StatusHandlerT statusHandler;
         DeleteHandlerT deleteHandler;
+        GetSerialHandlerT getSerialHandler;
 
         static void writeInvalidRequest(int fd);
     };
