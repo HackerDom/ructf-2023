@@ -1,7 +1,7 @@
 import os
 import sys
 
-N = 60
+N = 20
 
 SERVER_DATA = """mode server
 tls-server

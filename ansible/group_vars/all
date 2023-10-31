@@ -3,9 +3,9 @@ cs_dir:  /home/cs/checksystem
 cs_scoreboard_dir: /home/cs/ctf-scoreboard-client
 
 pg_cs_user: cs
-pg_cs_pass: 3AdiCpERy4Y89bU6jSX4
+pg_cs_pass: A2VFMmd4HQ5Zs8KyPG7RTX
 pg_cs_db: cs
-pg_cs_host: 10.10.10.10
+pg_cs_host: 10.10.10.4
 pg_cs_port: 5432
 pg_max_connections: 1024
 pg_shared_buffers: 1GB
@@ -30,14 +30,14 @@ cs_static_path: /home/cs/ctf-scoreboard-client/scoreboard/build
 
 cs_nginx_auth_enabled: true
 cs_nginx_auth_user: root
-cs_nginx_auth_password: SVcJcb3Hr2nKVwYeMVnR
+cs_nginx_auth_password: $apr1$6OmQV6wU$ftVd42g5DkXmOhAt1epsn.
 
-grafana_admin_pass: E2nwAJfpQbJ348PD
+grafana_admin_pass: At4BpKRW5sxm3Hz7rPgQcC
 
-cs_base_url: https://monitor.ructf.org/
-cs_admin_auth: root:3AdiCpERy4Y89bU6jSX4
+cs_base_url: http://188.166.65.8/
+cs_admin_auth: root:5uperS3cre7
 cs_ctf_name: RuCTF 2023
-cs_flags_secret: ai6bP7q7FCexqugCJ5Nj
+cs_flags_secret: N2Y9GudQx3j6BnyFVXwCU7
 cs_round_length: 60
 cs_flag_life_time: 15
 cs_disable_irrelevant_services: 0
@@ -57,14 +57,8 @@ cs_checkers_hostname_cb: |
   sub { my ($team, $service) = @_; $team->{host} }
 
 teams: |
-  {name => 'BinaryBears',           logo => '/logos/team_20.png',  network => '10.60.20.0/24', host => '10.60.20.3', token => 'CLOUD_20_b45f0660add5e626c8dc226d9f450b2c', tags => ['onsite'] },
-  {name => 'Bushwhackers',          logo => '/logos/team_21.jpeg', network => '10.60.21.0/24', host => '10.60.21.3', token => 'CLOUD_21_487f5146c920cfce69596b19a8443c44', tags => ['onsite'] },
-  {name => 'C4T BuT S4D',           logo => '/logos/team_22.png',  network => '10.60.22.0/24', host => '10.60.22.3', token => 'CLOUD_22_845baa067621f8519837adeeffb16812', tags => ['onsite'] },
-  {name => 'Drovosec',              logo => '/logos/team_23.png',  network => '10.60.23.0/24', host => '10.60.23.3', token => 'CLOUD_23_8007872a563e4d79774797fc43aa74f9', tags => ['onsite'] },
-  {name => 'FaKappa',               logo => '/logos/team_24.jpg',  network => '10.60.24.0/24', host => '10.60.24.3', token => 'CLOUD_24_725238d55231a78d3f143a113e31a20d', tags => ['onsite'] },
+  {name => 'BinaryBears',           logo => '/logos/team_20.png',  network => '10.60.1.0/24', host => '10.60.1.3', token => 'CLOUD_1_a20f03f3173d26044ad174b6829f99c3', tags => ['onsite'] },
   
-  {name => 'NPC', network => '10.60.36.0/24', host => '10.60.36.3', token => 'CLOUD_36_8ab5e634232694ea017a84470005a1fd', tags => ['NPC'] },
-
 services: |
   {name => 'example', path => 'checkers/example/example.checker.py', timeout => 30, tcp_port => 2222},
   {name => 'hyperborea-legends', path => 'checkers/hyperborea-legends/hyperborea-legends.checker.py', timeout => 30, tcp_port => 42424},

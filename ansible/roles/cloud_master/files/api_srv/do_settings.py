@@ -12,14 +12,13 @@ DOMAIN = "cloud.ructf.org"
 CLOUDS = {
     "ructf": {
         "region": "ams3",
-        "router_image": 142910515,
-        "router_ssh_keys": [39719730, 39719768],
+        "router_image": 143421179,
+        "router_ssh_keys": [39842711, 39842456],
         "vulnimages": vulnimages,
-        "vulnimage_ssh_keys": [39719730, 39719768],
+        "vulnimage_ssh_keys": [39842711, 39842456],
         "sizes": {
             "default": "s-4vcpu-8gb",
             "router": "s-2vcpu-2gb",
-            "router_s": "s-1vcpu-1gb",
             "empty": "s-8vcpu-16gb",
         }
     },
