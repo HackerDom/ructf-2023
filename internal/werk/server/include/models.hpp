@@ -7,6 +7,7 @@
 
 #include <utils/result.hpp>
 
+#include <run.hpp>
 #include <types.hpp>
 
 namespace werk::server {
@@ -43,6 +44,23 @@ namespace werk::server {
 
     struct KillResponse {
         bool success;
+
+        [[nodiscard]] std::string String() const;
+
+        utils::result_no_value WriteToSocket(int fd);
+    };
+
+    struct StatusRequest {
+        vd_t vd;
+
+        [[nodiscard]] std::string String() const;
+
+        static utils::result<std::shared_ptr<StatusRequest>> ReadFromSocket(int fd);
+    };
+
+    struct StatusResponse {
+        bool success;
+        Run::State state;
 
         [[nodiscard]] std::string String() const;
 

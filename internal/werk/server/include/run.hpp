@@ -21,12 +21,12 @@ namespace werk::server {
         virtual ~Run() = default;
 
         enum State {
-            Running,
-            Finished,
-            Crashed,
-            Killed,
-            Timeout,
-            InternalError
+            Running = 0,
+            Finished = 1,
+            Crashed = 2,
+            Killed = 3,
+            Timeout = 4,
+            InternalError = 5
         };
 
         virtual void Update(int ticksCount);
