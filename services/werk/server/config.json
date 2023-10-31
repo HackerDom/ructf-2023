@@ -1,6 +1,8 @@
 {
-  "grpc_host": "localhost",
-  "grpc_port": 7654,
+  "grpc": {
+    "host": "localhost",
+    "port": 7654
+  },
   "postgres": {
     "host": "localhost",
     "port": 5432,
