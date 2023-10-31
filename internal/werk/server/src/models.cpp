@@ -37,7 +37,7 @@ namespace werk::server {
         return utils::result<std::shared_ptr<RunRequest>>::of_success(req);
     }
 
-    int RunResponse::WriteToSocket(int fd) {
+    utils::result_no_value RunResponse::WriteToSocket(int fd) {
         struct {
             uint8_t success;
             uint64_t vd;
@@ -52,17 +52,17 @@ namespace werk::server {
 
         auto nsend = send(fd, &header, sizeof(header), 0);
         if (nsend != sizeof(header)) {
-            return -1;
+            return utils::result_no_value::of_error(utils::PError("header send"));
         }
 
         if (!errorMessage.empty()) {
             nsend = send(fd, errorMessage.data(), errorMessage.size(), 0);
             if (static_cast<std::size_t>(nsend) != errorMessage.size()) {
-                return -1;
+                return utils::result_no_value::of_error(utils::PError("error message send"));
             }
         }
 
-        return 0;
+        return utils::result_no_value::of_success();
     }
 
     std::string KillRequest::String() const {
@@ -88,7 +88,7 @@ namespace werk::server {
         return utils::result<std::shared_ptr<KillRequest>>::of_success(req);
     }
 
-    int KillResponse::WriteToSocket(int fd) {
+    utils::result_no_value KillResponse::WriteToSocket(int fd) {
         struct {
             uint8_t success;
         } header;
@@ -97,9 +97,9 @@ namespace werk::server {
 
         auto nsend = send(fd, &header, sizeof(header), 0);
         if (nsend != sizeof(header)) {
-            return -1;
+            return utils::result_no_value::of_error(utils::PError("header send"));
         }
 
-        return 0;
+        return utils::result_no_value::of_success();
     }
 }

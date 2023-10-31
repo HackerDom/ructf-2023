@@ -11,6 +11,47 @@
 #include <server.hpp>
 
 namespace werk::server {
+    template <class RequestT, class ResponseT, class HandlerT>
+    bool executeHandler(HandlerT handler, int fd) {
+        if (!handler) {
+            LOG(ERROR) << "run request handler not set";
+            writeInvalidRequest(fd);
+            return false;
+        }
+
+        auto request = RequestT::ReadFromSocket(fd);
+        if (!request) {
+            LOG(WARNING) << utils::Format("reading run request failed: '%s', closing connection",
+                                            request.message.c_str());
+            return false;
+        }
+
+        LOG(INFO) << "request = " << request.value->String();
+
+        ResponseT response;
+
+        try {
+            response = handler(*request.value);
+        } catch (std::exception &e) {
+            LOG(ERROR) << "run handler failed with exception: " << e.what();
+            return false;
+        } catch (...) {
+            LOG(ERROR) << "run handler failed with exception";
+            return false;
+        }
+
+        LOG(INFO) << "response = " << response.String();
+
+        auto writeResult = response.WriteToSocket(fd);
+
+        if (!writeResult) {
+            LOG(WARNING) << "writing run request failed: '" << writeResult.message << "', closing connection";
+            return false;
+        }
+
+        return true;
+    }
+
     Server::Server(std::shared_ptr<utils::ThreadPool> threadPool,
                    std::filesystem::path socketPath) : threadPool(std::move(threadPool)),
                                                        socketPath(std::move(socketPath)) {
