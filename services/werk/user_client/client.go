@@ -48,4 +48,15 @@ func main() {
 	}
 
 	fmt.Println(createResp)
+
+	runResp, err := c.RunVM(ctx, &models.RunVMRequest{
+		UserPair:  r.UserPair,
+		ImageUuid: createResp.ImageUuid,
+	})
+
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+
+	fmt.Println(runResp)
 }

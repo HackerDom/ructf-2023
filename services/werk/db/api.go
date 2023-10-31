@@ -64,3 +64,26 @@ func (api *Api) CreateAsmCodeModel(owner, storageKey string) (string, error) {
 	}
 	return codeUuid, nil
 }
+
+func (api *Api) IsImageOwnerCorrect(name, imageUuid string) bool {
+	var asmCodeModel AsmCodeModel
+	if err := api.db.First(&asmCodeModel, "uuid = ?", imageUuid).Error; err != nil {
+		return false
+	}
+
+	return asmCodeModel.Owner == name
+}
+
+func (api *Api) CreateRunModel(owner, imageUuid string) (string, error) {
+	runUuid := uuid.New().String()
+
+	if err := api.db.Create(&RunModel{
+		UUID:      runUuid,
+		ImageUUID: imageUuid,
+		Owner:     owner,
+	}).Error; err != nil {
+		return "", errors.New("can not create run: " + err.Error())
+	}
+
+	return runUuid, nil
+}

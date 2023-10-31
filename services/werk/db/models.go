@@ -14,3 +14,10 @@ type AsmCodeModel struct {
 	Owner      string
 	StorageKey string
 }
+
+type RunModel struct {
+	gorm.Model
+	UUID      string `gorm:"uniqueIndex"`
+	ImageUUID string
+	Owner     string
+}
