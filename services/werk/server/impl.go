@@ -61,7 +61,7 @@ func (s *werkServerImpl) RunVM(ctx context.Context, in *models.RunVMRequest) (*m
 	}
 
 	if !s.dbApi.IsImageOwnerCorrect(in.UserPair.Name, in.ImageUuid) {
-		return nil, status.Error(codes.NotFound, "user or image uuid not found")
+		return nil, status.Error(codes.NotFound, "user or image not found")
 	}
 
 	return nil, status.Error(codes.Unimplemented, "not implemented yet")
@@ -72,4 +72,17 @@ func (s *werkServerImpl) RunVM(ctx context.Context, in *models.RunVMRequest) (*m
 	}
 
 	return &models.RunVMResponse{RunUuid: runUuid}, nil
+}
+
+func (s *werkServerImpl) GetVMState(ctx context.Context, in *models.GetVMStateRequest) (*models.GetVMStateResponse, error) {
+	if !s.dbApi.IsUserPairValid(in.UserPair.Name, in.UserPair.Token) {
+		return nil, status.Error(codes.Unauthenticated, "invalid user pair")
+	}
+
+	if !s.dbApi.IsRunOwnerCorrect(in.UserPair.Name, in.RunUuid) {
+		return nil, status.Error(codes.NotFound, "user or run not found")
+	}
+
+	return nil, status.Error(codes.Unimplemented, "not implemented yet")
+	return &models.GetVMStateResponse{State: models.GetVMStateResponse_RUNNING}, nil
 }

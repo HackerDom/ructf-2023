@@ -26,6 +26,7 @@ type WerkClient interface {
 	Register(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
 	CreateImage(ctx context.Context, in *CreateImageRequest, opts ...grpc.CallOption) (*CreateImageResponse, error)
 	RunVM(ctx context.Context, in *RunVMRequest, opts ...grpc.CallOption) (*RunVMResponse, error)
+	GetVMState(ctx context.Context, in *GetVMStateRequest, opts ...grpc.CallOption) (*GetVMStateResponse, error)
 }
 
 type werkClient struct {
@@ -72,6 +73,15 @@ func (c *werkClient) RunVM(ctx context.Context, in *RunVMRequest, opts ...grpc.C
 	return out, nil
 }
 
+func (c *werkClient) GetVMState(ctx context.Context, in *GetVMStateRequest, opts ...grpc.CallOption) (*GetVMStateResponse, error) {
+	out := new(GetVMStateResponse)
+	err := c.cc.Invoke(ctx, "/models.Werk/GetVMState", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WerkServer is the server API for Werk service.
 // All implementations must embed UnimplementedWerkServer
 // for forward compatibility
@@ -80,6 +90,7 @@ type WerkServer interface {
 	Register(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
 	CreateImage(context.Context, *CreateImageRequest) (*CreateImageResponse, error)
 	RunVM(context.Context, *RunVMRequest) (*RunVMResponse, error)
+	GetVMState(context.Context, *GetVMStateRequest) (*GetVMStateResponse, error)
 	mustEmbedUnimplementedWerkServer()
 }
 
@@ -98,6 +109,9 @@ func (UnimplementedWerkServer) CreateImage(context.Context, *CreateImageRequest)
 }
 func (UnimplementedWerkServer) RunVM(context.Context, *RunVMRequest) (*RunVMResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RunVM not implemented")
+}
+func (UnimplementedWerkServer) GetVMState(context.Context, *GetVMStateRequest) (*GetVMStateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetVMState not implemented")
 }
 func (UnimplementedWerkServer) mustEmbedUnimplementedWerkServer() {}
 
@@ -184,6 +198,24 @@ func _Werk_RunVM_Handler(srv interface{}, ctx context.Context, dec func(interfac
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Werk_GetVMState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetVMStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WerkServer).GetVMState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/models.Werk/GetVMState",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WerkServer).GetVMState(ctx, req.(*GetVMStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Werk_ServiceDesc is the grpc.ServiceDesc for Werk service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -206,6 +238,10 @@ var Werk_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RunVM",
 			Handler:    _Werk_RunVM_Handler,
+		},
+		{
+			MethodName: "GetVMState",
+			Handler:    _Werk_GetVMState_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
