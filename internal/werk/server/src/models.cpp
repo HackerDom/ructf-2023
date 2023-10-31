@@ -48,7 +48,7 @@ namespace werk::server {
     utils::result<std::shared_ptr<RunRequest>> RunRequest::ReadFromSocket(int fd) {
         struct {
             uint16_t binaryPathLen;
-        } header{};
+        } __attribute__((packed)) header{};
 
         auto nrecv = recv(fd, &header, sizeof(header), MSG_WAITALL);
         if (nrecv != sizeof(header)) {
@@ -71,12 +71,12 @@ namespace werk::server {
             uint8_t success;
             uint64_t vd;
             uint64_t errorMessageLen;
-        } header{};
+        } __attribute__((packed)) header{};
         static_assert(sizeof(header.vd) == sizeof(vd_t));
         static_assert(sizeof(header.errorMessageLen) >= sizeof(errorMessage.size()));
 
         header.success = static_cast<uint8_t>(success);
-        header.vd = static_cast<uint8_t>(vd);
+        header.vd = static_cast<uint64_t>(vd);
         header.errorMessageLen = static_cast<uint64_t>(errorMessage.size());
 
         auto nsend = send(fd, &header, sizeof(header), 0);
@@ -105,7 +105,7 @@ namespace werk::server {
     utils::result<std::shared_ptr<KillRequest>> KillRequest::ReadFromSocket(int fd) {
         struct {
             uint64_t vd;
-        } header;
+        } __attribute__((packed)) header{};
         static_assert(sizeof(header.vd) == sizeof(vd_t));
 
         auto nrecv = recv(fd, &header, sizeof(header), MSG_WAITALL);
@@ -113,14 +113,14 @@ namespace werk::server {
             return utils::result<std::shared_ptr<KillRequest>>::of_error(utils::PError("header recv"));
         }
 
-        auto req = std::make_shared<KillRequest>(header.vd);
+        auto req = std::make_shared<KillRequest>(static_cast<vd_t>(header.vd));
         return utils::result<std::shared_ptr<KillRequest>>::of_success(req);
     }
 
     utils::result_no_value KillResponse::WriteToSocket(int fd) {
         struct {
             uint8_t success;
-        } header;
+        } __attribute__((packed)) header{};
 
         header.success = static_cast<uint8_t>(success);
 
@@ -143,7 +143,7 @@ namespace werk::server {
     utils::result<std::shared_ptr<StatusRequest>> StatusRequest::ReadFromSocket(int fd) {
         struct {
             uint64_t vd;
-        } header;
+        } __attribute__((packed)) header{};
         static_assert(sizeof(header.vd) == sizeof(vd));
 
         auto nrecv = recv(fd, &header, sizeof(header), MSG_WAITALL);
@@ -151,7 +151,7 @@ namespace werk::server {
             return utils::result<std::shared_ptr<StatusRequest>>::of_error(utils::PError("header recv"));
         }
 
-        auto req = std::make_shared<StatusRequest>(header.vd);
+        auto req = std::make_shared<StatusRequest>(static_cast<vd_t>(header.vd));
         return utils::result<std::shared_ptr<StatusRequest>>::of_success(req);
     }
 
@@ -159,7 +159,7 @@ namespace werk::server {
         struct {
             uint8_t success;
             uint8_t status;
-        } header;
+        } __attribute__((packed)) header{};
 
         header.success = success;
         header.status = static_cast<uint8_t>(state);
@@ -183,7 +183,7 @@ namespace werk::server {
     utils::result<std::shared_ptr<DeleteRequest>> DeleteRequest::ReadFromSocket(int fd) {
         struct {
             uint64_t vd;
-        } header;
+        } __attribute__((packed)) header{};
         static_assert(sizeof(header.vd) == sizeof(vd));
 
         auto nrecv = recv(fd, &header, sizeof(header), MSG_WAITALL);
@@ -191,14 +191,14 @@ namespace werk::server {
             return utils::result<std::shared_ptr<DeleteRequest>>::of_error(utils::PError("header recv"));
         }
 
-        auto req = std::make_shared<DeleteRequest>(header.vd);
+        auto req = std::make_shared<DeleteRequest>(static_cast<vd_t>(header.vd));
         return utils::result<std::shared_ptr<DeleteRequest>>::of_success(req);
     }
 
     utils::result_no_value DeleteResponse::WriteToSocket(int fd) {
         struct {
             uint8_t success;
-        } header;
+        } __attribute__((packed)) header{};
 
         header.success = static_cast<uint8_t>(success);
 
@@ -221,7 +221,7 @@ namespace werk::server {
     utils::result<std::shared_ptr<GetSerialRequest>> GetSerialRequest::ReadFromSocket(int fd) {
         struct {
             uint64_t vd;
-        } header;
+        } __attribute__((packed)) header{};
         static_assert(sizeof(header.vd) == sizeof(vd));
 
         auto nrecv = recv(fd, &header, sizeof(header), MSG_WAITALL);
@@ -229,7 +229,7 @@ namespace werk::server {
             return utils::result<std::shared_ptr<GetSerialRequest>>::of_error(utils::PError("header recv"));
         }
 
-        auto req = std::make_shared<GetSerialRequest>(header.vd);
+        auto req = std::make_shared<GetSerialRequest>(static_cast<vd_t>(header.vd));
         return utils::result<std::shared_ptr<GetSerialRequest>>::of_success(req);
     }
 
@@ -237,7 +237,7 @@ namespace werk::server {
         struct {
             uint8_t success;
             uint64_t len;
-        } header;
+        } __attribute__((packed)) header{};
         static_assert(sizeof(header.len) >= sizeof(serial.size()));
 
         header.success = static_cast<uint8_t>(success);
