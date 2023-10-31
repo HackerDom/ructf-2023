@@ -195,7 +195,7 @@ namespace werk::server {
         return utils::result<std::shared_ptr<DeleteRequest>>::of_success(req);
     }
 
-    utils::result_no_value DeleteResponse::WriteToScoket(int fd) {
+    utils::result_no_value DeleteResponse::WriteToSocket(int fd) {
         struct {
             uint8_t success;
         } header;

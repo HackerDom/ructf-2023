@@ -35,6 +35,9 @@ namespace werk::server {
         using StatusHandlerT = std::function<StatusResponse(const StatusRequest&)>;
         void SetStatusHandler(StatusHandlerT handler);
 
+        using DeleteHandlerT = std::function<DeleteResponse(const DeleteRequest&)>;
+        void SetDeleteHandler(DeleteHandlerT handler);
+
     private:
         std::shared_ptr<utils::ThreadPool> threadPool;
         const std::filesystem::path socketPath;
@@ -48,6 +51,7 @@ namespace werk::server {
         RunHandlerT runHandler;
         KillHandlerT killHandler;
         StatusHandlerT statusHandler;
+        DeleteHandlerT deleteHandler;
 
         static void writeInvalidRequest(int fd);
     };
