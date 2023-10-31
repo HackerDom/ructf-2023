@@ -5,7 +5,7 @@ import os
 import secrets
 import hashlib
 
-N = 60
+N = 20
 
 def gentoken(team, n=32):
  abc = "abcdef0123456789"

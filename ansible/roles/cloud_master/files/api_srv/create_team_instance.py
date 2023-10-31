@@ -97,7 +97,7 @@ def main():
             droplet_id = do_api.create_vm(token,
                 ROUTER_VM_NAME, image=do_cloud_params["router_image"],
                 ssh_keys=do_cloud_params["router_ssh_keys"],
-                size=do_cloud_params["sizes"].get("router_s", do_cloud_params["sizes"]["default"]),
+                size=do_cloud_params["sizes"].get("router", do_cloud_params["sizes"]["default"]),
                 region=do_cloud_params.get("region"),
                 vpc_uuid=vpc_id, tag="team-router")
             if droplet_id is None:

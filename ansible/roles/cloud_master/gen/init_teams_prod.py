@@ -5,8 +5,8 @@ import os
 import shutil
 import crypt
 
-N = 60
-S = 3
+N = 20
+S = 1
 
 DB_DIR = "db_prod"
 
