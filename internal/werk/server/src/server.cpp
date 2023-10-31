@@ -212,6 +212,8 @@ namespace werk::server {
                     acceptCommands = executeHandler<KillRequest, KillResponse, KillHandlerT>(killHandler, fd);
                     break;
                 case 'S':
+                    acceptCommands = executeHandler<StatusRequest, StatusResponse, StatusHandlerT>(statusHandler, fd);
+                    break;
                 case 'D':
                 case 'Q':
                     acceptCommands = false;
@@ -231,6 +233,10 @@ namespace werk::server {
 
     void Server::SetKillHandler(Server::KillHandlerT handler) {
         killHandler = std::move(handler);
+    }
+
+    void Server::SetStatusHandler(Server::StatusHandlerT handler) {
+        statusHandler = std::move(handler);
     }
 
     void Server::writeInvalidRequest(int fd) {
