@@ -47,6 +47,40 @@ int main(int argc, char **argv) {
 //        return interpreter->Run(request);
     });
 
+    server->SetKillHandler([interpreter](const KillRequest &request) {
+        if (request.vd == 0xdeadbeefcafebabe) {
+            return KillResponse{true};
+        }
+
+        return KillResponse{false};
+        // return interpreter->Kill(request);
+    });
+
+    server->SetStatusHandler([interpreter](const StatusRequest &request) {
+        if (request.vd == 0xdeadbeefcafebabe) {
+            return StatusResponse{true, Run::State::Finished};
+        }
+        return StatusResponse{false, Run::State::Crashed};
+        // return interpreter->Status(request);
+    });
+
+    server->SetDeleteHandler([interpreter](const DeleteRequest &request) {
+        if (request.vd == 0xdeadbeefcafebabe) {
+            return DeleteResponse{true};
+        }
+
+        return DeleteResponse{false};
+        // return interpreter->Delete(request);
+    });
+
+    server->SetGetSerialHandler([interpreter](const GetSerialRequest &request) {
+        if (request.vd == 0xdeadbeefcafebabe) {
+            return GetSerialResponse{true, "LOL THIS IS SOME SHIIIIET"};
+        }
+        return GetSerialResponse{false, ""};
+        // return interpreter->GetSerial(request);
+    });
+
     std::signal(SIGCHLD, SIG_IGN);
     std::signal(SIGPIPE, SIG_IGN);
     std::signal(SIGINT, finishRequestedHandler);
