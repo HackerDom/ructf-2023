@@ -29,10 +29,12 @@ type Store interface {
 	CreateEntry(_ context.Context, path string, filename string, ino uint64) error
 	GetEntriesCount(_ context.Context, options ...SelectOption) (uint64, error)
 	DeleteEntries(_ context.Context, path string, name string) (ino uint64, _ error)
+	IncrementNodeNlink(_ context.Context, ino uint64) (uint64, error)
 	DecrementNodeNlink(_ context.Context, ino uint64) (nlink uint64, _ error)
 	DeleteNode(_ context.Context, ino uint64) error
 	UpdateEntries(_ context.Context, currentPath string, newPath string, _ *UpdateEntryMask, _ ...SelectOption) error
 	GetNodeByEntry(_ context.Context, path string, name string) (*model.Node, error)
+	CreateEntriesIter() EntriesIter
 }
 
 func New(baseStore basestore.BaseStore) Store {

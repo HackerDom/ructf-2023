@@ -13,6 +13,7 @@ import (
 	"github.com/hanwen/go-fuse/v2/fuse"
 	"github.com/rs/zerolog"
 
+	"sqlfs/pkg/loopback/dirstream"
 	"sqlfs/pkg/model"
 	"sqlfs/pkg/store"
 )
@@ -177,11 +178,84 @@ func (n *LoopbackNode) Mknod(
 	mode, rdev uint32,
 	out *fuse.EntryOut,
 ) (*fs.Inode, syscall.Errno) {
-	return n.createNode(ctx, name, mode, 0, 1, out)
+	node, err := n.createNode(ctx, name, mode, 0, 1)
+	if err != nil {
+		n.RootData.logger.Err(err).Msg("failed to create node")
+		return nil, syscall.EIO
+	}
+
+	st := nodeToStat(node)
+
+	out.Attr.FromStat(st)
+
+	inode := n.RootData.newNode(n.EmbeddedInode(), name, st)
+	ch := n.NewInode(ctx, inode, fs.StableAttr{
+		Mode: st.Mode,
+		Ino:  st.Ino,
+		Gen:  1,
+	})
+
+	return ch, syscall.F_OK
 }
 
-func (n *LoopbackNode) Mkdir(ctx context.Context, name string, mode uint32, out *fuse.EntryOut) (*fs.Inode, syscall.Errno) {
-	return n.createNode(ctx, name, mode|syscall.S_IFDIR, 4096, 2, out)
+func (n *LoopbackNode) Mkdir(
+	ctx context.Context,
+	name string,
+	mode uint32,
+	out *fuse.EntryOut,
+) (*fs.Inode, syscall.Errno) {
+	var node *model.Node
+
+	err := n.RootData.store.RunInTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		node, err = n.createNode(ctx, name, mode|syscall.S_IFDIR, 4096, 2)
+		if err != nil {
+			return fmt.Errorf("failed to create node: %w", err)
+		}
+
+		selfChildPath := path.Join(n.Path(n.Root()), name)
+
+		if err := n.RootData.store.CreateEntry(ctx, selfChildPath, ".", node.Ino); err != nil {
+			return fmt.Errorf("failed to create self entry: %w", err)
+		}
+
+		if err := n.RootData.store.CreateEntry(ctx, selfChildPath, "..", node.Ino); err != nil {
+			return fmt.Errorf("failed to create parent entry: %w", err)
+		}
+
+		parentPath := n.Path(n.Root())
+		if parentPath == "" {
+			return nil
+		}
+
+		ino, err := n.RootData.store.GetNodeIno(ctx, parentPath)
+		if err != nil {
+			return fmt.Errorf("failed to get ino of parent node")
+		}
+
+		if _, err := n.RootData.store.IncrementNodeNlink(ctx, ino); err != nil {
+			return fmt.Errorf("failed to increnent nlink of parent node: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		n.RootData.logger.Err(err).Msg("failed to create directory")
+		return nil, syscall.EIO
+	}
+
+	st := nodeToStat(node)
+
+	out.Attr.FromStat(st)
+
+	inode := n.RootData.newNode(n.EmbeddedInode(), name, st)
+	ch := n.NewInode(ctx, inode, fs.StableAttr{
+		Mode: st.Mode,
+		Ino:  st.Ino,
+		Gen:  1,
+	})
+
+	return ch, syscall.F_OK
 }
 
 func (n *LoopbackNode) Rmdir(ctx context.Context, name string) syscall.Errno {
@@ -275,7 +349,12 @@ func (n *LoopbackNode) Rename(
 
 		childrenPath := path.Join(oldPath, oldName)
 		newChildrenPath := path.Join(newPath, newName)
-		if err := n.RootData.store.UpdateEntries(ctx, childrenPath, newChildrenPath, store.NewUpdateEntryMask()); err != nil {
+		if err := n.RootData.store.UpdateEntries(
+			ctx,
+			childrenPath,
+			newChildrenPath,
+			store.NewUpdateEntryMask(),
+		); err != nil {
 			return fmt.Errorf("failed to update entries of directory children: %w", err)
 		}
 
@@ -291,11 +370,30 @@ func (n *LoopbackNode) Rename(
 
 var _ = (fs.NodeCreater)((*LoopbackNode)(nil))
 
-func (n *LoopbackNode) Create(ctx context.Context, name string, flags uint32, mode uint32, out *fuse.EntryOut) (inode *fs.Inode, fh fs.FileHandle, fuseFlags uint32, errno syscall.Errno) {
-	ch, err := n.createNode(ctx, name, mode, 0, 1, out)
-	if err != syscall.F_OK {
-		return nil, nil, 0, err
+func (n *LoopbackNode) Create(
+	ctx context.Context,
+	name string,
+	flags uint32,
+	mode uint32,
+	out *fuse.EntryOut,
+) (*fs.Inode, fs.FileHandle, uint32, syscall.Errno) {
+	node, err := n.createNode(ctx, name, mode, 0, 1)
+	if err != nil {
+		n.RootData.logger.Err(err).Msg("failed to create node")
+		return nil, nil, 0, syscall.EIO
 	}
+
+	st := nodeToStat(node)
+
+	out.Attr.FromStat(st)
+
+	inode := n.RootData.newNode(n.EmbeddedInode(), name, st)
+	ch := n.NewInode(ctx, inode, fs.StableAttr{
+		Mode: st.Mode,
+		Ino:  st.Ino,
+		Gen:  1,
+	})
+
 	lf := NewLoopbackFile(0, int(ch.StableAttr().Ino), n.RootData.Db)
 
 	return ch, lf, 0, syscall.F_OK
@@ -310,7 +408,12 @@ func (n *LoopbackNode) Symlink(
 	return nil, syscall.ENOSYS
 }
 
-func (n *LoopbackNode) Link(ctx context.Context, target fs.InodeEmbedder, name string, out *fuse.EntryOut) (*fs.Inode, syscall.Errno) {
+func (n *LoopbackNode) Link(
+	ctx context.Context,
+	target fs.InodeEmbedder,
+	name string,
+	out *fuse.EntryOut,
+) (*fs.Inode, syscall.Errno) {
 	return nil, syscall.ENOSYS
 }
 
@@ -318,10 +421,14 @@ func (n *LoopbackNode) Readlink(ctx context.Context) ([]byte, syscall.Errno) {
 	return nil, syscall.ENOSYS
 }
 
-func (n *LoopbackNode) Open(ctx context.Context, flags uint32) (fh fs.FileHandle, fuseFlags uint32, errno syscall.Errno) {
-	ino, err := store.GetIno(ctx, n.Path(n.Root()), n.RootData.Db)
-	if err != syscall.F_OK {
-		return 0, 0, err
+func (n *LoopbackNode) Open(
+	ctx context.Context,
+	flags uint32,
+) (fh fs.FileHandle, fuseFlags uint32, errno syscall.Errno) {
+	ino, err := n.RootData.store.GetNodeIno(ctx, n.Path(n.Root()))
+	if err != nil {
+		n.RootData.logger.Err(err).Msg("failed to get ino of node")
+		return nil, 0, syscall.EIO
 	}
 
 	lf := NewLoopbackFile(0, int(ino), n.RootData.Db)
@@ -334,7 +441,7 @@ func (n *LoopbackNode) Opendir(ctx context.Context) syscall.Errno {
 
 func (n *LoopbackNode) Readdir(ctx context.Context) (fs.DirStream, syscall.Errno) {
 	// return fs.NewLoopbackDirStream(n.path())
-	stream := store.NewDirStream(n.RootData.Db)
+	stream := dirstream.New(n.RootData.store.CreateEntriesIter(), *n.RootData.logger)
 	if err := stream.Init(ctx, n.Path(n.Root())); err != syscall.F_OK {
 		return nil, err
 	}
@@ -367,7 +474,12 @@ func (n *LoopbackNode) Getattr(ctx context.Context, f fs.FileHandle, out *fuse.A
 
 var _ = (fs.NodeSetattrer)((*LoopbackNode)(nil))
 
-func (n *LoopbackNode) Setattr(ctx context.Context, f fs.FileHandle, in *fuse.SetAttrIn, out *fuse.AttrOut) syscall.Errno {
+func (n *LoopbackNode) Setattr(
+	ctx context.Context,
+	f fs.FileHandle,
+	in *fuse.SetAttrIn,
+	out *fuse.AttrOut,
+) syscall.Errno {
 	p := n.path()
 	fsa, ok := f.(fs.FileSetattrer)
 	if ok && fsa != nil {
@@ -440,7 +552,12 @@ func (n *LoopbackNode) Setattr(ctx context.Context, f fs.FileHandle, in *fuse.Se
 // NewLoopbackRoot returns a root node for a loopback file system whose
 // root is at the given root. This node implements all NodeXxxxer
 // operations available.
-func NewLoopbackRoot(rootPath string, db *sql.DB, store store.Store, logger *zerolog.Logger) (fs.InodeEmbedder, error) {
+func NewLoopbackRoot(
+	rootPath string,
+	db *sql.DB,
+	store store.Store,
+	logger *zerolog.Logger,
+) (fs.InodeEmbedder, error) {
 	var st syscall.Stat_t
 	err := syscall.Stat(rootPath, &st)
 	if err != nil {
@@ -486,8 +603,7 @@ func (n *LoopbackNode) createNode(
 	mode uint32,
 	size uint64,
 	nlink uint64,
-	out *fuse.EntryOut,
-) (*fs.Inode, syscall.Errno) {
+) (*model.Node, error) {
 	p := filepath.Join(n.Path(n.Root()), name)
 	var node *model.Node
 
@@ -509,33 +625,19 @@ func (n *LoopbackNode) createNode(
 		})
 
 		if err != nil {
-			n.RootData.logger.Err(err).Msg("failed to create node")
-			return nil, syscall.EIO
+			return nil, fmt.Errorf("failed to create node %w", err)
 		}
 	case err == nil:
 		var err error
 		node, err = n.RootData.store.GetNode(ctx, ino)
 		if err != nil {
-			n.RootData.logger.Err(err).Msg("failed to get node")
-			return nil, syscall.EIO
+			return nil, fmt.Errorf("failed to get node %d: %w", ino, err)
 		}
 	default:
-		n.RootData.logger.Err(err).Msg("failed to get ino if inode")
-		return nil, syscall.EIO
+		return nil, fmt.Errorf("failed to get ino of node: %w", err)
 	}
 
-	st := nodeToStat(node)
-
-	out.Attr.FromStat(st)
-
-	inode := n.RootData.newNode(n.EmbeddedInode(), name, st)
-	ch := n.NewInode(ctx, inode, fs.StableAttr{
-		Mode: st.Mode,
-		Ino:  st.Ino,
-		Gen:  1,
-	})
-
-	return ch, fuse.F_OK
+	return node, nil
 }
 
 func nodeToStat(node *model.Node) *syscall.Stat_t {

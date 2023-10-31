@@ -18,11 +18,11 @@ CREATE TABLE nodes(
 );
 
 CREATE TABLE entries(
-    ino      INT PRIMARY KEY,
+    ino      INT,
     path     TEXT,
     filename TEXT,
 
-    UNIQUE(path, filename) 
+    PRIMARY KEY(path, filename) 
 );
 CREATE INDEX path_index ON entries(path);
 
