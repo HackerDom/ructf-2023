@@ -19,6 +19,10 @@ namespace werk::utils {
             return {true, "", std::piecewise_construct, std::forward<Args>(args)...};
         }
 
+        static result of_success() {
+            return {true, T(), ""};
+        }
+
         static result of_success(T &&value) {
             return {true, std::forward<T>(value), ""};
         }

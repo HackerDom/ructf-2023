@@ -30,7 +30,7 @@ namespace werk::server {
 
         [[nodiscard]] std::string String() const;
 
-        int WriteToSocket(int fd);
+        utils::result_no_value WriteToSocket(int fd);
     };
 
     struct KillRequest {
@@ -46,6 +46,6 @@ namespace werk::server {
 
         [[nodiscard]] std::string String() const;
 
-        int WriteToSocket(int fd);
+        utils::result_no_value WriteToSocket(int fd);
     };
 }
