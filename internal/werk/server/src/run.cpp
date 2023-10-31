@@ -1,5 +1,7 @@
 #include <fstream>
 
+#include <utils/strings.hpp>
+
 #include <run.hpp>
 
 namespace werk::server {
@@ -60,5 +62,13 @@ namespace werk::server {
         std::lock_guard<std::mutex> _(updateMutex);
 
         return totalTicksCount;
+    }
+
+    std::string Run::GetSerial() const {
+        std::lock_guard<std::mutex> _(updateMutex);
+
+        auto &serial = vm->GetSerial();
+
+        return utils::Join(serial.begin(), serial.end(), "");
     }
 }

@@ -16,8 +16,14 @@ namespace {
             return status;
         }
 
+        const std::vector<char> &GetSerial() const override {
+            return serial;
+        }
+
         Vm::Status status = Running;
         int totalTicks = 0;
+
+        std::vector<char> serial;
     };
 }
 
@@ -108,4 +114,19 @@ TEST(Run, StateIsKilledAfterKill) {
 
     ASSERT_EQ(run.GetState(), Run::State::Killed);
     ASSERT_EQ(vmt->totalTicks, 50 * 100); //no Tick() was performed
+}
+
+TEST(Run, ShouldGetSerial) {
+    auto vm = GetVm();
+    auto vmt = std::dynamic_pointer_cast<TestVm>(vm);
+    auto run = werk::server::Run(0, vm, 10000);
+
+    vmt->serial.push_back('A');
+    vmt->serial.push_back('B');
+    vmt->serial.push_back('C');
+    vmt->serial.push_back('D');
+    vmt->serial.push_back('E');
+    vmt->serial.push_back('F');
+
+    ASSERT_EQ(run.GetSerial(), "ABCDEF");
 }
