@@ -48,4 +48,15 @@ namespace werk::server {
 
         return RunResponse{true, vd, ""};
     }
+
+    KillResponse Interpreter::Kill(const KillRequest &rq) {
+        std::lock_guard<std::mutex> _(vdMapMutex);
+
+        if (auto it = vdToRun.find(rq.vd); it != vdToRun.end()) {
+            it->second->Kill();
+            return KillResponse{true};
+        }
+
+        return KillResponse{false};
+    }
 }

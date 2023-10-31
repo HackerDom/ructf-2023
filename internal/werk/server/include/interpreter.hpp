@@ -21,6 +21,8 @@ namespace werk::server {
 
         [[nodiscard]] RunResponse Run(const RunRequest &rq);
 
+        [[nodiscard]] KillResponse Kill(const KillRequest &rq);
+
     private:
         const std::shared_ptr<RunLoader> runLoader;
         const std::shared_ptr<Scheduler> scheduler;
