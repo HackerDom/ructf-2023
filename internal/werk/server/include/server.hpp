@@ -29,6 +29,9 @@ namespace werk::server {
         using RunHandlerT = std::function<RunResponse(const RunRequest&)>;
         void SetRunHandler(RunHandlerT handler);
 
+        using KillHandlerT = std::function<KillResponse(const KillRequest&)>;
+        void SetKillHandler(KillHandlerT handler);
+
     private:
         std::shared_ptr<utils::ThreadPool> threadPool;
         const std::filesystem::path socketPath;
@@ -40,6 +43,7 @@ namespace werk::server {
         void handleClient(int fd);
 
         RunHandlerT runHandler;
+        KillHandlerT killHandler;
 
         static void writeInvalidRequest(int fd);
     };

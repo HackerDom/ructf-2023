@@ -12,7 +12,7 @@
 
 namespace werk::server {
     template <class RequestT, class ResponseT, class HandlerT>
-    bool executeHandler(HandlerT handler, int fd) {
+    bool executeHandler(const HandlerT &handler, int fd) {
         auto request = RequestT::ReadFromSocket(fd);
         if (!request) {
             LOG(WARNING) << utils::Format("reading run request failed: '%s', closing connection",
@@ -209,6 +209,8 @@ namespace werk::server {
                     acceptCommands = executeHandler<RunRequest, RunResponse, RunHandlerT>(runHandler, fd);
                     break;
                 case 'K':
+                    acceptCommands = executeHandler<KillRequest, KillResponse, KillHandlerT>(killHandler, fd);
+                    break;
                 case 'S':
                 case 'D':
                 case 'Q':
@@ -225,6 +227,10 @@ namespace werk::server {
 
     void Server::SetRunHandler(Server::RunHandlerT handler) {
         runHandler = std::move(handler);
+    }
+
+    void Server::SetKillHandler(Server::KillHandlerT handler) {
+        killHandler = std::move(handler);
     }
 
     void Server::writeInvalidRequest(int fd) {
