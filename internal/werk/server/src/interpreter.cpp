@@ -65,4 +65,14 @@ namespace werk::server {
 
         return KillResponse{false};
     }
+
+    StatusResponse Interpreter::Status(const StatusRequest &rq) {
+        std::lock_guard<std::mutex> _(vdMapMutex);
+
+        if (auto it = vdToRun.find(rq.vd); it != vdToRun.end()) {
+            return StatusResponse{true, it->second->GetState()};
+        }
+
+        return StatusResponse{false, Run::State::InternalError};
+    }
 }
