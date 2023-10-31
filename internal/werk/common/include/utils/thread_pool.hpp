@@ -29,6 +29,8 @@ namespace werk::utils {
 
         const size_t workersCount;
 
+        [[nodiscard]] size_t GetQueueSize();
+
     private:
         using TaskT = std::function<void()>;
 

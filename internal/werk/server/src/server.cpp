@@ -122,6 +122,8 @@ namespace werk::server {
                     }
 
                     threadPool->EnqueueUserTask([this, clientFd] { this->handleClient(clientFd); });
+
+                    LOG(INFO) << "task put to thread pool, current queue size = " << threadPool->GetQueueSize();
                 } else if (pollFds[0].revents & POLLERR) {
                     LOG(WARNING) << "POLERR in socket fd";
                     break;
