@@ -224,7 +224,7 @@ namespace werk::server {
                     acceptCommands = false;
                     break;
                 default:
-                    LOG(WARNING) << "unknown command from client";
+                    LOG(WARNING) << "unknown command from client " << command;
                     writeInvalidRequest(fd);
                     acceptCommands = false;
                     break;
