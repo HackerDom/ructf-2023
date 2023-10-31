@@ -1,3 +1,6 @@
+#include <chrono>
+#include <cmath>
+
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -6,6 +9,32 @@
 #include <models.hpp>
 
 namespace werk::server {
+    utils::result_no_value sendall(int fd, void *data, std::size_t n, std::chrono::milliseconds timeout) {
+        auto start = std::chrono::high_resolution_clock::now();
+        auto *p = reinterpret_cast<uint8_t*>(data);
+        std::size_t total = 0;
+        std::size_t left = n;
+
+        while (total != n) {
+            auto nsend = send(fd, p, left, 0);
+            if (nsend < 0) {
+                return utils::result_no_value::of_error(utils::PError("send"));
+            }
+            if (nsend == 0) {
+                auto diff = std::chrono::high_resolution_clock::now() - start;
+                auto diffMs = std::chrono::duration_cast<std::chrono::milliseconds>(diff);
+                if (diffMs > timeout) {
+                    return utils::result_no_value::of_error("timeout");
+                }
+            }
+
+            total += static_cast<std::size_t>(nsend);
+            p += nsend;
+        }
+
+        return utils::result_no_value::of_success();
+    }
+
     std::string RunRequest::String() const {
         return utils::Format("RunRequest(binaryPath='%s')", binaryPath.c_str());
     }
@@ -176,6 +205,54 @@ namespace werk::server {
         auto nsend = send(fd, &header, sizeof(header), 0);
         if (nsend != sizeof(header)) {
             return utils::result_no_value::of_error(utils::PError("header send"));
+        }
+
+        return utils::result_no_value::of_success();
+    }
+
+    std::string GetSerialRequest::String() const {
+        return utils::Format("GetSerialRequest(vd=%lx)", vd);
+    }
+
+    std::string GetSerialResponse::String() const {
+        return utils::Format("GetSerialResponse(success=%d, serial=%s)", success, serial.c_str());
+    }
+
+    utils::result<std::shared_ptr<GetSerialRequest>> GetSerialRequest::ReadFromSocket(int fd) {
+        struct {
+            uint64_t vd;
+        } header;
+        static_assert(sizeof(header.vd) == sizeof(vd));
+
+        auto nrecv = recv(fd, &header, sizeof(header), MSG_WAITALL);
+        if (nrecv != sizeof(header)) {
+            return utils::result<std::shared_ptr<GetSerialRequest>>::of_error(utils::PError("header recv"));
+        }
+
+        auto req = std::make_shared<GetSerialRequest>(header.vd);
+        return utils::result<std::shared_ptr<GetSerialRequest>>::of_success(req);
+    }
+
+    utils::result_no_value GetSerialResponse::WriteToSocket(int fd) {
+        struct {
+            uint8_t success;
+            uint64_t len;
+        } header;
+        static_assert(sizeof(header.len) >= sizeof(serial.size()));
+
+        header.success = static_cast<uint8_t>(success);
+        header.len = success ? static_cast<uint64_t>(serial.size()) : 0;
+
+        auto nsend = send(fd, &header, sizeof(header), 0);
+        if (nsend != sizeof(header)) {
+            return utils::result_no_value::of_error(utils::PError("header send"));
+        }
+
+        if (success && serial.size() > 0) {
+            auto r = sendall(fd, serial.data(), serial.size(), std::chrono::milliseconds(300));
+            if (!r) {
+                return utils::result_no_value::of_error(utils::Format("serial send: %s", r.message));
+            }
         }
 
         return utils::result_no_value::of_success();

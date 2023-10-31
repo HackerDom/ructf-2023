@@ -82,4 +82,21 @@ namespace werk::server {
 
         utils::result_no_value WriteToScoket(int fd);
     };
+
+    struct GetSerialRequest {
+        vd_t vd;
+
+        [[nodiscard]] std::string String() const;
+
+        static utils::result<std::shared_ptr<GetSerialRequest>> ReadFromSocket(int fd);
+    };
+
+    struct GetSerialResponse {
+        bool success;
+        std::string serial;
+
+        [[nodiscard]] std::string String() const;
+
+        utils::result_no_value WriteToSocket(int fd);
+    };
 }
