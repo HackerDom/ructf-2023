@@ -64,4 +64,42 @@ namespace werk::server {
 
         return 0;
     }
+
+    std::string KillRequest::String() const {
+        return utils::Format("KillRequest(vd=%lx)", vd);
+    }
+
+    std::string KillResponse::String() const {
+        return utils::Format("KillResponse(success=%d)", success);
+    }
+
+    utils::result<std::shared_ptr<KillRequest>> KillRequest::ReadFromSocket(int fd) {
+        struct {
+            uint64_t vd;
+        } header;
+        static_assert(sizeof(header.vd) == sizeof(vd_t));
+
+        auto nrecv = recv(fd, &header, sizeof(header), MSG_WAITALL);
+        if (nrecv != sizeof(header)) {
+            return utils::result<std::shared_ptr<KillRequest>>::of_error(utils::PError("header recv"));
+        }
+
+        auto req = std::make_shared<KillRequest>(header.vd);
+        return utils::result<std::shared_ptr<KillRequest>>::of_success(req);
+    }
+
+    int KillResponse::WriteToSocket(int fd) {
+        struct {
+            uint8_t success;
+        } header;
+
+        header.success = static_cast<uint8_t>(success);
+
+        auto nsend = send(fd, &header, sizeof(header), 0);
+        if (nsend != sizeof(header)) {
+            return -1;
+        }
+
+        return 0;
+    }
 }
