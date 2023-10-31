@@ -1,7 +1,5 @@
 #include <thread>
 
-#include <utils/strings.hpp>
-
 #include <interpreter.hpp>
 
 namespace werk::server {
@@ -95,14 +93,10 @@ namespace werk::server {
     GetSerialResponse Interpreter::GetSerial(const GetSerialRequest &rq) {
         std::lock_guard<std::mutex> _(vdMapMutex);
 
-        auto it = vdToRun.find(rq.vd);
-        if (it == vdToRun.end()) {
-            return GetSerialResponse{false, ""};
+        if (auto it = vdToRun.find(rq.vd); it != vdToRun.end()) {
+            return GetSerialResponse{true, it->second->GetSerial()};
         }
 
-        auto &serial = it->second->GetVm()->GetSerial();
-        auto s = utils::Join(serial.begin(), serial.end(), "");
-
-        return GetSerialResponse{true, std::move(s)};
+        return GetSerialResponse{false, ""};
     }
 }
