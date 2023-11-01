@@ -32,7 +32,7 @@ public class AuthService : Auther.AutherBase
                 new Status(StatusCode.InvalidArgument, "Invalid species type")
             );
 
-        await _userRepository.CreateAsync(request.Username, request.Password, request.SpeciesType);
+        await _userRepository.CreateAsync(request.Username, JwtAuthManager.GetPasswordHash(request.Password), request.SpeciesType);
 
         return await Task.FromResult(new RegisterReply { Success = true });
     }

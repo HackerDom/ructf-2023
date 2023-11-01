@@ -9,6 +9,8 @@ services:
     depends_on:
       - postgres
       - redis
+    volumes:
+      - ./src/API/appsettings.json:/appsettings.json
   postgres:
     build: postgres
     restart: always
@@ -34,6 +36,14 @@ services:
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
     restart: always
+    depends_on:
+      - postgres
+      - redis
+  cleaner:
+    build: cleaner
+    restart: unless-stopped
+    depends_on:
+      - postgres
 
 
 volumes:
