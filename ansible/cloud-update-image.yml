@@ -1,0 +1,16 @@
+- hosts: cloud_master
+  tasks:
+    - name: Update vuln image
+      command: 
+        cmd: ./patch_vulnimage.sh ructf
+        chdir: /cloud/backend
+
+    - name: Update team instance
+      command: 
+        cmd: ./update_team.sh 1
+        chdir: /cloud/backend
+
+    - name: Open team
+      command: 
+        cmd: ./open_team.sh 1
+        chdir: /cloud/backend
