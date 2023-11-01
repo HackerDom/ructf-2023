@@ -1,9 +1,12 @@
 package db
 
 import (
+	"back/config"
 	"back/utils"
 	"errors"
+	"fmt"
 	"github.com/google/uuid"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -11,8 +14,37 @@ type Api struct {
 	db *gorm.DB
 }
 
-func NewApi(db *gorm.DB) *Api {
-	return &Api{db: db}
+func NewApi(cfg *config.Postgres) (*Api, error) {
+	dsn := fmt.Sprintf(
+		"host=%v user=%v password=%v dbname=%v port=%v sslmode=disable",
+		cfg.Host,
+		cfg.Username,
+		cfg.Password,
+		cfg.Database,
+		cfg.Port,
+	)
+	gormDb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+
+	if err != nil {
+		return nil, errors.New("can not open gorm db: " + err.Error())
+	}
+	if err := gormDb.AutoMigrate(
+		UserPairModel{},
+		AsmCodeModel{},
+		RunModel{},
+	); err != nil {
+		return nil, errors.New("can not migrate gorm db: " + err.Error())
+	}
+
+	sqlDb, err := gormDb.DB()
+	if err != nil {
+		return nil, errors.New("can not get sql db from gorm db")
+	}
+
+	sqlDb.SetMaxIdleConns(int(cfg.MaxIdleConns))
+	sqlDb.SetMaxOpenConns(int(cfg.MaxOpenConns))
+
+	return &Api{db: gormDb}, nil
 }
 
 func (api *Api) CreateUserPair(name string) (string, error) {
