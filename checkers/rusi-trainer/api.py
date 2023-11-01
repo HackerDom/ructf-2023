@@ -94,7 +94,7 @@ class APIClient:
 
     def make_udar(self, name, phonk, trusted_ids, map_id, description):
         encoded_name = base69.encodeString(name)
-        resp = self._session.put(self._route('/udar'), json={
+        resp = self._session.put(self._route('/udar/'), json={
             'name': encoded_name,
             'phonk': phonk,
             'map': map_id,

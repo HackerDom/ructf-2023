@@ -4,7 +4,7 @@
 SERVICES = [
     "example", 
     "hyperborea-legends", 
-    "rusi_trainer",
+    "rusi-trainer",
     "rustest",
     "sqlfs",
     "werk",
@@ -13,13 +13,13 @@ SERVICES = [
 CHECKERS = [
     "example",
     "hyperborea-legends",
-    "rusi_trainer",
+    "rusi-trainer",
 ]
 
 SPLOITS = [
     "example",
     "hyperborea-legends",
-    "rusi_trainer",
+    "rusi-trainer",
 ]
 
 TEMPLATE = """
