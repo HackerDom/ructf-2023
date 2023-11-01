@@ -69,4 +69,22 @@ func TestVmClientPlayground(t *testing.T) {
 		log.Fatal(err)
 	}
 	log.Printf("%v\n", sres)
+
+	dres, err := c.Delete(&DeleteRequest{Vd: 0xdeadbeefcafebabe})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%v\n", dres)
+
+	dres, err = c.Delete(&DeleteRequest{Vd: 0xdeadbeefcafebabe + 1})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%v\n", dres)
+
+	dres, err = c.Delete(&DeleteRequest{Vd: 0xdeadbeefcafebabe})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%v\n", dres)
 }
