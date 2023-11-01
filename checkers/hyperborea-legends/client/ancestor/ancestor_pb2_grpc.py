@@ -15,20 +15,25 @@ class AncestorServStub(object):
             channel: A grpc.Channel.
         """
         self.GetAncestor = channel.unary_unary(
-            '/AncestorServ/GetAncestor',
-            request_serializer=ancestor__pb2.GetAncestorRequest.SerializeToString,
-            response_deserializer=ancestor__pb2.AncestorData.FromString,
-        )
+                '/AncestorServ/GetAncestor',
+                request_serializer=ancestor__pb2.GetAncestorRequest.SerializeToString,
+                response_deserializer=ancestor__pb2.AncestorData.FromString,
+                )
         self.CreateAncestor = channel.unary_unary(
-            '/AncestorServ/CreateAncestor',
-            request_serializer=ancestor__pb2.AncestorData.SerializeToString,
-            response_deserializer=ancestor__pb2.CreateAncestorResponse.FromString,
-        )
+                '/AncestorServ/CreateAncestor',
+                request_serializer=ancestor__pb2.AncestorData.SerializeToString,
+                response_deserializer=ancestor__pb2.CreateAncestorResponse.FromString,
+                )
         self.AddDirectAncestor = channel.unary_unary(
-            '/AncestorServ/AddDirectAncestor',
-            request_serializer=ancestor__pb2.AddDirectAncestorRequest.SerializeToString,
-            response_deserializer=ancestor__pb2.AddDirectAncestorResponse.FromString,
-        )
+                '/AncestorServ/AddDirectAncestor',
+                request_serializer=ancestor__pb2.AddDirectAncestorRequest.SerializeToString,
+                response_deserializer=ancestor__pb2.AddDirectAncestorResponse.FromString,
+                )
+        self.GetAncestorsCount = channel.unary_unary(
+                '/AncestorServ/GetAncestorsCount',
+                request_serializer=ancestor__pb2.EmptyRequest.SerializeToString,
+                response_deserializer=ancestor__pb2.AncestorsCountResponse.FromString,
+                )
 
 
 class AncestorServServicer(object):
@@ -52,81 +57,109 @@ class AncestorServServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def GetAncestorsCount(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_AncestorServServicer_to_server(servicer, server):
     rpc_method_handlers = {
-        'GetAncestor': grpc.unary_unary_rpc_method_handler(
-            servicer.GetAncestor,
-            request_deserializer=ancestor__pb2.GetAncestorRequest.FromString,
-            response_serializer=ancestor__pb2.AncestorData.SerializeToString,
-        ),
-        'CreateAncestor': grpc.unary_unary_rpc_method_handler(
-            servicer.CreateAncestor,
-            request_deserializer=ancestor__pb2.AncestorData.FromString,
-            response_serializer=ancestor__pb2.CreateAncestorResponse.SerializeToString,
-        ),
-        'AddDirectAncestor': grpc.unary_unary_rpc_method_handler(
-            servicer.AddDirectAncestor,
-            request_deserializer=ancestor__pb2.AddDirectAncestorRequest.FromString,
-            response_serializer=ancestor__pb2.AddDirectAncestorResponse.SerializeToString,
-        ),
+            'GetAncestor': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetAncestor,
+                    request_deserializer=ancestor__pb2.GetAncestorRequest.FromString,
+                    response_serializer=ancestor__pb2.AncestorData.SerializeToString,
+            ),
+            'CreateAncestor': grpc.unary_unary_rpc_method_handler(
+                    servicer.CreateAncestor,
+                    request_deserializer=ancestor__pb2.AncestorData.FromString,
+                    response_serializer=ancestor__pb2.CreateAncestorResponse.SerializeToString,
+            ),
+            'AddDirectAncestor': grpc.unary_unary_rpc_method_handler(
+                    servicer.AddDirectAncestor,
+                    request_deserializer=ancestor__pb2.AddDirectAncestorRequest.FromString,
+                    response_serializer=ancestor__pb2.AddDirectAncestorResponse.SerializeToString,
+            ),
+            'GetAncestorsCount': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetAncestorsCount,
+                    request_deserializer=ancestor__pb2.EmptyRequest.FromString,
+                    response_serializer=ancestor__pb2.AncestorsCountResponse.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-        'AncestorServ', rpc_method_handlers)
+            'AncestorServ', rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
 
 
-# This class is part of an EXPERIMENTAL API.
+ # This class is part of an EXPERIMENTAL API.
 class AncestorServ(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
     def GetAncestor(request,
-                    target,
-                    options=(),
-                    channel_credentials=None,
-                    call_credentials=None,
-                    insecure=False,
-                    compression=None,
-                    wait_for_ready=None,
-                    timeout=None,
-                    metadata=None):
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
         return grpc.experimental.unary_unary(request, target, '/AncestorServ/GetAncestor',
-                                             ancestor__pb2.GetAncestorRequest.SerializeToString,
-                                             ancestor__pb2.AncestorData.FromString,
-                                             options, channel_credentials,
-                                             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            ancestor__pb2.GetAncestorRequest.SerializeToString,
+            ancestor__pb2.AncestorData.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def CreateAncestor(request,
-                       target,
-                       options=(),
-                       channel_credentials=None,
-                       call_credentials=None,
-                       insecure=False,
-                       compression=None,
-                       wait_for_ready=None,
-                       timeout=None,
-                       metadata=None):
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
         return grpc.experimental.unary_unary(request, target, '/AncestorServ/CreateAncestor',
-                                             ancestor__pb2.AncestorData.SerializeToString,
-                                             ancestor__pb2.CreateAncestorResponse.FromString,
-                                             options, channel_credentials,
-                                             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            ancestor__pb2.AncestorData.SerializeToString,
+            ancestor__pb2.CreateAncestorResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
     @staticmethod
     def AddDirectAncestor(request,
-                          target,
-                          options=(),
-                          channel_credentials=None,
-                          call_credentials=None,
-                          insecure=False,
-                          compression=None,
-                          wait_for_ready=None,
-                          timeout=None,
-                          metadata=None):
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
         return grpc.experimental.unary_unary(request, target, '/AncestorServ/AddDirectAncestor',
-                                             ancestor__pb2.AddDirectAncestorRequest.SerializeToString,
-                                             ancestor__pb2.AddDirectAncestorResponse.FromString,
-                                             options, channel_credentials,
-                                             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+            ancestor__pb2.AddDirectAncestorRequest.SerializeToString,
+            ancestor__pb2.AddDirectAncestorResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def GetAncestorsCount(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/AncestorServ/GetAncestorsCount',
+            ancestor__pb2.EmptyRequest.SerializeToString,
+            ancestor__pb2.AncestorsCountResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
