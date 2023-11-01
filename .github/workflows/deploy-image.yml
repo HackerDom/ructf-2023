@@ -4,7 +4,7 @@ on:
 
 jobs:
   rebuild_image:
-    name: Reset game
+    name: Deploy image
     runs-on: self-hosted
 
     steps:
