@@ -13,3 +13,7 @@ data "digitalocean_ssh_key" "lololozhkin" {
 data "digitalocean_ssh_key" "cs" {
   name = "cs"
 }
+
+data "digitalocean_ssh_key" "vaspahomov" {
+  name = "vaspahomov"
+}
