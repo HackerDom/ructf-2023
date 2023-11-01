@@ -7,7 +7,7 @@ import (
 )
 
 func TestVmClientPlayground(t *testing.T) {
-	//t.Skip("playground")
+	t.Skip("playground")
 
 	c, err := NewVmClientSession("/home/rkhapov/file.sock", time.Second)
 	if err != nil {
@@ -87,4 +87,22 @@ func TestVmClientPlayground(t *testing.T) {
 		log.Fatal(err)
 	}
 	log.Printf("%v\n", dres)
+
+	srres, err := c.GetSerial(&GetSerialRequest{Vd: 0xdeadbeefcafebabe})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%v\n", srres)
+
+	srres, err = c.GetSerial(&GetSerialRequest{Vd: 0xdeadbeefcafebabe + 1})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%v\n", srres)
+
+	srres, err = c.GetSerial(&GetSerialRequest{Vd: 0xdeadbeefcafebabe + 2})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("%v\n", srres)
 }
