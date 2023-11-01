@@ -5,7 +5,9 @@ SERVICES = [
     "example", 
     "hyperborea-legends", 
     "rusi_trainer",
-    "rustest"
+    "rustest",
+    "sqlfs",
+    "werk",
 ]
 
 CHECKERS = [
