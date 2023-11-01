@@ -7,12 +7,14 @@ set(HEADERS
         include/arch/types.hpp
         include/arch/registers.hpp
         include/arch/constants.hpp
+        include/arch/instructions.hpp
         )
 
 set(SOURCES
         src/vm.cpp
         src/arch/opcodes.cpp
         src/arch/registers.cpp
+        src/arch/instructions.cpp
         )
 
 add_library(vm STATIC ${HEADERS} ${SOURCES})
