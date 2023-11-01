@@ -1,24 +1,14 @@
-package db
+package tests
 
 import (
-	"back/config"
+	"back/db"
 	"back/utils"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-var testPgConfig = &config.Postgres{
-	Host:         "localhost",
-	Port:         5432,
-	Database:     "db",
-	Username:     "postgres",
-	Password:     "password",
-	MaxIdleConns: 10,
-	MaxOpenConns: 10,
-}
-
-func TestSimpleScenario(t *testing.T) {
-	dbApi, err := NewApi(testPgConfig)
+func TestDBSimpleScenario(t *testing.T) {
+	dbApi, err := db.NewApi(testPgConfig)
 	assert.NoError(t, err)
 
 	username1 := utils.RandomUsername()
