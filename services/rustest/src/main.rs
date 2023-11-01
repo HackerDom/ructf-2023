@@ -34,8 +34,9 @@ async fn main() -> Result<()> {
     )
     .await?;
 
-    let storage = Arc::new(ETCDRustestStorage::new(client));
+    let mut storage = ETCDRustestStorage::new(client);
     storage.warm_caches(20).await?;
+    let storage = Arc::new(storage);
 
     let rus_app = Arc::new(RussApplication::new(Arc::clone(&storage)));
 
