@@ -45,3 +45,12 @@ type DeleteRequest struct {
 type DeleteResponse struct {
 	Success bool
 }
+
+type GetSerialRequest struct {
+	Vd uint64
+}
+
+type GetSerialResponse struct {
+	Success bool
+	Serial  string
+}

@@ -240,3 +240,43 @@ func (c *VmClient) Delete(req *DeleteRequest) (*DeleteResponse, error) {
 
 	return nil, fmt.Errorf("protocol error: unexpected success value %x", success)
 }
+
+func (c *VmClient) GetSerial(req *GetSerialRequest) (*GetSerialResponse, error) {
+	if err := c.setupTimeouts(); err != nil {
+		return nil, err
+	}
+
+	if err := binary.Write(c.conn, binary.LittleEndian, byte('O')); err != nil {
+		return nil, err
+	}
+	if err := binary.Write(c.conn, binary.LittleEndian, req.Vd); err != nil {
+		return nil, err
+	}
+
+	var success uint8
+	var l uint64
+
+	if err := binary.Read(c.conn, binary.LittleEndian, &success); err != nil {
+		return nil, err
+	}
+	if err := binary.Read(c.conn, binary.LittleEndian, &l); err != nil {
+		return nil, err
+	}
+
+	if success == 1 {
+		serial := make([]byte, l)
+		if l != 0 {
+			if _, err := io.ReadFull(c.conn, serial); err != nil {
+				return nil, err
+			}
+		}
+
+		return &GetSerialResponse{Success: true, Serial: string(serial)}, nil
+	}
+
+	if success == 0 {
+		return &GetSerialResponse{Success: false}, nil
+	}
+
+	return nil, fmt.Errorf("protocol error: unexpected success value %x", success)
+}
