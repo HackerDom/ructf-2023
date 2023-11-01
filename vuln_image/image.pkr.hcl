@@ -57,6 +57,11 @@ build {
 
       # Add users for services
       "useradd -m -s /bin/bash example",
+      "useradd -m -s /bin/bash hyperborea-legends",
+      "useradd -m -s /bin/bash rusi_trainer",
+      "useradd -m -s /bin/bash rustest",
+      "useradd -m -s /bin/bash sqlfs",
+      "useradd -m -s /bin/bash werk",
     ]
   }
 
@@ -95,16 +100,51 @@ build {
     source = "../services/example/"
     destination = "/home/example/"
   }
+  provisioner "file" {
+    source = "../services/hyperborea-legends/"
+    destination = "/home/hyperborea-legends/"
+  }
+  provisioner "file" {
+    source = "../services/rusi_trainer/"
+    destination = "/home/rusi_trainer/"
+  }
+  provisioner "file" {
+    source = "../services/rustest/"
+    destination = "/home/rustest/"
+  }
+  provisioner "file" {
+    source = "../services/sqlfs/"
+    destination = "/home/sqlfs/"
+  }
+  provisioner "file" {
+    source = "../services/werk/"
+    destination = "/home/werk/"
+  }
 
   # Build and run services for the first time
   provisioner "shell" {
     inline = [
       "cd ~example",
       "docker-compose build || true",
+      "cd ~hyperborea-legends",
+      "docker-compose build || true",
+      "cd ~rusi_trainer",
+      "docker-compose build || true",
+      "cd ~rustest",
+      "docker-compose build || true",
+      "cd ~sqlfs",
+      "docker-compose build || true",
+      "cd ~werk",
+      "docker-compose build || true",
 
       "systemctl daemon-reload",
 
       "systemctl enable ructf-service@example",
+      "systemctl enable ructf-service@hyperborea-legends",
+      "systemctl enable ructf-service@rusi_trainer",
+      "systemctl enable ructf-service@rustest",
+      "systemctl enable ructf-service@sqlfs",
+      "systemctl enable ructf-service@werk",
     ]
   }
 
@@ -117,8 +157,6 @@ build {
   provisioner "shell" {
     inline = [
       "docker image prune -f || true",
-      # remove all image after build completed
-      # "docker image rm python:3.10-slim node:18.2.0-alpine nginx:1.16.0-alpine julia:1.8.5-alpine3.17 golang:1.20-alpine alpine:3.14 mcr.microsoft.com/dotnet/sdk:7.0 mcr.microsoft.com/dotnet/aspnet:7.0 php:8-fpm-alpine alpine:latest node:18.2.0-alpine nginx:1.16.0-alpine || true",
     ]
   }
 }
