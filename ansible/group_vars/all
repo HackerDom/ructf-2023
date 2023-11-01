@@ -62,7 +62,7 @@ teams: |
 services: |
   {name => 'example', path => 'checkers/example/example.checker.py', timeout => 30, tcp_port => 2222},
   {name => 'hyperborea-legends', path => 'checkers/hyperborea-legends/hyperborea-legends.checker.py', timeout => 30, tcp_port => 42424},
-  {name => 'rusi_trainer', path => 'checkers/rusi_trainer/rusi_trainer.checker.py', timeout => 30, tcp_port => 41114},
+  {name => 'rusi-trainer', path => 'checkers/rusi-trainer/rusi-trainer.checker.py', timeout => 30, tcp_port => 41114},
   {name => 'rustest', path => 'checkers/rustest/rustest.checker.py', timeout => 30, tcp_port => 13337},
   {name => 'sqlfs', path => 'checkers/sqlfs/sqlfs.checker.py', timeout => 30, tcp_port => 22},
   {name => 'werk', path => 'checkers/werk/werk.checker.py', timeout => 30, tcp_port => 7654},

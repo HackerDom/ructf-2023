@@ -58,7 +58,7 @@ build {
       # Add users for services
       "useradd -m -s /bin/bash example",
       "useradd -m -s /bin/bash hyperborea-legends",
-      "useradd -m -s /bin/bash rusi_trainer",
+      "useradd -m -s /bin/bash rusi-trainer",
       "useradd -m -s /bin/bash rustest",
       "useradd -m -s /bin/bash sqlfs",
       "useradd -m -s /bin/bash werk",
@@ -105,8 +105,8 @@ build {
     destination = "/home/hyperborea-legends/"
   }
   provisioner "file" {
-    source = "../services/rusi_trainer/"
-    destination = "/home/rusi_trainer/"
+    source = "../services/rusi-trainer/"
+    destination = "/home/rusi-trainer/"
   }
   provisioner "file" {
     source = "../services/rustest/"
@@ -128,7 +128,7 @@ build {
       "docker-compose build || true",
       "cd ~hyperborea-legends",
       "docker-compose build || true",
-      "cd ~rusi_trainer",
+      "cd ~rusi-trainer",
       "docker-compose build || true",
       "cd ~rustest",
       "docker-compose build || true",
@@ -141,7 +141,7 @@ build {
 
       "systemctl enable ructf-service@example",
       "systemctl enable ructf-service@hyperborea-legends",
-      "systemctl enable ructf-service@rusi_trainer",
+      "systemctl enable ructf-service@rusi-trainer",
       "systemctl enable ructf-service@rustest",
       "systemctl enable ructf-service@sqlfs",
       "systemctl enable ructf-service@werk",
