@@ -45,13 +45,13 @@ func (s *werkServerImpl) CreateImage(ctx context.Context, in *models.CreateImage
 		return nil, errors.New("can not put object: " + err.Error())
 	}
 
-	imageUuid, err := s.dbApi.CreateImageModel(in.UserPair.Name, storageKey)
+	imageId, err := s.dbApi.CreateImageModel(in.UserPair.Name, storageKey)
 	if err != nil {
 		return nil, errors.New("can not create asm code: " + err.Error())
 	}
 
 	return &models.CreateImageResponse{
-		ImageUuid: imageUuid,
+		ImageId: uint32(imageId),
 	}, nil
 }
 
@@ -60,7 +60,7 @@ func (s *werkServerImpl) RunVM(ctx context.Context, in *models.RunVMRequest) (*m
 		return nil, status.Error(codes.Unauthenticated, "invalid user pair")
 	}
 
-	if !s.dbApi.IsImageOwnerCorrect(in.UserPair.Name, in.ImageUuid) {
+	if !s.dbApi.IsImageOwnerCorrect(in.UserPair.Name, in.ImageId) {
 		return nil, status.Error(codes.NotFound, "user or image not found")
 	}
 
@@ -79,7 +79,7 @@ func (s *werkServerImpl) GetVMState(ctx context.Context, in *models.GetVMStateRe
 		return nil, status.Error(codes.Unauthenticated, "invalid user pair")
 	}
 
-	if !s.dbApi.IsRunOwnerCorrect(in.UserPair.Name, in.RunUuid) {
+	if !s.dbApi.IsRunOwnerCorrect(in.UserPair.Name, in.RunId) {
 		return nil, status.Error(codes.NotFound, "user or run not found")
 	}
 
@@ -92,7 +92,7 @@ func (s *werkServerImpl) KillVM(ctx context.Context, in *models.KillVMRequest) (
 		return nil, status.Error(codes.Unauthenticated, "invalid user pair")
 	}
 
-	if !s.dbApi.IsRunOwnerCorrect(in.UserPair.Name, in.RunUuid) {
+	if !s.dbApi.IsRunOwnerCorrect(in.UserPair.Name, in.RunId) {
 		return nil, status.Error(codes.NotFound, "user or run not found")
 	}
 
@@ -105,7 +105,7 @@ func (s *werkServerImpl) GetSerial(ctx context.Context, in *models.GetVMSerialRe
 		return nil, status.Error(codes.Unauthenticated, "invalid user pair")
 	}
 
-	if !s.dbApi.IsRunOwnerCorrect(in.UserPair.Name, in.RunUuid) {
+	if !s.dbApi.IsRunOwnerCorrect(in.UserPair.Name, in.RunId) {
 		return nil, status.Error(codes.NotFound, "user or run not found")
 	}
 
