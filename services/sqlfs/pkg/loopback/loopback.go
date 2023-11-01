@@ -232,7 +232,7 @@ func (n *LoopbackNode) Unlink(ctx context.Context, name string) syscall.Errno {
 
 func (n *LoopbackNode) Rename(
 	ctx context.Context,
-	name string,
+	oldName string,
 	newParent fs.InodeEmbedder,
 	newName string,
 	flags uint32,
@@ -250,13 +250,43 @@ func (n *LoopbackNode) Rename(
 		return syscall.EIO
 	}
 
-	if err := n.RootData.store.UpdateEntries(ctx, oldPath, name, newPath, newName); err != nil {
-		n.RootData.logger.Err(err).Msg("failed to update entries")
+	node, err := n.RootData.store.GetNodeByEntry(ctx, oldPath, oldName)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return syscall.ENOENT
+	case err == nil:
+	default:
+		n.RootData.logger.Err(err).Msg("failed to rename node")
+		return syscall.EIO
+	}
+
+	err = n.RootData.store.RunInTransaction(ctx, func(ctx context.Context) error {
+		if err := n.RootData.store.UpdateEntries(
+			ctx, oldPath, newPath,
+			store.NewUpdateEntryMask().Name(newName),
+			store.WithName(oldName),
+		); err != nil {
+			return fmt.Errorf("failed to update entry of dir: %w", err)
+		}
+
+		if node.Mode&syscall.S_IFDIR != syscall.S_IFDIR {
+			return nil
+		}
+
+		childrenPath := path.Join(oldPath, oldName)
+		newChildrenPath := path.Join(newPath, newName)
+		if err := n.RootData.store.UpdateEntries(ctx, childrenPath, newChildrenPath, store.NewUpdateEntryMask()); err != nil {
+			return fmt.Errorf("failed to update entries of directory children: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		n.RootData.logger.Err(err).Msg("failed to rename node")
 		return syscall.EIO
 	}
 
 	return syscall.F_OK
-	// return store.Rename(ctx, path, name, newPath, newName, n.RootData.Db)
 }
 
 var _ = (fs.NodeCreater)((*LoopbackNode)(nil))

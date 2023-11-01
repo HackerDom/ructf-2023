@@ -11,6 +11,41 @@
 #include <server.hpp>
 
 namespace werk::server {
+    template <class RequestT, class ResponseT, class HandlerT>
+    bool executeHandler(const HandlerT &handler, int fd) {
+        auto request = RequestT::ReadFromSocket(fd);
+        if (!request) {
+            LOG(WARNING) << utils::Format("reading run request failed: '%s', closing connection",
+                                            request.message.c_str());
+            return false;
+        }
+
+        LOG(INFO) << "request = " << request.value->String();
+
+        ResponseT response{};
+
+        try {
+            response = handler(*request.value);
+        } catch (std::exception &e) {
+            LOG(ERROR) << "run handler failed with exception: " << e.what();
+            return false;
+        } catch (...) {
+            LOG(ERROR) << "run handler failed with exception";
+            return false;
+        }
+
+        LOG(INFO) << "response = " << response.String();
+
+        auto writeResult = response.WriteToSocket(fd);
+
+        if (!writeResult) {
+            LOG(WARNING) << "writing run request failed: '" << writeResult.message << "', closing connection";
+            return false;
+        }
+
+        return true;
+    }
+
     Server::Server(std::shared_ptr<utils::ThreadPool> threadPool,
                    std::filesystem::path socketPath) : threadPool(std::move(threadPool)),
                                                        socketPath(std::move(socketPath)) {
@@ -87,6 +122,8 @@ namespace werk::server {
                     }
 
                     threadPool->EnqueueUserTask([this, clientFd] { this->handleClient(clientFd); });
+
+                    LOG(INFO) << "task put to thread pool, current queue size = " << threadPool->GetQueueSize();
                 } else if (pollFds[0].revents & POLLERR) {
                     LOG(WARNING) << "POLERR in socket fd";
                     break;
@@ -167,21 +204,29 @@ namespace werk::server {
                 break;
             }
 
+            LOG(INFO) << "accept command " << int(command);
+
             switch (command) {
                 case 'R':
-                    acceptCommands = handleRunRequest(fd);
-                    break;
-                case 'S':
-                    acceptCommands = handleStatusRequest(fd);
+                    acceptCommands = executeHandler<RunRequest, RunResponse, RunHandlerT>(runHandler, fd);
                     break;
                 case 'K':
-                    acceptCommands = handleKillRequest(fd);
+                    acceptCommands = executeHandler<KillRequest, KillResponse, KillHandlerT>(killHandler, fd);
+                    break;
+                case 'S':
+                    acceptCommands = executeHandler<StatusRequest, StatusResponse, StatusHandlerT>(statusHandler, fd);
+                    break;
+                case 'D':
+                    acceptCommands = executeHandler<DeleteRequest, DeleteResponse, DeleteHandlerT>(deleteHandler, fd);
+                    break;
+                case 'O':
+                    acceptCommands = executeHandler<GetSerialRequest, GetSerialResponse, GetSerialHandlerT>(getSerialHandler, fd);
                     break;
                 case 'Q':
                     acceptCommands = false;
                     break;
                 default:
-                    LOG(WARNING) << "unknown command from client";
+                    LOG(WARNING) << "unknown command from client " << int(command);
                     writeInvalidRequest(fd);
                     acceptCommands = false;
                     break;
@@ -201,52 +246,12 @@ namespace werk::server {
         statusHandler = std::move(handler);
     }
 
-    bool Server::handleRunRequest(int fd) {
-        if (!runHandler) {
-            LOG(ERROR) << "run request handler not set";
-            writeInvalidRequest(fd);
-            return false;
-        }
-
-        auto [request, error] = RunRequest::ReadFromSocket(fd);
-        if (request == nullptr) {
-            LOG(WARNING) << utils::Format("reading run request failed: '%s', closing connection",
-                                          error.c_str());
-            return false;
-        }
-
-        LOG(INFO) << "request = " << request->String();
-
-        RunResponse response;
-
-        try {
-            response = runHandler(*request);
-        } catch (std::exception &e) {
-            LOG(ERROR) << "run handler failed with exception: " << e.what();
-            return false;
-        } catch (...) {
-            LOG(ERROR) << "run handler failed with exception";
-            return false;
-        }
-
-        LOG(INFO) << "response = " << response.String();
-
-        if (response.WriteToSocket(fd) != 0) {
-            LOG(WARNING) << "writing run request failed, closing connection";
-            return false;
-        }
-
-        return true;
+    void Server::SetDeleteHandler(Server::DeleteHandlerT handler) {
+        deleteHandler = std::move(handler);
     }
 
-    bool Server::handleStatusRequest(int fd) {
-        writeInvalidRequest(fd);
-        return false;
-    }
-
-    bool Server::handleKillRequest(int fd) {
-        writeInvalidRequest(fd);
-        return false;
+    void Server::SetGetSerialHandler(Server::GetSerialHandlerT handler) {
+        getSerialHandler = std::move(handler);
     }
 
     void Server::writeInvalidRequest(int fd) {

@@ -1,15 +1,19 @@
+#include <thread>
+
 #include <interpreter.hpp>
 
 namespace werk::server {
     Interpreter::Interpreter(
+            std::shared_ptr<RunLoader> runLoader,
             std::shared_ptr<Scheduler> scheduler,
-            std::shared_ptr<PagesPool> pagesPool,
-            std::shared_ptr<VdGenerator> vdGenerator,
             std::chrono::milliseconds sleepPeriodMs)
-            : vdGenerator(std::move(vdGenerator)),
+            : runLoader(std::move(runLoader)),
               scheduler(std::move(scheduler)),
-              pagesPool(std::move(pagesPool)),
               sleepPeriod(sleepPeriodMs) {
+        executorThreadStop = false;
+        executorThread = std::make_shared<std::thread>([this] {
+            this->executorThreadTask();
+        });
     }
 
     Interpreter::~Interpreter() {
@@ -19,64 +23,80 @@ namespace werk::server {
         }
     }
 
-    RunResponse Interpreter::Run(const RunRequest &request) {
-        auto vd = vdGenerator->Generate();
-        if (!vd) {
-            return {false, kEmptyVmDescriptor, vd.message};
-        }
-        auto page = pagesPool->Allocate(vd.value);
-        if (!page.success) {
-            return {false, kEmptyVmDescriptor, "cant allocate space for vm"};
-        }
-
-//        std::memcpy(
-//                reinterpret_cast<void *>(page.page->memory + arch::constants::kProgramLoadOffset),
-//                code,
-//                codeSize
-//        );
-
-//        auto vm = std::make_shared<vm::Vm>(page.page->memory);
-//
-//        {
-//            std::lock_guard<std::mutex> _(vdMapMutex);
-//            vdToVm[vd.value] = vm;
-//        }
-//
-//        scheduler->Append(vm);
-
-        return {true, vd.value, ""};
-    }
-
-    bool Interpreter::StartExecutorThread() {
-        if (executorThread != nullptr) {
-            return false;
-        }
-
-        executorThreadStop = false;
-
-        executorThread = std::make_shared<std::thread>([this] {
-            this->executorThreadTask();
-        });
-
-        return true;
-    }
-
-    StatusResponse Interpreter::Status(const StatusRequest &request) {
-        return StatusResponse();
-    }
-
-    KillResponse Interpreter::Kill(const KillRequest &request) {
-        return KillResponse();
-    }
-
     void Interpreter::executorThreadTask() {
         while (!this->executorThreadStop) {
             this->scheduler->UpdateAll();
 
-            //TODO: check vms for too long run
-
             std::this_thread::sleep_for(sleepPeriod);
         }
     }
-}
 
+    bool Interpreter::HasVms() const {
+        std::lock_guard<std::mutex> _(vdMapMutex);
+
+        return vdToRun.size() != 0;
+    }
+
+    RunResponse Interpreter::Run(const RunRequest &rq) {
+        auto run = runLoader->LoadFromFile(rq.binaryPath);
+        if (!run) {
+            return RunResponse{false, kEmptyVmDescriptor, run.message};
+        }
+
+        scheduler->Append(run.value);
+
+        auto vd = run.value->GetVd();
+
+        {
+            std::lock_guard<std::mutex> _(vdMapMutex);
+            vdToRun[vd] = run.value;
+        }
+
+        return RunResponse{true, vd, ""};
+    }
+
+    KillResponse Interpreter::Kill(const KillRequest &rq) {
+        std::lock_guard<std::mutex> _(vdMapMutex);
+
+        if (auto it = vdToRun.find(rq.vd); it != vdToRun.end() && it->second->GetState() == Run::State::Running) {
+            it->second->Kill();
+            return KillResponse{true};
+        }
+
+        return KillResponse{false};
+    }
+
+    StatusResponse Interpreter::Status(const StatusRequest &rq) {
+        std::lock_guard<std::mutex> _(vdMapMutex);
+
+        if (auto it = vdToRun.find(rq.vd); it != vdToRun.end()) {
+            return StatusResponse{true, it->second->GetState()};
+        }
+
+        return StatusResponse{false, Run::State::InternalError};
+    }
+
+    DeleteResponse Interpreter::Delete(const DeleteRequest &rq) {
+        std::lock_guard<std::mutex> _(vdMapMutex);
+
+        if (auto it = vdToRun.find(rq.vd); it != vdToRun.end()) {
+            scheduler->Remove(it->second);
+
+            vdToRun.erase(it);
+
+            return DeleteResponse{true};
+        }
+
+        return DeleteResponse{false};
+    }
+
+    GetSerialResponse Interpreter::GetSerial(const GetSerialRequest &rq) {
+        std::lock_guard<std::mutex> _(vdMapMutex);
+
+        if (auto it = vdToRun.find(rq.vd); it != vdToRun.end()) {
+            return GetSerialResponse{true, it->second->GetSerial()};
+        }
+
+        return GetSerialResponse{false, ""};
+    }
+}

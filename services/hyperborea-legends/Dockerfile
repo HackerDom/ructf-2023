@@ -14,6 +14,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:7.0
 
 COPY --from=publish /publish .
 
+COPY entrypoint.sh .
+RUN chmod +x ./entrypoint.sh
+
 ENV ASPNETCORE_URLS=http://*:8000
 
-ENTRYPOINT [ "dotnet", "API.dll" ]
+ENTRYPOINT ./entrypoint.sh
+

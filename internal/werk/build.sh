@@ -6,7 +6,8 @@ show_help() {
   cat >&2 <<EOF
 Usage: $script_name COMMAND
 Command:
-    run-tests
+    run-tests-devel
+    run-tests-release
     build-release
     build-devel
     install-binaries
@@ -22,12 +23,12 @@ do_install_binaries() {
 
 do_build_devel() {
     mkdir -p build && cd build
-    cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j
+    cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j7
 }
 
 do_build_release() {
     mkdir -p build && cd build
-    cmake -DCMAKE_BUILD_TYPE=Release .. && make -j
+    cmake -DCMAKE_BUILD_TYPE=Release .. && make -j7
 }
 
 do_clean() {
@@ -35,8 +36,13 @@ do_clean() {
     make clean
 }
 
-do_run_tests() {
+do_run_tests_devel() {
     do_build_devel
+    find . -type f -executable -name "*_tests" -exec /usr/bin/env bash -c 'echo "Running tests from: {}"; {}' \;
+}
+
+do_run_tests_release() {
+    do_build_release
     find . -type f -executable -name "*_tests" -exec /usr/bin/env bash -c 'echo "Running tests from: {}"; {}' \;
 }
 
@@ -47,9 +53,13 @@ main() {
     fi
 
     case "$1" in
-    run-tests)
+    run-tests-devel)
         shift
-        do_run_tests "$@"
+        do_run_tests_devel "$@"
+        ;;
+    run-tests-release)
+        shift
+        do_run_tests_release "$@"
         ;;
     build-devel)
         shift

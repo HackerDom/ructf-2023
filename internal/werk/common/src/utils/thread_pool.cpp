@@ -47,4 +47,10 @@ namespace werk::utils {
 
         return true;
     }
+
+    size_t ThreadPool::GetQueueSize() {
+        std::lock_guard<std::mutex> _(tasksQueueMutex);
+
+        return tasksQueue.size();
+    }
 }

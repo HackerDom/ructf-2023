@@ -3,7 +3,10 @@
 SERVICES = [
     "example", 
     "hyperborea-legends", 
-    "rustest"
+    "rusi_trainer",
+    "rustest",
+    "sqlfs",
+    "werk",
 ]
 
 TEMPLATE = """

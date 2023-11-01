@@ -1,44 +1,43 @@
 #pragma once
 
 #include <atomic>
-#include <thread>
-#include <unordered_map>
 #include <chrono>
 #include <mutex>
+#include <unordered_map>
 
-#include <pages_pool.hpp>
 #include <scheduler.hpp>
-#include <vd_generator.hpp>
+#include <run_loader.hpp>
 #include <models.hpp>
 
 namespace werk::server {
     class Interpreter {
     public:
         Interpreter(
+                std::shared_ptr<RunLoader> runLoader,
                 std::shared_ptr<Scheduler> scheduler,
-                std::shared_ptr<PagesPool> pagesPool,
-                std::shared_ptr<VdGenerator> vdGenerator,
                 std::chrono::milliseconds sleepPeriodMs);
 
         ~Interpreter();
 
-        bool StartExecutorThread();
+        [[nodiscard]] bool HasVms() const;
 
-        RunResponse Run(const RunRequest &request);
+        [[nodiscard]] RunResponse Run(const RunRequest &rq);
 
-        StatusResponse Status(const StatusRequest &request);
+        [[nodiscard]] KillResponse Kill(const KillRequest &rq);
 
-        KillResponse Kill(const KillRequest &request);
+        [[nodiscard]] StatusResponse Status(const StatusRequest &rq);
+
+        [[nodiscard]] DeleteResponse Delete(const DeleteRequest &rq);
+
+        [[nodiscard]] GetSerialResponse GetSerial(const GetSerialRequest &rq);
 
     private:
-        std::shared_ptr<VdGenerator> vdGenerator;
-        std::shared_ptr<Scheduler> scheduler;
-        std::shared_ptr<PagesPool> pagesPool;
-
-        std::unordered_map<vd_t, std::shared_ptr<vm::Vm>> vdToVm;
-        std::mutex vdMapMutex;
-
+        const std::shared_ptr<RunLoader> runLoader;
+        const std::shared_ptr<Scheduler> scheduler;
         const std::chrono::milliseconds sleepPeriod;
+
+        std::unordered_map<vd_t, std::shared_ptr<werk::server::Run>> vdToRun;
+        mutable std::mutex vdMapMutex;
 
         void executorThreadTask();
 

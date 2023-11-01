@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <string>
-#include <filesystem>
 #include <memory>
 #include <vector>
 #include <utility>
@@ -21,20 +20,13 @@ namespace werk::server {
 
         virtual ~Run() = default;
 
-        static utils::result<std::shared_ptr<Run>> CreateFromFile(
-                const std::filesystem::path &binaryPath,
-                vd_t vd,
-                void *memory,
-                std::uint64_t ticksLimit
-        );
-
         enum State {
-            Running,
-            Finished,
-            Crashed,
-            Killed,
-            Timeout,
-            InternalError
+            Running = 0,
+            Finished = 1,
+            Crashed = 2,
+            Killed = 3,
+            Timeout = 4,
+            InternalError = 5
         };
 
         virtual void Update(int ticksCount);
@@ -45,11 +37,17 @@ namespace werk::server {
 
         [[nodiscard]] vd_t GetVd() const;
 
+        [[nodiscard]] std::shared_ptr<vm::Vm> GetVm() const;
+
+        [[nodiscard]] std::uint64_t GetTotalTicks() const;
+
+        [[nodiscard]] std::string GetSerial() const;
+
     private:
         const vd_t vd;
         const std::shared_ptr<vm::Vm> vm;
 
-        std::mutex updateMutex;
+        mutable std::mutex updateMutex;
         State state;
         std::uint64_t totalTicksCount;
         std::uint64_t ticksLimit;

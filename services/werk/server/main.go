@@ -1,6 +1,8 @@
 package main
 
 import (
+	"back/db"
+	"back/storage"
 	"flag"
 	"fmt"
 	"log"
@@ -27,13 +29,25 @@ func main() {
 		log.Fatalf("failed to load config: %v", err)
 	}
 
-	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GrpcPort))
+	storageApi, err := storage.NewApi(cfg.Storage.Path)
+	if err != nil {
+		if err != nil {
+			log.Fatalf("failed to init storage api: " + err.Error())
+		}
+	}
+
+	dbApi, err := db.NewApi(cfg.Postgres)
+	if err != nil {
+		log.Fatalf("failed to init db api: " + err.Error())
+	}
+
+	listener, err := net.Listen("tcp", fmt.Sprintf("%v:%d", cfg.Grpc.Host, cfg.Grpc.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
 	grpcServer := grpc.NewServer()
-	models.RegisterWerkServer(grpcServer, &werkServerImpl{})
+	models.RegisterWerkServer(grpcServer, &werkServerImpl{dbApi: dbApi, storageApi: storageApi})
 
 	reflection.Register(grpcServer)
 

@@ -32,8 +32,14 @@ namespace werk::server {
         using KillHandlerT = std::function<KillResponse(const KillRequest&)>;
         void SetKillHandler(KillHandlerT handler);
 
-        using StatusHandlerT = std::function<StatusResponse(const StatusRequest &request)>;
+        using StatusHandlerT = std::function<StatusResponse(const StatusRequest&)>;
         void SetStatusHandler(StatusHandlerT handler);
+
+        using DeleteHandlerT = std::function<DeleteResponse(const DeleteRequest&)>;
+        void SetDeleteHandler(DeleteHandlerT handler);
+
+        using GetSerialHandlerT = std::function<GetSerialResponse(const GetSerialRequest&)>;
+        void SetGetSerialHandler(GetSerialHandlerT handler);
 
     private:
         std::shared_ptr<utils::ThreadPool> threadPool;
@@ -44,13 +50,12 @@ namespace werk::server {
         ListenResult listenInternal();
 
         void handleClient(int fd);
-        bool handleRunRequest(int fd);
-        bool handleKillRequest(int fd);
-        bool handleStatusRequest(int fd);
 
         RunHandlerT runHandler;
         KillHandlerT killHandler;
         StatusHandlerT statusHandler;
+        DeleteHandlerT deleteHandler;
+        GetSerialHandlerT getSerialHandler;
 
         static void writeInvalidRequest(int fd);
     };

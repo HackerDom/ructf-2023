@@ -44,7 +44,7 @@ func (s *store) CreateEntry(ctx context.Context, path, filename string, ino uint
 	return nil
 }
 
-func (s *store) GetEntriesCount(ctx context.Context, options ...Option) (uint64, error) {
+func (s *store) GetEntriesCount(ctx context.Context, options ...SelectOption) (uint64, error) {
 	ds := enriesTable.Select(goqu.COUNT("*"))
 
 	for _, opt := range options {
@@ -83,14 +83,21 @@ func (s *store) DeleteEntries(ctx context.Context, path, name string) (uint64, e
 	return ino, nil
 }
 
-func (s *store) UpdateEntries(ctx context.Context, path, name, newPath, newName string) error {
-	query, args, err := enriesTable.Update().Set(goqu.Record{
-		"path":     newPath,
-		"filename": newName,
-	}).Where(goqu.Ex{
-		"path":     path,
-		"filename": name,
-	}).ToSQL()
+func (s *store) UpdateEntries(
+	ctx context.Context,
+	currentPath, newPath string,
+	mask *UpdateEntryMask,
+	opts ...SelectOption,
+) error {
+	ds := enriesTable
+	for _, opt := range opts {
+		ds = opt(ds)
+	}
+
+	mask.record["path"] = newPath
+	updateDs := ds.Update().Set(mask.record).Where(goqu.Ex{"path": currentPath})
+
+	query, args, err := updateDs.ToSQL()
 	if err != nil {
 		return fmt.Errorf("failed to build query: %w", err)
 	}

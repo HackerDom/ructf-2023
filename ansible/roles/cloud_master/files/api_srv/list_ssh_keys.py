@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import do_api
 
 from do_tokens import DO_TOKENS
