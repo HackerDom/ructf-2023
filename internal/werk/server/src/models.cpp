@@ -248,7 +248,7 @@ namespace werk::server {
             return utils::result_no_value::of_error(utils::PError("header send"));
         }
 
-        if (success && serial.size() > 0) {
+        if (success && !serial.empty()) {
             auto r = sendall(fd, serial.data(), serial.size(), std::chrono::milliseconds(300));
             if (!r) {
                 return utils::result_no_value::of_error(utils::Format("serial send: %s", r.message));
