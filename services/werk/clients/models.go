@@ -37,3 +37,11 @@ type StatusResponse struct {
 	Success bool
 	Status  VmStatus
 }
+
+type DeleteRequest struct {
+	Vd uint64
+}
+
+type DeleteResponse struct {
+	Success bool
+}
