@@ -31,10 +31,6 @@ func (c *VmClient) setupWriteTimeout() error {
 }
 
 func (c *VmClient) write(data []byte) error {
-	if err := c.setupWriteTimeout(); err != nil {
-		return err
-	}
-
 	n, err := c.conn.Write(data)
 	if err != nil {
 		return err
@@ -170,6 +166,10 @@ func (c *VmClient) Kill(req *KillRequest) (*KillResponse, error) {
 	return nil, fmt.Errorf("protocol error (unexpected status = %v)", success)
 }
 
+func IsKnownVmStatus(status VmStatus) bool {
+	return status <= VmStatus_InternalError
+}
+
 func (c *VmClient) Status(req *StatusRequest) (*StatusResponse, error) {
 	if err := c.setupWriteTimeout(); err != nil {
 		return nil, err
@@ -185,5 +185,27 @@ func (c *VmClient) Status(req *StatusRequest) (*StatusResponse, error) {
 		return nil, err
 	}
 
-	return nil, fmt.Errorf("not implemented")
+	var success uint8
+	var status uint8
+
+	if err := binary.Read(c.conn, binary.LittleEndian, &success); err != nil {
+		return nil, err
+	}
+	if err := binary.Read(c.conn, binary.LittleEndian, &status); err != nil {
+		return nil, err
+	}
+
+	if success == 1 {
+		if !IsKnownVmStatus(VmStatus(status)) {
+			return nil, fmt.Errorf("protocol error: unexpected vm status %x", status)
+		}
+
+		return &StatusResponse{Success: true, Status: VmStatus(status)}, nil
+	}
+
+	if success == 0 {
+		return &StatusResponse{Success: false, Status: VmStatus_InternalError}, nil
+	}
+
+	return nil, fmt.Errorf("protocol error: unexpected success value %x", success)
 }
