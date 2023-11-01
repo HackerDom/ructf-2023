@@ -16,7 +16,7 @@ type ImageModel struct {
 
 type RunModel struct {
 	gorm.Model
-	ImageId uint
+	ImageId uint32
 	Owner   string
 	Vd      uint64
 }

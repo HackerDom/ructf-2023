@@ -92,7 +92,7 @@ func (api *Api) CreateImageModel(owner, storageKey string) (uint, error) {
 	return imageModel.ID, nil
 }
 
-func (api *Api) IsImageOwnerCorrect(name string, imageId uint) bool {
+func (api *Api) IsImageOwnerCorrect(name string, imageId uint32) bool {
 	var imageModel ImageModel
 	if err := api.db.First(&imageModel, imageId).Error; err != nil {
 		return false
@@ -101,7 +101,7 @@ func (api *Api) IsImageOwnerCorrect(name string, imageId uint) bool {
 	return imageModel.Owner == name
 }
 
-func (api *Api) IsRunOwnerCorrect(name string, runId uint) bool {
+func (api *Api) IsRunOwnerCorrect(name string, runId uint32) bool {
 	var runModel RunModel
 	if err := api.db.First(&runModel, runId).Error; err != nil {
 		return false
@@ -110,7 +110,7 @@ func (api *Api) IsRunOwnerCorrect(name string, runId uint) bool {
 	return runModel.Owner == name
 }
 
-func (api *Api) CreateRunModel(owner string, imageId uint) (uint, error) {
+func (api *Api) CreateRunModel(owner string, imageId uint32) (uint32, error) {
 	runModel := RunModel{
 		ImageId: imageId,
 		Owner:   owner,
@@ -121,5 +121,5 @@ func (api *Api) CreateRunModel(owner string, imageId uint) (uint, error) {
 		return 0, errors.New("can not create run: " + res.Error.Error())
 	}
 
-	return runModel.ID, nil
+	return uint32(runModel.ID), nil
 }
