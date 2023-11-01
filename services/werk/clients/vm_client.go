@@ -30,6 +30,17 @@ func (c *VmClient) setupWriteTimeout() error {
 	return nil
 }
 
+func (c *VmClient) setupTimeouts() error {
+	if err := c.setupWriteTimeout(); err != nil {
+		return err
+	}
+	if err := c.setupReadTimeouts(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *VmClient) write(data []byte) error {
 	n, err := c.conn.Write(data)
 	if err != nil {
@@ -85,10 +96,7 @@ func (c *VmClient) Run(req *RunRequest) (*RunResponse, error) {
 		return nil, fmt.Errorf("too long binary path")
 	}
 
-	if err := c.setupWriteTimeout(); err != nil {
-		return nil, err
-	}
-	if err := c.setupReadTimeouts(); err != nil {
+	if err := c.setupTimeouts(); err != nil {
 		return nil, err
 	}
 
@@ -136,10 +144,7 @@ func (c *VmClient) Run(req *RunRequest) (*RunResponse, error) {
 }
 
 func (c *VmClient) Kill(req *KillRequest) (*KillResponse, error) {
-	if err := c.setupWriteTimeout(); err != nil {
-		return nil, err
-	}
-	if err := c.setupReadTimeouts(); err != nil {
+	if err := c.setupTimeouts(); err != nil {
 		return nil, err
 	}
 
@@ -171,10 +176,7 @@ func IsKnownVmStatus(status VmStatus) bool {
 }
 
 func (c *VmClient) Status(req *StatusRequest) (*StatusResponse, error) {
-	if err := c.setupWriteTimeout(); err != nil {
-		return nil, err
-	}
-	if err := c.setupReadTimeouts(); err != nil {
+	if err := c.setupTimeouts(); err != nil {
 		return nil, err
 	}
 
@@ -205,6 +207,35 @@ func (c *VmClient) Status(req *StatusRequest) (*StatusResponse, error) {
 
 	if success == 0 {
 		return &StatusResponse{Success: false, Status: VmStatus_InternalError}, nil
+	}
+
+	return nil, fmt.Errorf("protocol error: unexpected success value %x", success)
+}
+
+func (c *VmClient) Delete(req *DeleteRequest) (*DeleteResponse, error) {
+	if err := c.setupTimeouts(); err != nil {
+		return nil, err
+	}
+
+	if err := binary.Write(c.conn, binary.LittleEndian, byte('D')); err != nil {
+		return nil, err
+	}
+	if err := binary.Write(c.conn, binary.LittleEndian, req.Vd); err != nil {
+		return nil, err
+	}
+
+	var success uint8
+
+	if err := binary.Read(c.conn, binary.LittleEndian, &success); err != nil {
+		return nil, err
+	}
+
+	if success == 1 {
+		return &DeleteResponse{Success: true}, nil
+	}
+
+	if success == 0 {
+		return &DeleteResponse{Success: false}, nil
 	}
 
 	return nil, fmt.Errorf("protocol error: unexpected success value %x", success)
