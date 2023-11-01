@@ -3,11 +3,8 @@ package main
 import (
 	"back/db"
 	"back/storage"
-	"errors"
 	"flag"
 	"fmt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"log"
 	"net"
 
@@ -17,31 +14,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
-
-func initGormDB(cfg *config.Postgres) (*gorm.DB, error) {
-	dsn := fmt.Sprintf(
-		"host=%v user=%v password=%v dbname=%v port=%v sslmode=disable",
-		cfg.Host,
-		cfg.Username,
-		cfg.Password,
-		cfg.Database,
-		cfg.Port,
-	)
-	gormDb, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
-	if err != nil {
-		return nil, errors.New("can not open gorm db: " + err.Error())
-	}
-	if err := gormDb.AutoMigrate(
-		db.UserPairModel{},
-		db.AsmCodeModel{},
-		db.RunModel{},
-	); err != nil {
-		return nil, errors.New("can not migrate gorm db: " + err.Error())
-	}
-
-	return gormDb, nil
-}
 
 func main() {
 	configFilename := flag.String("config", "", "path to server config")
@@ -64,9 +36,9 @@ func main() {
 		}
 	}
 
-	gormDb, err := initGormDB(cfg.Postgres)
+	dbApi, err := db.NewApi(cfg.Postgres)
 	if err != nil {
-		log.Fatalf("failed to init gorm db: " + err.Error())
+		log.Fatalf("failed to init db api: " + err.Error())
 	}
 
 	listener, err := net.Listen("tcp", fmt.Sprintf("%v:%d", cfg.Grpc.Host, cfg.Grpc.Port))
@@ -75,7 +47,6 @@ func main() {
 	}
 
 	grpcServer := grpc.NewServer()
-	dbApi := db.NewApi(gormDb)
 	models.RegisterWerkServer(grpcServer, &werkServerImpl{dbApi: dbApi, storageApi: storageApi})
 
 	reflection.Register(grpcServer)

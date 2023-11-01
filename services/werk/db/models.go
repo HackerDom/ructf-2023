@@ -17,7 +17,7 @@ type AsmCodeModel struct {
 
 type RunModel struct {
 	gorm.Model
-	UUID      string `gorm:"uniqueIndex"`
 	ImageUUID string
 	Owner     string
+	Vd        uint64
 }

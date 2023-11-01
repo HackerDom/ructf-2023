@@ -1,11 +1,18 @@
 #![forbid(unsafe_code)]
-use std::{collections::HashMap, num::NonZeroUsize};
+use std::{
+    collections::BTreeMap,
+    num::NonZeroUsize,
+    ops::{
+        Bound::{Included, Unbounded},
+        Deref,
+    },
+};
 
 use crate::dto::{Rustest, RustestUserState, User};
 use anyhow::{anyhow, bail, Context, Result};
 use etcd_rs::{
-    Client, KeyRange, KeyValueOp, PutRequest, RangeRequest, RangeResponse, SortOrder, TxnCmp,
-    TxnOpResponse, TxnRequest,
+    Client, KeyRange, KeyValue, KeyValueOp, PutRequest, RangeRequest, RangeResponse, SortOrder,
+    TxnCmp, TxnOpResponse, TxnRequest,
 };
 use lru::LruCache;
 use serde::{de::DeserializeOwned, Serialize};
@@ -35,8 +42,8 @@ pub enum RustestStorageError {
 pub struct ETCDRustestStorage {
     user_cache: Mutex<LruCache<String, User>>,
     rustest_cache: Mutex<LruCache<String, Rustest>>,
-    users_offset_to_revision: RwLock<HashMap<u64, i64>>,
-    rustests_offset_to_revision: RwLock<HashMap<u64, i64>>,
+    users_offset_to_revision: RwLock<BTreeMap<u64, i64>>,
+    rustests_offset_to_revision: RwLock<BTreeMap<u64, i64>>,
     client: Client,
 }
 
@@ -52,7 +59,73 @@ impl ETCDRustestStorage {
     }
 
     /// Warms caches before storage starts working.
-    pub async fn warm_caches(&self, _page_size: usize) -> Result<()> {
+    pub async fn warm_caches(&mut self, sparse_granularity: usize) -> Result<()> {
+        self.warm_single_cache(
+            &self.rustests_offset_to_revision,
+            "/rustest/rustests/",
+            sparse_granularity,
+        )
+        .await
+        .context("cannot warm rustests cache")?;
+
+        self.warm_single_cache(
+            &self.users_offset_to_revision,
+            "/rustest/users/",
+            sparse_granularity,
+        )
+        .await
+        .context("cannot warm users cache")?;
+
+        Ok(())
+    }
+
+    async fn warm_single_cache(
+        &self,
+        sparse_index: &RwLock<BTreeMap<u64, i64>>,
+        items_etcd_prefix: &str,
+        sparse_granularity: usize,
+    ) -> Result<()> {
+        let max_vals_per_req = sparse_granularity as u64 * 10;
+        let mut current_min_revision = 0;
+        let mut current_offset = 0usize;
+
+        let mut offset_to_revision = sparse_index.write().await;
+        offset_to_revision.insert(0, 0);
+
+        loop {
+            let resp = self
+                .client
+                .get(
+                    RangeRequest::new(KeyRange::prefix(items_etcd_prefix))
+                        .keys_only()
+                        .sort_by_create_revision(SortOrder::Ascending)
+                        .limit(max_vals_per_req)
+                        .min_create_revision(current_min_revision),
+                )
+                .await
+                .context("cannot warm caches")?;
+
+            if resp.kvs.is_empty() {
+                break;
+            }
+
+            current_min_revision = resp.kvs.last().unwrap().create_revision + 1;
+
+            let mut kvs: &[KeyValue] = &resp.kvs;
+            while kvs.len() > 0 {
+                let offset_bound_revision = kvs.first().unwrap().create_revision;
+
+                offset_to_revision.insert(current_offset as u64, offset_bound_revision);
+
+                current_offset += sparse_granularity;
+                if kvs.len() <= sparse_granularity {
+                    break;
+                }
+
+                kvs = &kvs[sparse_granularity..];
+            }
+        }
+
         Ok(())
     }
 
@@ -324,7 +397,7 @@ impl ETCDRustestStorage {
         &self,
         page: usize,
         page_size: usize,
-        cache: &RwLock<HashMap<u64, i64>>,
+        cache: &RwLock<BTreeMap<u64, i64>>,
         prefix: &str,
     ) -> Result<(Vec<T>, usize)> {
         let largest_revision = self
@@ -341,7 +414,7 @@ impl ETCDRustestStorage {
             .client
             .get(
                 RangeRequest::new(KeyRange::prefix(prefix))
-                    .min_create_revision(largest_revision + 1)
+                    .min_create_revision(largest_revision)
                     .sort_by_create_revision(SortOrder::Ascending)
                     .limit(page_size as u64),
             )
@@ -357,32 +430,39 @@ impl ETCDRustestStorage {
     async fn get_create_revision_for_offset(
         &self,
         offset: usize,
-        cache: &RwLock<HashMap<u64, i64>>,
+        cache: &RwLock<BTreeMap<u64, i64>>,
         prefix: &str,
     ) -> Result<Option<i64>> {
         if offset == 0 {
             tracing::info!("got create revision for zero offset (lucky path)");
-            return Ok(Some(-1));
+            return Ok(Some(0));
         }
 
-        let maybe_revision = cache.read().await.get(&(offset as u64)).cloned();
+        let (largest_leq_offset, revision) =
+            btree_lowerbound(cache.read().await.deref(), offset as u64);
 
-        if let Some(revision) = maybe_revision {
+        if largest_leq_offset == offset as u64 {
             tracing::info!("got create revision for offset from cache (lucky path)");
             return Ok(Some(revision));
         }
 
         tracing::info!("couldn't get create revision for offset from cache, going to etcd");
+        let samples_needed = offset as u64 - largest_leq_offset;
         let resp = self
             .client
             .get(
                 RangeRequest::new(KeyRange::prefix(prefix))
-                    .limit(offset as u64)
+                    .limit(samples_needed)
                     .keys_only()
+                    .min_create_revision(revision + 1)
                     .sort_by_create_revision(SortOrder::Ascending),
             )
             .await
             .context("cannot get largest revision for offset")?;
+
+        if resp.kvs.len() < samples_needed as usize {
+            return Ok(None);
+        }
 
         let largest_create_revision = resp.kvs.last().map(|kv| kv.create_revision);
         if let Some(revision) = largest_create_revision {
@@ -496,4 +576,12 @@ async fn get_deserialized_value_by_key<T: DeserializeOwned>(
     serde_json::from_str(value).map_err(|err| RustestStorageError::Deserialization {
         reason: err.to_string(),
     })
+}
+
+fn btree_lowerbound<K: Ord + Clone, V: Clone>(btree: &BTreeMap<K, V>, key: K) -> (K, V) {
+    let range = btree.range((Unbounded, Included(key)));
+    range
+        .last()
+        .map(|(key, val)| (key.clone(), val.clone()))
+        .unwrap()
 }

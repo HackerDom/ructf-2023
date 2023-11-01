@@ -10,6 +10,8 @@ message Postgres {
   string database = 3;
   string username = 4;
   string password = 5;
+  int32 max_idle_conns = 6;
+  int32 max_open_conns = 7;
 }
 
 message GRPC {
