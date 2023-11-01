@@ -46,6 +46,22 @@ export class UdarController extends Controller {
         return res;
     }
 
+
+    @Security("jwt")
+    @Get()
+    public async myUdars(
+        @Request() request: any,
+    ): Promise<UdarDto[] | ResponseWithMessage |null> {
+        const service = new UdarService();
+        const user = request.user as TokenPayload;
+        const udars = await service.getList(user.userId);
+        return udars.map((udar) => {
+            udar.trustedRusi = udar.trustedRusi.map(x => parseInt(String(x)))
+            return omitField(udar, 'teacher')
+        })
+    }
+
+
     @SuccessResponse("201", "Ok")
     @Security("jwt")
     @Put()

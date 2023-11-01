@@ -1,8 +1,8 @@
 export interface UdarDto {
     /**
      * @isInt provide a number here
-     * @minimum 1 minimum age is 0
-     * @maximum 4 maximum age is 4
+     * @minimum 0 minimum map is 0
+     * @maximum 6 maximum map is 6
      */
     map: number;
     /**
