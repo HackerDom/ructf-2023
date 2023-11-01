@@ -6,17 +6,11 @@ set(HEADERS
         include/utils/defer.hpp
         include/utils/result.hpp
         include/utils/thread_pool.hpp
-        include/arch/opcodes.hpp
-        include/arch/types.hpp
-        include/arch/registers.hpp
-        include/arch/constants.hpp
         )
 
 set(SOURCES
         src/utils/strings.cpp
         src/utils/thread_pool.cpp
-        src/arch/opcodes.cpp
-        src/arch/registers.cpp
         )
 
 add_library(common STATIC ${SOURCES} ${HEADERS})
@@ -30,10 +24,8 @@ add_executable(common_tests
         ${SOURCES}
         ${HEADERS}
         tests/main.cpp
-        tests/arch/opcodes_tests.cpp
         tests/utils/result_tests.cpp
         tests/utils/strings_tests.cpp
-        tests/arch/registers_tests.cpp
         )
 target_include_directories(common_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(common_tests glog::glog gtest)
