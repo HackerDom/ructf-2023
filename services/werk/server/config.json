@@ -8,7 +8,9 @@
     "port": 5432,
     "database": "db",
     "username": "postgres",
-    "password": "password"
+    "password": "password",
+    "max_idle_conns": 10,
+    "max_open_conns": 10
   },
   "storage": {
     "path": "storage"
