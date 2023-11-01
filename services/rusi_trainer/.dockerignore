@@ -3,6 +3,8 @@
 cleaner
 node_modules
 build
+**/rusi_frontir/
+rusi_frontir/
 .git
 .idea
 .gitignore

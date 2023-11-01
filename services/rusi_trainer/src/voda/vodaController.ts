@@ -6,7 +6,7 @@ import {hasAccess} from "../security/validator";
 export class VodaController extends Controller {
     @Post("drink")
     @Middlewares(hasAccess)
-    public async getUser(
+    public async drinkVoda(
         @Query() lake: string,
     ): Promise<number | null> {
         const service  = new VodaService();

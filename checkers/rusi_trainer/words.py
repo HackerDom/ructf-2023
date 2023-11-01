@@ -63,6 +63,11 @@ ADJECTIVES = [
     'BOEVOI',
     'ПЕРУНСКИЙ',
     'PERUN',
+    'ЯЗЫЧЕСКИЙ',
+    'YAZICHESKY',
+    'PAGAN',
+    'ГУБИТЕЛЬНЫЙ',
+    'GUBITELNIY',
 ]
 ADJECTIVES_WITH_I = list(filter(lambda x: 'I' in x, ADJECTIVES))
 
@@ -105,6 +110,9 @@ ACTIONS = [
     'ПЛЯС',
     'PLIAS',
     'ARTILLERY',
+    'PERDESH',
+    'РАСКРУЧИВАНИЕ',
+    'RASCRUCHIVANIE',
 ]
 ACTIONS_WITH_I = list(filter(lambda x: 'I' in x, ACTIONS))
 
@@ -138,6 +146,7 @@ ITEMS = [
     'ГОЛОВЕШКОЙ',
     'ГОЛОВЕЩКОЙ',
     'Г4ПОВК0Й',
+    'РАДИУСОМ В 2 КИЛОМЕТРА',
 ]
 
 ITEMS_WITH_I = list(filter(lambda x: 'I' in x, ITEMS))

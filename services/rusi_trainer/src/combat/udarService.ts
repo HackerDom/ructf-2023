@@ -9,6 +9,14 @@ export class UdarService {
         return udarRepo.findOne({where:{name}, relations: {teacher: true}})
     }
 
+    public getList(teacherId: number): Promise<Udar[]> {
+        return udarRepo.createQueryBuilder("udar")
+            .leftJoinAndSelect("udar.teacher", "teacher")
+            .where("teacher.id = :teacherId", {teacherId})
+            .limit(100)
+            .getMany()
+    }
+
     public async learn(params: Udar): Promise<void> {
       await typeormppend.appendOnlyQuery(AppDataSource
       .createQueryBuilder()
