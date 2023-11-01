@@ -5,29 +5,53 @@ services:
     build: .
     ports:
       - '42424:8000'
-    restart: always
+    restart: unless-stopped
     depends_on:
       - postgres
       - redis
     volumes:
       - ./src/API/appsettings.json:/appsettings.json
+    mem_limit: 1G
+    memswap_limit: 1G
+    cpu_count: 1
+    pids_limit: 512
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
+    networks:
+      - internal
   postgres:
     build: postgres
     restart: always
-    ports:
-      - '5432:5432'
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    mem_limit: 1G
+    memswap_limit: 1G
+    pids_limit: 512
+    ulimits:
+      nofile:
+        soft: 16384
+        hard: 16384
+    networks:
+      - internal
   redis:
     build: redis
-    restart: always
-    ports: 
-      - '6379:6379'
+    restart: unless-stopped
     volumes:
       - redis-cache:/data
+    mem_limit: 1G
+    memswap_limit: 1G
+    pids_limit: 128
+    ulimits:
+      nofile:
+        soft: 16384
+        hard: 16384
+    networks:
+      - internal
   db_to_redis:
     build: db_to_redis
     environment:
@@ -35,16 +59,37 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_HOST=postgres
       - REDIS_HOST=redis
-    restart: always
+    restart: unless-stopped
     depends_on:
       - postgres
       - redis
+    mem_limit: 1G
+    memswap_limit: 1G
+    pids_limit: 512
+    ulimits:
+      nofile:
+        soft: 8192
+        hard: 8192
+    networks:
+      - internal
   cleaner:
     build: cleaner
     restart: unless-stopped
     depends_on:
       - postgres
+    mem_limit: 1G
+    memswap_limit: 1G
+    pids_limit: 512
+    ulimits:
+      nofile:
+        soft: 8192
+        hard: 8192
+    networks:
+      - internal
 
+networks:
+  internal:
+    driver: bridge
 
 volumes:
   postgres-data:
