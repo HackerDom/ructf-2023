@@ -10,6 +10,10 @@
         cmd: ./update_team.sh 1
         chdir: /cloud/backend
 
+    - name: Sleep (zhdi pidor)
+      command: 
+        cmd: sleep 120
+
     - name: Open team
       command: 
         cmd: ./open_team.sh 1
