@@ -28,3 +28,8 @@ message ServerConfig {
   Postgres postgres = 2;
   Storage storage = 3;
 }
+
+message ClientConfig {
+  string host = 1;
+  uint32 port = 2;
+}

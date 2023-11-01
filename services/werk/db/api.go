@@ -81,7 +81,7 @@ func (api *Api) IsUserPairValid(name, token string) bool {
 	return utils.GetSHA1Hash(token) == userPair.TokenHash
 }
 
-func (api *Api) CreateImageModel(owner, storageKey string) (uint, error) {
+func (api *Api) CreateImageModel(owner, storageKey string) (uint32, error) {
 	imageModel := &ImageModel{
 		Owner:      owner,
 		StorageKey: storageKey,
@@ -89,7 +89,7 @@ func (api *Api) CreateImageModel(owner, storageKey string) (uint, error) {
 	if err := api.db.Create(imageModel).Error; err != nil {
 		return 0, errors.New("can not create asm code: " + err.Error())
 	}
-	return imageModel.ID, nil
+	return uint32(imageModel.ID), nil
 }
 
 func (api *Api) IsImageOwnerCorrect(name string, imageId uint32) bool {

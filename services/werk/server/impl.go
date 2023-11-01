@@ -51,7 +51,7 @@ func (s *werkServerImpl) CreateImage(ctx context.Context, in *models.CreateImage
 	}
 
 	return &models.CreateImageResponse{
-		ImageId: uint32(imageId),
+		ImageId: imageId,
 	}, nil
 }
 
