@@ -45,13 +45,13 @@ func (s *werkServerImpl) CreateImage(ctx context.Context, in *models.CreateImage
 		return nil, errors.New("can not put object: " + err.Error())
 	}
 
-	asmCodeUuid, err := s.dbApi.CreateAsmCodeModel(in.UserPair.Name, storageKey)
+	imageUuid, err := s.dbApi.CreateImageModel(in.UserPair.Name, storageKey)
 	if err != nil {
 		return nil, errors.New("can not create asm code: " + err.Error())
 	}
 
 	return &models.CreateImageResponse{
-		ImageUuid: asmCodeUuid,
+		ImageUuid: imageUuid,
 	}, nil
 }
 
