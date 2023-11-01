@@ -14,7 +14,7 @@ import (
 
 func main() {
 	addr := "localhost:7654"
-	name, _ := utils.RandomStorageKey()
+	name := utils.RandomStorageKey()
 
 	fmt.Println(addr, name)
 

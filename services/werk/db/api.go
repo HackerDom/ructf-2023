@@ -5,7 +5,6 @@ import (
 	"back/utils"
 	"errors"
 	"fmt"
-	"github.com/google/uuid"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -30,7 +29,7 @@ func NewApi(cfg *config.Postgres) (*Api, error) {
 	}
 	if err := gormDb.AutoMigrate(
 		UserPairModel{},
-		AsmCodeModel{},
+		ImageModel{},
 		RunModel{},
 	); err != nil {
 		return nil, errors.New("can not migrate gorm db: " + err.Error())
@@ -48,10 +47,7 @@ func NewApi(cfg *config.Postgres) (*Api, error) {
 }
 
 func (api *Api) CreateUserPair(name string) (string, error) {
-	token, err := utils.RandomToken()
-	if err != nil {
-		return "", errors.New("can not gen random string: " + err.Error())
-	}
+	token := utils.RandomToken()
 	if err := api.db.Transaction(func(tx *gorm.DB) error {
 		var userPairs []UserPairModel
 
@@ -85,46 +81,45 @@ func (api *Api) IsUserPairValid(name, token string) bool {
 	return utils.GetSHA1Hash(token) == userPair.TokenHash
 }
 
-func (api *Api) CreateAsmCodeModel(owner, storageKey string) (string, error) {
-	codeUuid := uuid.New().String()
-	if err := api.db.Create(&AsmCodeModel{
-		UUID:       codeUuid,
+func (api *Api) CreateImageModel(owner, storageKey string) (uint, error) {
+	imageModel := &ImageModel{
 		Owner:      owner,
 		StorageKey: storageKey,
-	}).Error; err != nil {
-		return "", errors.New("can not create asm code: " + err.Error())
 	}
-	return codeUuid, nil
+	if err := api.db.Create(imageModel).Error; err != nil {
+		return 0, errors.New("can not create asm code: " + err.Error())
+	}
+	return imageModel.ID, nil
 }
 
-func (api *Api) IsImageOwnerCorrect(name, imageUuid string) bool {
-	var asmCodeModel AsmCodeModel
-	if err := api.db.First(&asmCodeModel, "uuid = ?", imageUuid).Error; err != nil {
+func (api *Api) IsImageOwnerCorrect(name string, imageId uint) bool {
+	var imageModel ImageModel
+	if err := api.db.First(&imageModel, imageId).Error; err != nil {
 		return false
 	}
 
-	return asmCodeModel.Owner == name
+	return imageModel.Owner == name
 }
 
-func (api *Api) IsRunOwnerCorrect(name, runUuid string) bool {
+func (api *Api) IsRunOwnerCorrect(name string, runId uint) bool {
 	var runModel RunModel
-	if err := api.db.First(&runModel, "uuid = ?", runUuid).Error; err != nil {
+	if err := api.db.First(&runModel, runId).Error; err != nil {
 		return false
 	}
 
 	return runModel.Owner == name
 }
 
-func (api *Api) CreateRunModel(owner, imageUuid string) (string, error) {
-	runUuid := uuid.New().String()
+func (api *Api) CreateRunModel(owner string, imageId uint) (uint, error) {
+	runModel := RunModel{
+		ImageId: imageId,
+		Owner:   owner,
+	}
+	res := api.db.Create(&runModel)
 
-	if err := api.db.Create(&RunModel{
-		UUID:      runUuid,
-		ImageUUID: imageUuid,
-		Owner:     owner,
-	}).Error; err != nil {
-		return "", errors.New("can not create run: " + err.Error())
+	if res.Error != nil {
+		return 0, errors.New("can not create run: " + res.Error.Error())
 	}
 
-	return runUuid, nil
+	return runModel.ID, nil
 }

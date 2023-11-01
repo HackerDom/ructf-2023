@@ -20,10 +20,7 @@ func NewApi(path string) (*Api, error) {
 }
 
 func (api *Api) PutObject(value []byte) (string, error) {
-	key, err := utils.RandomStorageKey()
-	if err != nil {
-		return "", errors.New("can not get random storage key: " + err.Error())
-	}
+	key := utils.RandomStorageKey()
 	prefix := key[:2]
 
 	if err := os.MkdirAll(filepath.Join(api.root, prefix), os.ModePerm); err != nil {
