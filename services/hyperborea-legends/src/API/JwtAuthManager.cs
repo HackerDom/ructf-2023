@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using Domain;
 using Grpc.Core;
@@ -29,7 +30,7 @@ public class JwtAuthManager
     {
         var user = await _userRepository.GetByUsernameAsync(username);
         if (user == null) throw new RpcException(new Status(StatusCode.NotFound, "User not found"));
-        if (user.Password != password)
+        if (user.Password != GetPasswordHash(password))
             throw new RpcException(new Status(StatusCode.Unauthenticated, "Invalid password"));
 
         var tokenSecret = Encoding.ASCII.GetBytes(_jwtSecret);
@@ -80,5 +81,11 @@ public class JwtAuthManager
         return int.Parse(
             context.GetHttpContext().User.Claims.FirstOrDefault(c => c.Type == "id")?.Value!
         );
+    }
+
+    public static string GetPasswordHash(string password)
+    {
+        var hashBytes = SHA256.HashData(Encoding.UTF8.GetBytes(password));
+        return BitConverter.ToString(hashBytes);
     }
 }
