@@ -107,12 +107,23 @@ def check_valid_udar(c: api.APIClient):
     if another_user['id'] not in data['trustedRusi']:
         raise api.APIValidationError(f'Lost trusted Rusi')
 
+    items = c.get_user_udars()
+    if len(items) != 1:
+        raise api.APIValidationError(f'Wrong number of udars returned to user list {len(items)}')
+    my_udar = items[0]
+    if my_udar['name'] != name.upper():
+        raise api.APIValidationError(f'Wrong name in list udars get')
+    if my_udar['phonk'] != fake_flag:
+        raise api.APIValidationError(f'Lost phonk in list udars')
     # Check is trustedRusi can access item
     c.set_token(another_user['token'])
     data = validate_udar(c.get_udar(name), name, fake_flag, user['id'])
     if another_user['id'] not in data['trustedRusi']:
         raise api.APIValidationError(f'Lost trusted Rusi')
 
+    items = c.get_user_udars()
+    if len(items) != 0:
+        raise api.APIValidationError(f'Wrong number of udars returned to user list when nothing created {len(items)}')
     # Check can create with three trusted
     another_name = generate_name()
     another_flag = generate_flag()
@@ -129,8 +140,8 @@ def check_valid_udar(c: api.APIClient):
 
 
 def do_check(request: gornilo.CheckRequest) -> gornilo.Verdict:
-
     with api.APIClient(request.hostname, PORT) as c:
+        c.check_frontend()
         err = check_drink_water(c)
         if err is not None:
             return err

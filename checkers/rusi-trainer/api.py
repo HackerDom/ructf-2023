@@ -1,7 +1,7 @@
 import urllib.parse
 import base69
 from gornilo.http_clients import requests_with_retries
-
+import re
 
 class APIProtocolError(Exception):
     pass
@@ -35,7 +35,7 @@ class APIClient:
             'password': password
         })
         if resp.status_code != 201:
-            raise APIProtocolError(f'unexpected status code: {resp.status_code}')
+            raise APIProtocolError(f'unexpected status code register: {resp.status_code}')
 
     def set_token(self, token):
         self._session.headers.update({'x-access-token': token})
@@ -47,7 +47,7 @@ class APIClient:
             'password': password
         })
         if resp.status_code != 200:
-            raise APIProtocolError(f'unexpected status code: {resp.status_code}')
+            raise APIProtocolError(f'unexpected status code login: {resp.status_code}')
         data = resp.json()
         if "accessToken" not in data:
             raise APIValidationError(f'no excepted field in json: accessToken')
@@ -71,12 +71,12 @@ class APIClient:
             if "details" not in data:
                 raise APIValidationError(f'no excepted field in json: details')
             return data['details']
-        raise APIProtocolError(f'unexpected status code: {resp.status_code}')
+        raise APIProtocolError(f'unexpected status code drink_water: {resp.status_code}')
 
     def get_user_data(self, username):
         resp = self._session.get(self._route(f'/users/{username}'))
         if resp.status_code != 200:
-            raise APIProtocolError(f'unexpected status code: {resp.status_code}')
+            raise APIProtocolError(f'unexpected status code get_user_data: {resp.status_code}')
         data = resp.json()
         if "id" not in data:
             raise APIValidationError(f'no excepted field in json: id')
@@ -87,7 +87,7 @@ class APIClient:
     def get_udar(self, name):
         resp = self._session.get(self._route(f'/udar/{name}/'))
         if resp.status_code not in (200, 400, 401, 404):
-            raise APIProtocolError(f'unexpected status code: {resp.status_code}')
+            raise APIProtocolError(f'unexpected status code get_udar: {resp.status_code}')
         if resp.status_code == 404:
             return resp.status_code, None
         return resp.status_code, resp.json()
@@ -104,9 +104,32 @@ class APIClient:
         if resp.status_code == 201:
             return None
         if resp.status_code not in (400, 401, 422):
-            raise APIProtocolError(f'unexpected status code: {resp.status_code}')
+            raise APIProtocolError(f'unexpected status code make_udar: {resp.status_code}')
         return resp.json()
 
+    def check_frontend(self):
+        resp = self._session.get(self._route('/'))
+        if resp.status_code not in (200, 201, 304):
+            raise APIProtocolError(f'unexpected status code on front: {resp.status_code}')
+        res = re.search(r'<script type="module" crossorigin src="(\/assets\/index-.+\.js)">', resp.text)
+        if res is None:
+            raise APIProtocolError(f'Cant find script in frontend index')
+        resp_js = self._session.get(self._route(res.group(1)))
+        if resp_js.status_code not in (200, 201, 304):
+            raise APIProtocolError(f'unexpected status code on front js: {resp_js.status_code}')
+        res = re.search(r'<link rel="stylesheet" href="(/assets/index-.+\.css)">', resp.text)
+        if res is None:
+            raise APIProtocolError(f'Cant find css in frontend index')
+        resp_css = self._session.get(self._route(res.group(1)))
+        if resp_css.status_code not in (200, 201, 304):
+            raise APIProtocolError(f'unexpected status code on front css: {resp_css.status_code}')
 
-
+    def get_user_udars(self):
+        resp = self._session.get(self._route('/udar/'))
+        if resp.status_code != 200:
+            raise APIProtocolError(f'unexpected status code on get_user_udars: {resp.status_code}')
+        data = resp.json()
+        if not isinstance(data, list):
+            raise APIProtocolError(f'unexpected return type from get_user_udars')
+        return data
 
