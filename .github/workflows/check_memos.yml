@@ -1,0 +1,59 @@
+name: Check memos
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'services/memos/**'
+      - 'checkers/memos/**'
+      - 'sploits/memos/**'
+  workflow_dispatch: {}
+jobs:
+  check_service_memos:
+    name: Check service memos
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup memos
+      run: (cd ./services/memos && docker-compose pull && docker-compose build && docker-compose up --build -d)
+  check_checker_memos:
+    name: Check checker memos
+    runs-on: ubuntu-20.04
+    if: ${{ true }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup memos
+      run: (cd ./services/memos && docker-compose pull && docker-compose build && docker-compose up --build -d)
+    - name: Sleep some time. Wait service ready
+      run: sleep 30
+    - name: Prepare python for checker
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Setup checker libraries
+      run: if [ -f checkers/memos/requirements.txt ]; then python -m pip install -r checkers/memos/requirements.txt; fi
+    - name: Test checker on service
+      run: (cd ./checkers/memos && ./memos.checker.py TEST 127.0.0.1)
+  check_sploit_memos:
+    name: Check sploit memos
+    runs-on: ubuntu-20.04
+    if: ${{ true }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup memos
+      run: (cd ./services/memos && docker-compose pull && docker-compose build && docker-compose up --build -d)
+    - name: Sleep some time. Wait service ready
+      run: sleep 30
+    - name: Prepare python for checker
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Setup checker libraries
+      run: if [ -f checkers/memos/requirements.txt ]; then python -m pip install -r checkers/memos/requirements.txt; fi
+    - name: Setup sploit libraries
+      run: if [ -f sploits/memos/requirements.txt ]; then python -m pip install -r sploits/memos/requirements.txt; fi
+    - name: Test sploit on service
+      run: (./tools/check_sploit.py memos)

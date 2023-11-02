@@ -1,0 +1,59 @@
+name: Check wise-mystical-tree
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'services/wise-mystical-tree/**'
+      - 'checkers/wise-mystical-tree/**'
+      - 'sploits/wise-mystical-tree/**'
+  workflow_dispatch: {}
+jobs:
+  check_service_wise-mystical-tree:
+    name: Check service wise-mystical-tree
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup wise-mystical-tree
+      run: (cd ./services/wise-mystical-tree && docker-compose pull && docker-compose build && docker-compose up --build -d)
+  check_checker_wise-mystical-tree:
+    name: Check checker wise-mystical-tree
+    runs-on: ubuntu-20.04
+    if: ${{ true }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup wise-mystical-tree
+      run: (cd ./services/wise-mystical-tree && docker-compose pull && docker-compose build && docker-compose up --build -d)
+    - name: Sleep some time. Wait service ready
+      run: sleep 30
+    - name: Prepare python for checker
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Setup checker libraries
+      run: if [ -f checkers/wise-mystical-tree/requirements.txt ]; then python -m pip install -r checkers/wise-mystical-tree/requirements.txt; fi
+    - name: Test checker on service
+      run: (cd ./checkers/wise-mystical-tree && ./wise-mystical-tree.checker.py TEST 127.0.0.1)
+  check_sploit_wise-mystical-tree:
+    name: Check sploit wise-mystical-tree
+    runs-on: ubuntu-20.04
+    if: ${{ true }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup wise-mystical-tree
+      run: (cd ./services/wise-mystical-tree && docker-compose pull && docker-compose build && docker-compose up --build -d)
+    - name: Sleep some time. Wait service ready
+      run: sleep 30
+    - name: Prepare python for checker
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Setup checker libraries
+      run: if [ -f checkers/wise-mystical-tree/requirements.txt ]; then python -m pip install -r checkers/wise-mystical-tree/requirements.txt; fi
+    - name: Setup sploit libraries
+      run: if [ -f sploits/wise-mystical-tree/requirements.txt ]; then python -m pip install -r sploits/wise-mystical-tree/requirements.txt; fi
+    - name: Test sploit on service
+      run: (./tools/check_sploit.py wise-mystical-tree)

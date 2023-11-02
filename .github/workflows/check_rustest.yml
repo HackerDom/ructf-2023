@@ -20,7 +20,7 @@ jobs:
   check_checker_rustest:
     name: Check checker rustest
     runs-on: ubuntu-20.04
-    if: ${{ false }}
+    if: ${{ true }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
@@ -39,7 +39,7 @@ jobs:
   check_sploit_rustest:
     name: Check sploit rustest
     runs-on: ubuntu-20.04
-    if: ${{ false }}
+    if: ${{ true }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
