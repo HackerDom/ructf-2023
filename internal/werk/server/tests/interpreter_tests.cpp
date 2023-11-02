@@ -21,6 +21,10 @@ namespace {
 
         int totalTicks = 0;
 
+        uint64_t GetTotalTicksCount() const override {
+            return static_cast<uint64_t>(totalTicks);
+        }
+
         static std::vector<std::shared_ptr<TestVm>> allVms;
     };
 
