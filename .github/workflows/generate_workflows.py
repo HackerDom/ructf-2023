@@ -4,6 +4,7 @@
 SERVICES = [
     "example", 
     "hyperborea-legends", 
+    "perune", 
     "rusi-trainer",
     "rustest",
     "sqlfs",
@@ -13,12 +14,14 @@ SERVICES = [
 CHECKERS = [
     "example",
     "hyperborea-legends",
+    "perune",
     "rusi-trainer",
 ]
 
 SPLOITS = [
     "example",
     "hyperborea-legends",
+    "perune",
     "rusi-trainer",
 ]
 

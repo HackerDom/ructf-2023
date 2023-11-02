@@ -62,6 +62,7 @@ build {
       "useradd -m -s /bin/bash rustest",
       "useradd -m -s /bin/bash sqlfs",
       "useradd -m -s /bin/bash werk",
+      "useradd -m -s /bin/bash perune",
     ]
   }
 
@@ -105,6 +106,14 @@ build {
     destination = "/home/hyperborea-legends/"
   }
   provisioner "file" {
+    source = "../services/perune/"
+    destination = "/home/perune/"
+  }
+  provisioner "file" {
+    source = "../services/perune/"
+    destination = "/home/perune/"
+  }
+  provisioner "file" {
     source = "../services/rusi-trainer/"
     destination = "/home/rusi-trainer/"
   }
@@ -128,6 +137,8 @@ build {
       "docker-compose build || true",
       "cd ~hyperborea-legends",
       "docker-compose build || true",
+      "cd ~perune",
+      "docker-compose build || true",
       "cd ~rusi-trainer",
       "docker-compose build || true",
       "cd ~rustest",
@@ -141,6 +152,7 @@ build {
 
       "systemctl enable ructf-service@example",
       "systemctl enable ructf-service@hyperborea-legends",
+      "systemctl enable ructf-service@perune",
       "systemctl enable ructf-service@rusi-trainer",
       "systemctl enable ructf-service@rustest",
       "systemctl enable ructf-service@sqlfs",

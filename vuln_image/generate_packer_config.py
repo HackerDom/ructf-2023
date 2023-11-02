@@ -3,6 +3,7 @@
 SERVICES = [
     "example", 
     "hyperborea-legends", 
+    "perune", 
     "rusi_trainer",
     "rustest",
     "sqlfs",
