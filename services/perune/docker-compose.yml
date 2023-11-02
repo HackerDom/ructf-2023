@@ -1,0 +1,24 @@
+version: '2.2'
+
+services:
+  perune:
+    build: service
+    cpus: 1
+    pids_limit: 32768
+    mem_limit: 1G
+    memswap_limit: 1G
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
+    restart: unless-stopped
+    stop_grace_period: 3s
+    volumes:
+      - "database:/var/perune/database"
+    ports:
+      - "18484:31337"
+
+  # TODO: add cleaner
+
+volumes:
+  database:
