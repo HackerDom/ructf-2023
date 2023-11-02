@@ -3,26 +3,41 @@
 
 SERVICES = [
     "example", 
-    "hyperborea-legends", 
+    "funficfy",
+    "hyperborea-legends",
+    "memos", 
     "perune", 
     "rusi-trainer",
     "rustest",
     "sqlfs",
     "werk",
+    "wise-mystical-tree",
 ]
 
 CHECKERS = [
-    "example",
+    "example", 
+    "funficfy",
     "hyperborea-legends",
-    "perune",
+    "memos", 
+    "perune", 
     "rusi-trainer",
+    "rustest",
+    "sqlfs",
+    "werk",
+    "wise-mystical-tree",
 ]
 
 SPLOITS = [
-    "example",
+    "example", 
+    "funficfy",
     "hyperborea-legends",
-    "perune",
+    "memos", 
+    "perune", 
     "rusi-trainer",
+    "rustest",
+    "sqlfs",
+    "werk",
+    "wise-mystical-tree",
 ]
 
 TEMPLATE = """
@@ -101,3 +116,4 @@ for service in SERVICES:
             sploit_enabled=template_bool(service in SPLOITS),
         )
         f.write(template)
+

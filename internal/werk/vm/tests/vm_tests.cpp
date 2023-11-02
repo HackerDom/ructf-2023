@@ -240,3 +240,95 @@ TEST(Vm, MovInstruction) {
         }
     );
 }
+
+TEST(Vm, PushInstruction) {
+    uint8_t *memory = new uint8_t[kMemorySize];
+    Defer f([memory]{ delete[] memory; });
+
+    uint16_t instructionShort = 0x1b00; // push v3
+    std::memset(memory, 0, kMemorySize);
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0xdead, 0, 0, 0, 0}, .sp = 0x888},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.sp, 0x88a);
+            ASSERT_EQ(memory[0x889], 0xad);
+            ASSERT_EQ(memory[0x88a], 0xde);
+        }
+    );
+
+    instructionShort = 0x1b00; // push v3
+    std::memset(memory, 0, kMemorySize);
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0xdead, 0, 0, 0, 0}, .sp = 0xfffe},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.sp, 0x0);
+            ASSERT_EQ(memory[0xffff], 0xad);
+            ASSERT_EQ(memory[0x0000], 0xde);
+        }
+    );
+
+    instructionShort = 0x1b00; // push v3
+    std::memset(memory, 0, kMemorySize);
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0xdead, 0, 0, 0, 0}, .sp = 0xffff},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.sp, 0x1);
+            ASSERT_EQ(memory[0x0000], 0xad);
+            ASSERT_EQ(memory[0x0001], 0xde);
+        }
+    );
+}
+
+TEST(Vm, PopInstruction) {
+    uint8_t *memory = new uint8_t[kMemorySize];
+    Defer f([memory]{ delete[] memory; });
+
+    uint16_t instructionShort = 0x2400; // push v4
+    std::memset(memory, 0, kMemorySize);
+    memory[0x88a] = 0xde;
+    memory[0x889] = 0xad;
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 0, 0, 0, 0}, .sp = 0x88a},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.sp, 0x888);
+            ASSERT_EQ(v->registers.v[4], 0xdead);
+        }
+    );
+
+    instructionShort = 0x2600; // push v4
+    std::memset(memory, 0, kMemorySize);
+    memory[0x0001] = 0xde;
+    memory[0x0000] = 0xad;
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 0, 0, 0, 0}, .sp = 0x1},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.sp, 0xffff);
+            ASSERT_EQ(v->registers.v[6], 0xdead);
+        }
+    );
+}

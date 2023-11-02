@@ -1,0 +1,59 @@
+name: Check funficfy
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'services/funficfy/**'
+      - 'checkers/funficfy/**'
+      - 'sploits/funficfy/**'
+  workflow_dispatch: {}
+jobs:
+  check_service_funficfy:
+    name: Check service funficfy
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup funficfy
+      run: (cd ./services/funficfy && docker-compose pull && docker-compose build && docker-compose up --build -d)
+  check_checker_funficfy:
+    name: Check checker funficfy
+    runs-on: ubuntu-20.04
+    if: ${{ true }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup funficfy
+      run: (cd ./services/funficfy && docker-compose pull && docker-compose build && docker-compose up --build -d)
+    - name: Sleep some time. Wait service ready
+      run: sleep 30
+    - name: Prepare python for checker
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Setup checker libraries
+      run: if [ -f checkers/funficfy/requirements.txt ]; then python -m pip install -r checkers/funficfy/requirements.txt; fi
+    - name: Test checker on service
+      run: (cd ./checkers/funficfy && ./funficfy.checker.py TEST 127.0.0.1)
+  check_sploit_funficfy:
+    name: Check sploit funficfy
+    runs-on: ubuntu-20.04
+    if: ${{ true }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup funficfy
+      run: (cd ./services/funficfy && docker-compose pull && docker-compose build && docker-compose up --build -d)
+    - name: Sleep some time. Wait service ready
+      run: sleep 30
+    - name: Prepare python for checker
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.11
+    - name: Setup checker libraries
+      run: if [ -f checkers/funficfy/requirements.txt ]; then python -m pip install -r checkers/funficfy/requirements.txt; fi
+    - name: Setup sploit libraries
+      run: if [ -f sploits/funficfy/requirements.txt ]; then python -m pip install -r sploits/funficfy/requirements.txt; fi
+    - name: Test sploit on service
+      run: (./tools/check_sploit.py funficfy)
