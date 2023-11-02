@@ -12,7 +12,7 @@ export interface UdarDto {
      */
     trustedRusi: number[]
     /**
-     * @maxLength 500 max length of description is 500
+     * @maxLength 2048 max length of description is 2048
      */
     description: string;
     /**
@@ -21,7 +21,7 @@ export interface UdarDto {
     phonk: string;
 
     /**
-     * @maxLength 255 max length of name is 255
+     * @maxLength 1024 max length of name is 1024
      */
     name: string;
 }

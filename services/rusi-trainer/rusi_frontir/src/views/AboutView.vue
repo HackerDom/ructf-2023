@@ -24,7 +24,7 @@
         tag="button"
         title="Teach new"
       >
-        Обучить
+        Научить
       </router-link>
       <router-link
         to="/find"
