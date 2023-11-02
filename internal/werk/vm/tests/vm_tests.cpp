@@ -190,17 +190,53 @@ TEST(Vm, MovInstruction) {
         }
     );
 
-    instructionShort = 0x11c0; // mov v3, i
+    instructionShort = 0x14a0; // mov $imm, v4 (no size bit set)
     testVmRunInstruction(
         memory,
         &instructionShort,
         sizeof(instructionShort),
         0x1337,
-        RegistersSet{.v = {0xdead, 0, 0, 0xcafe, 0, 0, 0, 0}, .i = 0x1000},
+        RegistersSet{.v = {0, 0, 0, 0, 0, 0, 0, 0}, .i = 0x1000},
         [memory](std::shared_ptr<Vm> v){
-            ASSERT_EQ(v->registers.v[3], 0xcafe);
-            ASSERT_EQ(v->registers.i, 0xcafe);
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Crashed);
+        }
+    );
+
+    uint8_t instructionLong[] = {0xa1, 0x14, 0xfe, 0xca}; // mov $imm, v4 | 0x14a1cafe
+    testVmRunInstruction(
+        memory,
+        instructionLong,
+        sizeof(instructionLong),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 0, 0, 0, 0}, .i = 0x1000},
+        [memory](std::shared_ptr<Vm> v){
             ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.v[4], 0xcafe);
+        }
+    );
+
+    instructionShort = 0x13c0; // mov v7, i
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 0, 0, 0, 0xdead}, .i = 0x1000},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.i, 0xdead);
+        }
+    );
+
+    instructionShort = 0x17c0; // mov reg15 (invalid), i
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 0, 0, 0, 0xdead}, .i = 0x1000},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Crashed);
         }
     );
 }
