@@ -7,7 +7,12 @@
 
 ## Add new service to vuln image
 
-- Add service to [list](https://github.com/HackerDom/ructf-2023/blob/3c03d9c57e90b20869a1416f1b40edecf534aaa3/vuln_image/generate_packer_config.py#L3)
+1. Add service to [list](https://github.com/HackerDom/ructf-2023/blob/3c03d9c57e90b20869a1416f1b40edecf534aaa3/vuln_image/generate_packer_config.py#L3)
+1. Run `generate_packer_config.py` script
+    ```shell
+    cd vuln_image && ./generate_packer_config.py && cd -
+    ```
+1. Commit changes 
 
 ## Add new service in CI
 
