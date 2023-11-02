@@ -26,6 +26,7 @@ add_executable(vm_tests
         ${SOURCES}
         tests/main.cpp
         tests/instructions_tests.cpp
+        tests/vm_tests.cpp
         )
 target_include_directories(vm_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(vm_tests common glog::glog gtest)

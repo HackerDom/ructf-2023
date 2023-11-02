@@ -5,7 +5,7 @@
 #include <vm.hpp>
 
 namespace werk::vm {
-    Vm::Vm(void *memory) : memory(memory) {
+    Vm::Vm(void *memory) : memory(memory), memoryBytePtr(reinterpret_cast<uint8_t*>(memory)) {
         status = Running;
         totalTicksCount = 0;
         appendHandler(Opcode::Load, [this](ParsedInstruction &i) {return this->load(i);});
@@ -49,158 +49,157 @@ namespace werk::vm {
         instructionHandlers.push_back(std::move(handler));
     }
 
-    bool Vm::load(ParsedInstruction &)
-    {
+    bool Vm::load(ParsedInstruction &instr) {
+        auto *target = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (target == nullptr) {
+            return false;
+        }
+
+        auto i = registers.i;
+
+        if (kServiceRegionStart <= i && i <= kServiceRegionEnd) {
+            return false;
+        }
+
+        auto low = memoryBytePtr[i];
+        auto high = memoryBytePtr[i + 1];
+
+        *target = (high << 8) | low;
+
+        return true;
+    }
+
+    bool Vm::store(ParsedInstruction &instr) {
+        auto *target = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (target == nullptr) {
+            return false;
+        }
+
+        auto i = registers.i;
+
+        if (kServiceRegionStart <= i && i <= kServiceRegionEnd) {
+            return false;
+        }
+
+        memoryBytePtr[i] = (*target & 0xff);
+        memoryBytePtr[i + 1] = ((*target & 0xff00) >> 8);
+
+        return true;
+    }
+
+    bool Vm::mov(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::store(ParsedInstruction &)
-    {
+    bool Vm::push(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::mov(ParsedInstruction &)
-    {
+    bool Vm::pop(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::push(ParsedInstruction &)
-    {
+    bool Vm::add(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::pop(ParsedInstruction &)
-    {
+    bool Vm::sub(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::add(ParsedInstruction &)
-    {
+    bool Vm::mul(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::sub(ParsedInstruction &)
-    {
+    bool Vm::and_(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::mul(ParsedInstruction &)
-    {
+    bool Vm::or_(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::and_(ParsedInstruction &)
-    {
+    bool Vm::xor_(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::or_(ParsedInstruction &)
-    {
+    bool Vm::shl(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::xor_(ParsedInstruction &)
-    {
+    bool Vm::shr(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::shl(ParsedInstruction &)
-    {
+    bool Vm::call(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::shr(ParsedInstruction &)
-    {
+    bool Vm::nop(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::call(ParsedInstruction &)
-    {
+    bool Vm::jmp(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::nop(ParsedInstruction &)
-    {
+    bool Vm::jl(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::jmp(ParsedInstruction &)
-    {
+    bool Vm::jg(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::jl(ParsedInstruction &)
-    {
+    bool Vm::jle(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::jg(ParsedInstruction &)
-    {
+    bool Vm::jge(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::jle(ParsedInstruction &)
-    {
+    bool Vm::je(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::jge(ParsedInstruction &)
-    {
+    bool Vm::jne(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::je(ParsedInstruction &)
-    {
+    bool Vm::hlt(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::jne(ParsedInstruction &)
-    {
+    bool Vm::pushb(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::hlt(ParsedInstruction &)
-    {
+    bool Vm::popb(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::pushb(ParsedInstruction &)
-    {
+    bool Vm::cmp(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::popb(ParsedInstruction &)
-    {
+    bool Vm::out(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::cmp(ParsedInstruction &)
-    {
+    bool Vm::hexout(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::out(ParsedInstruction &)
-    {
+    bool Vm::hexouta(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::hexout(ParsedInstruction &)
-    {
+    bool Vm::ret(ParsedInstruction &) {
         return false;
     }
 
-    bool Vm::hexouta(ParsedInstruction &)
-    {
-        return false;
-    }
-
-    bool Vm::ret(ParsedInstruction &)
-    {
-        return false;
-    }
-
-    bool Vm::poweroff(ParsedInstruction &)
-    {
+    bool Vm::poweroff(ParsedInstruction &) {
         return false;
     }
 
@@ -282,12 +281,12 @@ namespace werk::vm {
         }
 
         if (opcode != Opcode::Mov) {
-            out.operands.first = GetMovFirstOp(firstPart);
-            out.operands.second = GetMovSecondOp(firstPart);
-        } else {
             out.operands.first = GetNonMovFirstOp(firstPart);
             out.operands.second = GetNonMovSecondOp(firstPart);
             out.operands.third = GetNonMovThirdOp(firstPart);
+        } else {
+            out.operands.first = GetMovFirstOp(firstPart);
+            out.operands.second = GetMovSecondOp(firstPart);
         }
 
         out.setPc = IsSetPcInstruction(static_cast<Opcode>(opcode));

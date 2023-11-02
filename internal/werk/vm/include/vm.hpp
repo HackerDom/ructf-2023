@@ -20,20 +20,22 @@ namespace werk::vm {
 
         virtual Status Tick(int opsCount);
 
-        [[nodiscard]] Status GetStatus() const;
+        [[nodiscard]] virtual Status GetStatus() const;
 
-        [[nodiscard]] uint64_t GetTotalTicksCount() const;
+        [[nodiscard]] virtual uint64_t GetTotalTicksCount() const;
 
         [[nodiscard]] virtual const std::vector<char>& GetSerial() const;
 
         void *GetMemory();
 
+        RegistersSet registers;
+
     private:
         void *memory;
+        uint8_t *memoryBytePtr;
 
         Status status;
         std::vector<char> serial;
-        RegistersSet registers;
         uint64_t totalTicksCount;
 
         Status tickInternal(int &remainOpsCount);
