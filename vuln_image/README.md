@@ -7,27 +7,25 @@
 
 ## Add new service to vuln image
 
-1. [Add user for service](https://github.com/HackerDom/ructf-finals-2023/blob/d310ee35ae48326951e6f617efcbb8d2ea0385b8/vuln_image/image.pkr.hcl#L59)
-1. [Add "file provisioner" for service sources](https://github.com/HackerDom/ructf-finals-2023/blob/d310ee35ae48326951e6f617efcbb8d2ea0385b8/vuln_image/image.pkr.hcl#L94)
-1. [Enable onboot service in systemd](https://github.com/HackerDom/ructf-finals-2023/blob/d310ee35ae48326951e6f617efcbb8d2ea0385b8/vuln_image/image.pkr.hcl#L101)
+- Add service to [list](https://github.com/HackerDom/ructf-2023/blob/3c03d9c57e90b20869a1416f1b40edecf534aaa3/vuln_image/generate_packer_config.py#L3)
 
 ## Add new service in CI
 
-1. Commit service sources in master brunch
-1. Add service name in [generate_workflow.py](https://github.com/HackerDom/ructf-finals-2023/blob/f9f23675160c61c9c6479fac014484d918553f47/.github/workflows/generate_workflows.py#L7)
+1. Commit service sources in master branch
+1. Add service name in [generate_workflow.py](https://github.com/HackerDom/ructf-2023/blob/39cadaa2dd9e7803249c85a9df2f6be1303e0e3e/.github/workflows/generate_workflows.py#L4) to SERVICES list (and to CHECKERS and SPLOITS if you have)
 1. Run `generate_workflow.py` script
-  ```shell
-  cd .github/workflows && ./generate_workflows.py && cd -
-  ```
+    ```shell
+    cd .github/workflows && ./generate_workflows.py && cd -
+    ```
 1. Commit changes
 
 ## Fail fast | best effort on service build
 
-Use `docker-compose build` for fail fast mode and `docker-compose build || true` for best effort in [service build](https://github.com/HackerDom/ructf-finals-2023/blob/d310ee35ae48326951e6f617efcbb8d2ea0385b8/vuln_image/image.pkr.hcl#L104).
+Use `docker-compose build` for fail fast mode and `docker-compose build || true` for best effort in [service build](https://github.com/HackerDom/ructf-2023/blob/3c03d9c57e90b20869a1416f1b40edecf534aaa3/vuln_image/generate_packer_config.py#L134).
 
 ## Build image with CI
 
-Run `Rebuild image` [workflow](https://github.com/HackerDom/ructf-finals-2023/actions/workflows/rebuild_image.yml)
+Run `Rebuild image` [workflow](https://github.com/HackerDom/ructf-2023/actions/workflows/rebuild_image.yml)
 
 ## Build image with packer
 
