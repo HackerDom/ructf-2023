@@ -95,5 +95,8 @@ namespace werk::vm {
         bool parseInstruction(ParsedInstruction &out);
 
         uint16_t readTwoBytesAt(uint16_t addr);
+
+        void push16(uint16_t val);
+        void pop16(uint16_t *val);
     };
 }

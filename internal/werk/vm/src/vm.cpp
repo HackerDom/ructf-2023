@@ -49,6 +49,17 @@ namespace werk::vm {
         instructionHandlers.push_back(std::move(handler));
     }
 
+    void Vm::push16(uint16_t val) {
+        memoryBytePtr[static_cast<uint16_t>(registers.sp + 1)] = static_cast<uint8_t>(val & 0xff);
+        memoryBytePtr[static_cast<uint16_t>(registers.sp + 2)] = static_cast<uint8_t>((val & 0xff00) >> 8);
+        registers.sp += 2;
+    }
+
+    void Vm::pop16(uint16_t *out) {
+        *(reinterpret_cast<uint8_t*>(out) + 1) = memoryBytePtr[registers.sp--];
+        *(reinterpret_cast<uint8_t*>(out)) = memoryBytePtr[registers.sp--];
+    }
+
     bool Vm::load(ParsedInstruction &instr) {
         auto *target = registers.GetRegisterByOperandNum(instr.operands.first);
         if (target == nullptr) {
@@ -113,12 +124,26 @@ namespace werk::vm {
         return true;
     }
 
-    bool Vm::push(ParsedInstruction &) {
-        return false;
+    bool Vm::push(ParsedInstruction &instr) {
+        auto *val = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (val == nullptr) {
+            return false;
+        }
+
+        push16(*val);
+
+        return true;
     }
 
-    bool Vm::pop(ParsedInstruction &) {
-        return false;
+    bool Vm::pop(ParsedInstruction &instr) {
+        auto *val = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (val == nullptr) {
+            return false;
+        }
+
+        pop16(val);
+
+        return true;
     }
 
     bool Vm::add(ParsedInstruction &) {
