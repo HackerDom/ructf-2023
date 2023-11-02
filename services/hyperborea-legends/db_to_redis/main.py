@@ -14,15 +14,15 @@ class Transfer:
 
     def transfer_data(self) -> None:
         cur = self.db.cursor()
-        cur.execute('SELECT u.id, u.username, u.password, u.ownerId, u.species, u.directAncestors, count(a.id) as ancestors_count FROM users u LEFT JOIN ancestors a ON a.ownerId = u.id GROUP BY u.id')
+        cur.execute('SELECT u.id, u.username, u.password, u.species, u.directAncestors, count(a.id) as ancestors_count FROM users u LEFT JOIN ancestors a ON a.ownerId = u.id GROUP BY u.id')
         for record in cur.fetchall():
             val = {
+                'Id': record[0],
                 'Username': record[1],
                 'Password': record[2],
-                'OwnerId': record[3],
-                'Species': record[4],
-                'DirectAncestors': [str(uuid.UUID(bytes=bytes(a))) for a in record[5]],
-                'AncestorsCount': record[6],
+                'Species': record[3],
+                'DirectAncestors': [str(uuid.UUID(bytes=bytes(a))) for a in record[4]],
+                'AncestorsCount': record[5],
             }
             self.redis.set(f"user:{record[0]}", json.dumps(val))
             self.redis.expire(f"user:{record[0]}", CACHE_EXPIRE_SECONDS)
