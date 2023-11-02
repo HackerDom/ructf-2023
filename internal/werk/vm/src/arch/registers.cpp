@@ -3,6 +3,18 @@
 #include <arch/registers.hpp>
 
 namespace werk::vm {
+    register_t *RegistersSet::GetRegisterByOperandNum(int num) {
+        if (num >= 0 && num <= 7) {
+            return &v[num];
+        }
+
+        if (num == 8) {
+            return &i;
+        }
+
+        return nullptr;
+    }
+
     constexpr std::string_view kSpName = "sp";
     constexpr std::string_view kPcName = "pc";
 

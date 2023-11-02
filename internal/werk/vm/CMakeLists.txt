@@ -21,6 +21,11 @@ add_library(vm STATIC ${HEADERS} ${SOURCES})
 target_link_libraries(vm common glog::glog)
 target_include_directories(vm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-add_executable(vm_tests ${HEADERS} ${SOURCES} tests/main.cpp)
+add_executable(vm_tests
+        ${HEADERS}
+        ${SOURCES}
+        tests/main.cpp
+        tests/instructions_tests.cpp
+        )
 target_include_directories(vm_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(vm_tests common glog::glog gtest)
