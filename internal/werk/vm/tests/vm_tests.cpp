@@ -315,7 +315,7 @@ TEST(Vm, PopInstruction) {
         }
     );
 
-    instructionShort = 0x2600; // push v4
+    instructionShort = 0x2600; // push v6
     std::memset(memory, 0, kMemorySize);
     memory[0x0001] = 0xde;
     memory[0x0000] = 0xad;
@@ -329,6 +329,26 @@ TEST(Vm, PopInstruction) {
             ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
             ASSERT_EQ(v->registers.sp, 0xffff);
             ASSERT_EQ(v->registers.v[6], 0xdead);
+        }
+    );
+}
+
+TEST(Vm, ArithInstructions) {
+    uint8_t *memory = new uint8_t[kMemorySize];
+    Defer f([memory]{ delete[] memory; });
+
+    uint16_t instructionShort = 0x3ca4; // mul v4, v5, v1
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 0xde, 0x13, 0, 0}},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.v[1], 0x107a);
+            ASSERT_EQ(v->registers.v[4], 0xde);
+            ASSERT_EQ(v->registers.v[5], 0x13);
         }
     );
 }
