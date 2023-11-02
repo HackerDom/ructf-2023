@@ -273,8 +273,8 @@ namespace werk::vm {
     }
 
     uint16_t Vm::readTwoBytesAt(uint16_t addr) {
-        auto low = static_cast<uint16_t>(reinterpret_cast<uint8_t*>(memory)[registers.pc]);
-        auto high = static_cast<uint16_t>(reinterpret_cast<uint8_t*>(memory)[registers.pc + 1]);
+        auto low = static_cast<uint16_t>(reinterpret_cast<uint8_t*>(memory)[addr]);
+        auto high = static_cast<uint16_t>(reinterpret_cast<uint8_t*>(memory)[addr + 1]);
 
         return (high << 8) | low;
     }
