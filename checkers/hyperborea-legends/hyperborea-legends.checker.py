@@ -8,7 +8,7 @@ import uuid
 from gornilo import CheckRequest, Verdict, NewChecker, VulnChecker, GetRequest, PutRequest
 
 import utils
-from client.grpc_client import Client
+from grpc_client import Client
 from data_generator import DataGenerator
 
 PORT = 42424
