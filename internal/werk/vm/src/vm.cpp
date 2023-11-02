@@ -146,36 +146,156 @@ namespace werk::vm {
         return true;
     }
 
-    bool Vm::add(ParsedInstruction &) {
-        return false;
+    bool Vm::add(ParsedInstruction &instr) {
+        auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (op1 == nullptr) {
+            return false;
+        }
+        auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
+        if (op2 == nullptr) {
+            return false;
+        }
+        auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
+        if (dst == nullptr) {
+            return false;
+        }
+
+        *dst = static_cast<uint16_t>(*op1 + *op2);
+
+        return true;
     }
 
-    bool Vm::sub(ParsedInstruction &) {
-        return false;
+    bool Vm::sub(ParsedInstruction &instr) {
+        auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (op1 == nullptr) {
+            return false;
+        }
+        auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
+        if (op2 == nullptr) {
+            return false;
+        }
+        auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
+        if (dst == nullptr) {
+            return false;
+        }
+
+        *dst = static_cast<uint16_t>(*op1 - *op2);
+
+        return true;
     }
 
-    bool Vm::mul(ParsedInstruction &) {
-        return false;
+    bool Vm::mul(ParsedInstruction &instr) {
+        auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (op1 == nullptr) {
+            return false;
+        }
+        auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
+        if (op2 == nullptr) {
+            return false;
+        }
+        auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
+        if (dst == nullptr) {
+            return false;
+        }
+
+        *dst = static_cast<uint16_t>(*op1 * *op2);
+
+        return true;
     }
 
-    bool Vm::and_(ParsedInstruction &) {
-        return false;
+    bool Vm::and_(ParsedInstruction &instr) {
+        auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (op1 == nullptr) {
+            return false;
+        }
+        auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
+        if (op2 == nullptr) {
+            return false;
+        }
+        auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
+        if (dst == nullptr) {
+            return false;
+        }
+
+        *dst = static_cast<uint16_t>(*op1 & *op2);
+
+        return true;
     }
 
-    bool Vm::or_(ParsedInstruction &) {
-        return false;
+    bool Vm::or_(ParsedInstruction &instr) {
+        auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (op1 == nullptr) {
+            return false;
+        }
+        auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
+        if (op2 == nullptr) {
+            return false;
+        }
+        auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
+        if (dst == nullptr) {
+            return false;
+        }
+
+        *dst = static_cast<uint16_t>(*op1 | *op2);
+
+        return true;
     }
 
-    bool Vm::xor_(ParsedInstruction &) {
-        return false;
+    bool Vm::xor_(ParsedInstruction &instr) {
+        auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (op1 == nullptr) {
+            return false;
+        }
+        auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
+        if (op2 == nullptr) {
+            return false;
+        }
+        auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
+        if (dst == nullptr) {
+            return false;
+        }
+
+        *dst = static_cast<uint16_t>(*op1 ^ *op2);
+
+        return true;
     }
 
-    bool Vm::shl(ParsedInstruction &) {
-        return false;
+    bool Vm::shl(ParsedInstruction &instr) {
+        auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (op1 == nullptr) {
+            return false;
+        }
+        auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
+        if (op2 == nullptr) {
+            return false;
+        }
+        auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
+        if (dst == nullptr) {
+            return false;
+        }
+
+        *dst = (*op1 << *op2);
+
+        return true;
     }
 
-    bool Vm::shr(ParsedInstruction &) {
-        return false;
+    bool Vm::shr(ParsedInstruction &instr) {
+        auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (op1 == nullptr) {
+            return false;
+        }
+        auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
+        if (op2 == nullptr) {
+            return false;
+        }
+        auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
+        if (dst == nullptr) {
+            return false;
+        }
+
+        *dst = (*op1 >> *op2);
+
+        return true;
     }
 
     bool Vm::call(ParsedInstruction &) {
@@ -183,7 +303,7 @@ namespace werk::vm {
     }
 
     bool Vm::nop(ParsedInstruction &) {
-        return false;
+        return true;
     }
 
     bool Vm::jmp(ParsedInstruction &) {
