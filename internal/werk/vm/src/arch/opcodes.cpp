@@ -3,7 +3,7 @@
 
 #include <arch/opcodes.hpp>
 
-namespace werk::arch::opcodes {
+namespace werk::vm {
     constexpr std::string_view kMov = "mov";
     constexpr std::string_view kLoad = "load";
     constexpr std::string_view kStore = "store";

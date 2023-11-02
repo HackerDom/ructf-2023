@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace werk::arch {
+namespace werk::vm {
     typedef uint16_t v_register_t;
     typedef uint16_t pc_register_t;
     typedef uint16_t sp_register_t;

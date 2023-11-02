@@ -38,8 +38,8 @@ namespace werk::assembler {
 
     class Lexer {
     public:
-        Lexer(std::shared_ptr<arch::opcodes::OpcodesManager> om,
-              std::shared_ptr<arch::registers::RegistersManager> rm) : opcodesManager(std::move(om)),
+        Lexer(std::shared_ptr<vm::OpcodesManager> om,
+              std::shared_ptr<vm::RegistersManager> rm) : opcodesManager(std::move(om)),
                                                                        registersManager(std::move(rm)) {
         }
 
@@ -52,8 +52,8 @@ namespace werk::assembler {
         TokenizeResult Tokenize(std::string_view text);
 
     private:
-        std::shared_ptr<arch::opcodes::OpcodesManager> opcodesManager;
-        std::shared_ptr<arch::registers::RegistersManager> registersManager;
+        std::shared_ptr<vm::OpcodesManager> opcodesManager;
+        std::shared_ptr<vm::RegistersManager> registersManager;
 
         using TokenReadResult = std::pair<Token, std::string>;
 
