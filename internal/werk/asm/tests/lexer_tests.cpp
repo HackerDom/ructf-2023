@@ -3,6 +3,7 @@
 #include <lexer.hpp>
 
 using namespace werk::assembler;
+using namespace werk::vm;
 using namespace std::literals;
 using werk::assembler::Token;
 
@@ -18,8 +19,8 @@ static std::string tokensToString(const std::vector<Token> &tokens) {
 
 static void assertTokenizeResult(std::string_view text, std::initializer_list<Token> expectedTokens,
                                  const std::string &expectedError) {
-    auto lexer = Lexer(std::make_shared<werk::arch::opcodes::OpcodesManager>(),
-                       std::make_shared<werk::arch::registers::RegistersManager>());
+    auto lexer = Lexer(std::make_shared<OpcodesManager>(),
+                       std::make_shared<RegistersManager>());
 
     auto result = lexer.Tokenize(text);
 

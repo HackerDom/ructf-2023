@@ -10,7 +10,7 @@
 namespace werk::server {
     union Page {
         vd_t vd;
-        uint8_t memory[arch::constants::kMemorySize];
+        uint8_t memory[vm::kMemorySize];
     };
 
     class PagesPool {

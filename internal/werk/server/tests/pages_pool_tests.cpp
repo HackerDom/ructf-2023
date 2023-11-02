@@ -3,6 +3,7 @@
 #include <pages_pool.hpp>
 
 using namespace werk::server;
+using namespace werk::vm;
 
 std::shared_ptr<PagesPool> Pool(std::size_t count) {
     return std::make_shared<PagesPool>(count);
@@ -16,7 +17,7 @@ bool PagesOverlaps(Page *p1, Page *p2) {
         std::swap(a, b);
     }
 
-    return b < reinterpret_cast<void *>(reinterpret_cast<uint8_t *>(a) + werk::arch::constants::kMemorySize);
+    return b < reinterpret_cast<void *>(reinterpret_cast<uint8_t *>(a) + kMemorySize);
 }
 
 TEST(PagesPool, SeqAllocate) {

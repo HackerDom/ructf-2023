@@ -18,7 +18,7 @@ namespace werk::server {
     }
 
     RunLoader::RunResultT RunLoader::LoadFromCode(uint8_t *code, std::size_t size) {
-        if (arch::constants::kProgramLoadOffset + size >= arch::constants::kMemorySize) {
+        if (vm::kProgramLoadOffset + size >= vm::kMemorySize) {
             return RunResultT::of_error("the program is too big");
         }
 
@@ -32,7 +32,7 @@ namespace werk::server {
         }
 
         std::memcpy(
-                page.page->memory + arch::constants::kProgramLoadOffset,
+                page.page->memory + vm::kProgramLoadOffset,
                 code,
                 size
         );
@@ -55,7 +55,7 @@ namespace werk::server {
             return RunResultT::of_error(utils::PError("fstat"));
         }
 
-        if (static_cast<std::size_t>(statResult.st_size) > (arch::constants::kMemorySize - arch::constants::kProgramLoadOffset)) {
+        if (static_cast<std::size_t>(statResult.st_size) > (vm::kMemorySize - vm::kProgramLoadOffset)) {
             return RunResultT::of_error("program file is too big");
         }
 

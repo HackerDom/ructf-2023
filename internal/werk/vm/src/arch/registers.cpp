@@ -2,7 +2,7 @@
 
 #include <arch/registers.hpp>
 
-namespace werk::arch::registers {
+namespace werk::vm {
     constexpr std::string_view kSpName = "sp";
     constexpr std::string_view kPcName = "pc";
 

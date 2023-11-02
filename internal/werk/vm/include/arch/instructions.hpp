@@ -42,7 +42,7 @@ namespace werk::vm {
 
     class InstructionSet {
     public:
-        virtual const Instruction &GetInstructionByName(std::string_view name) const = 0;
-        virtual const Instruction &GetInstructionByOpcode(int opcode) const = 0;
+        [[nodiscard]] virtual const Instruction &GetInstructionByName(std::string_view name) const = 0;
+        [[nodiscard]] virtual const Instruction &GetInstructionByOpcode(int opcode) const = 0;
     };
 }

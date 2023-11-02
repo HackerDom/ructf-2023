@@ -1,10 +1,19 @@
+#pragma once
+
 #include <unordered_set>
 #include <string_view>
 #include <vector>
 
 #include <utils/strings.hpp>
 
-namespace werk::arch::registers {
+#include "types.hpp"
+#include "constants.hpp"
+
+namespace werk::vm {
+    struct Registers {
+        v_register_t v[kVRegistersCount];
+    };
+
     class RegistersManager {
     public:
         RegistersManager();

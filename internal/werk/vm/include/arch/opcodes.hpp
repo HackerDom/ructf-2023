@@ -5,7 +5,7 @@
 
 #include <utils/strings.hpp>
 
-namespace werk::arch::opcodes {
+namespace werk::vm {
     class OpcodesManager {
     public:
         OpcodesManager();
