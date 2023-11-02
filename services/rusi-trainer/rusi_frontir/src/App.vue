@@ -1,5 +1,8 @@
 <template>
   <div class="bg-color"></div>
+  <audio ref="myaudio" style="display: none">
+    <source src="@/assets/PhonkTechnoSigmaByEmerelGrayInfraction.mp3#t=00:00:11" type="audio/mpeg">
+  </audio>
   <header>
     <nav>
       <router-link class="main-link" to="/">
@@ -10,7 +13,7 @@
       <img class="drink-button" src="@/assets/drink.png" alt="drink-water" />
     </router-link>
   </header>
-  <router-view @onlogin="onlogin" :token="token"> </router-view>
+  <router-view @onlogin="onlogin" @playphonk="playphonk" @stopphonk="stopphonk" :token="token"> </router-view>
 </template>
 <script>
 export default {
@@ -24,6 +27,13 @@ export default {
     onlogin(token) {
       this.token = token
       localStorage.setItem('token', token)
+    },
+    playphonk(){
+      this.$refs.myaudio.volume = 0.4;
+      this.$refs.myaudio.play();
+    },
+    stopphonk(){
+      this.$refs.myaudio.pause();
     }
   }
 }
