@@ -18,7 +18,20 @@ services:
     ports:
       - "18484:31337"
 
-  # TODO: add cleaner
+  cleaner:
+    build: cleaner
+    cpus: 1
+    pids_limit: 256
+    mem_limit: 256M
+    memswap_limit: 256M
+    ulimits:
+      nofile:
+        soft: 16384
+        hard: 16384
+    restart: unless-stopped
+    stop_grace_period: 3s
+    volumes:
+      - database:/var/perune/database:rw
 
 volumes:
   database:

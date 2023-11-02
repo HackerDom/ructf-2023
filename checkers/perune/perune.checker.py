@@ -70,7 +70,6 @@ async def check_service(request: CheckRequest) -> Verdict:
 
     return ec.verdict
 
-
 @checker.define_vuln("flag_id is an username")
 class CryptoChecker(VulnChecker):
     @staticmethod
@@ -84,17 +83,85 @@ class CryptoChecker(VulnChecker):
             gift.set_id(gift_id)
             prayer = cli.make_prayer(gift, request.flag.encode())
             
-
             if prayer is None:
                 ec.verdict = Verdict.MUMBLE("Can't create prayer with gift")
-            else:
-                ec.verdict = Verdict.OK_WITH_FLAG_ID(gift_id.decode(), prayer.id.decode())
+                cli.exit()
+                return ec.verdict
             
-            cli.call_perune(prayer.id)
+            res = cli.call_perune(prayer.id)
+            
+            if prayer.text in res:
+                ec.verdict = Verdict.OK_WITH_FLAG_ID(gift_id.decode(), prayer.id.decode())
+            else:
+                ec.verdict = Verdict.MUMBLE("Perune logic is changed!")
+
             cli.exit()
 
         return ec.verdict
+    
+    @staticmethod 
+    def check(request: CheckRequest) -> Verdict:
+        with ErrorChecker() as ec:
+            cli = PeruneClient(request.hostname, PORT)
+            cli.connection()
+            cli.read_menu()
+            gift = MakeRandomValidGift(10)
+            gift_id = cli.make_gift(gift)
+            gift.set_id(gift_id)
+            prayer = cli.make_prayer(gift, os.urandom(16).hex().encode())
 
+            if prayer is None:
+                ec.verdict = Verdict.MUMBLE("Can't create prayer with gift")
+                cli.exit()
+                return ec.verdict
+            
+            viewed_gift = cli.view_gift(gift_id, gift.password)
+
+            if not check_gifts(gift, viewed_gift):
+                ec.verdict = Verdict.MUMBLE("Viewed gift is not the same as created gift!")
+                cli.exit()
+                return ec.verdict
+
+            res = cli.call_perune(prayer.id)
+            if prayer.text not in res:
+                ec.verdict = Verdict.MUMBLE("Perune logic is changed!")
+                cli.exit()
+                return ec.verdict
+
+            gift = MakeRandomInvalidGift(5)
+            gift_id = cli.make_gift(gift)
+            gift.set_id(gift_id)
+            prayer = cli.make_prayer(gift, os.urandom(16).hex().encode())
+
+            if prayer is None:
+                ec.verdict = Verdict.MUMBLE("Can't create prayer with gift")
+                cli.exit()
+                return ec.verdict
+
+            viewed_gift = cli.view_gift(gift_id, gift.password)
+
+            if not check_gifts(gift, viewed_gift):
+                ec.verdict = Verdict.MUMBLE("Viewed gift is not the same as created gift!")
+                cli.exit()
+                return ec.verdict
+            
+            res = cli.call_perune(prayer.id)
+
+            if b"lizard" not in res:
+                ec.verdict = Verdict.MUMBLE("Perune logic is changed!")
+                cli.exit()
+                return ec.verdict
+            
+            if prayer.text in res:
+                ec.verdict = Verdict.MUMBLE("Perune logic is changed!")
+                cli.exit()
+                return ec.verdict
+            
+            cli.exit()
+            ec.verdict = Verdict.OK('OK!')
+            
+        return ec.verdict
+    
     @staticmethod
     def get(request: GetRequest) -> Verdict:
         with ErrorChecker() as ec:
