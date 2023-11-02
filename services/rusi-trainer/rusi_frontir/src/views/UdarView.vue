@@ -10,6 +10,7 @@
       <img
         :src="items[udar.map]"
         class="bg"
+        @click="this.$emit('stopphonk')"
         alt="ПОШАГОВАЯ ИНСТРУКЦИЯ КАК СОТВОРИТЬ ВЕЛИКИЙ УДАР"
       />
       <h1 class="name-udar">{{ udar.name }}</h1>
@@ -67,6 +68,7 @@ export default {
         if (udar.teacherId === data.userId) {
           this.canEdit = true
         }
+        this.$emit('playphonk')
       })
       .catch((err) => {
         if (err.message === 'Auth error') {
