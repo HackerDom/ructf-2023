@@ -87,8 +87,30 @@ namespace werk::vm {
         return true;
     }
 
-    bool Vm::mov(ParsedInstruction &) {
-        return false;
+    bool Vm::mov(ParsedInstruction &instr) {
+        uint16_t src = 0;
+        if (instr.operands.first == 9) {
+            if (!instr.imm.defined) {
+                return false;
+            }
+
+            src = instr.imm.value;
+        } else {
+            auto *s = registers.GetRegisterByOperandNum(instr.operands.first);
+            if (s == nullptr) {
+                return false;
+            }
+            src = *s;
+        }
+
+        uint16_t *dst = registers.GetRegisterByOperandNum(instr.operands.second);
+        if (dst == nullptr) {
+            return false;
+        }
+
+        *dst = src;
+
+        return true;
     }
 
     bool Vm::push(ParsedInstruction &) {
