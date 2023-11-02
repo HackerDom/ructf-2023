@@ -8,7 +8,6 @@ namespace werk::server {
     Run::Run(vd_t vd, std::shared_ptr<vm::Vm> vm, std::uint64_t ticksLimit)
             : vd(vd), vm(std::move(vm)), ticksLimit(ticksLimit) {
         state = Running;
-        totalTicksCount = 0;
     }
 
     Run::State Run::GetState() const {
@@ -19,7 +18,6 @@ namespace werk::server {
         std::lock_guard<std::mutex> _(updateMutex);
 
         if (state == Running) {
-            totalTicksCount += ticksCount;
             updateStatusInternal(vm->Tick(ticksCount));
         }
     }
@@ -48,7 +46,7 @@ namespace werk::server {
                 break;
         }
 
-        if (totalTicksCount > ticksLimit) {
+        if (vm->GetTotalTicksCount() > ticksLimit) {
             state = State::Timeout;
             return;
         }
@@ -61,7 +59,7 @@ namespace werk::server {
     std::uint64_t Run::GetTotalTicks() const {
         std::lock_guard<std::mutex> _(updateMutex);
 
-        return totalTicksCount;
+        return vm->GetTotalTicksCount();
     }
 
     std::string Run::GetSerial() const {

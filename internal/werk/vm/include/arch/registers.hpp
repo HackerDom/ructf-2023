@@ -6,12 +6,18 @@
 
 #include <utils/strings.hpp>
 
-#include "types.hpp"
-#include "constants.hpp"
+#include <arch/types.hpp>
+#include <arch/constants.hpp>
 
 namespace werk::vm {
-    struct Registers {
+    struct RegistersSet {
         v_register_t v[kVRegistersCount];
+        pc_register_t pc;
+        sp_register_t sp;
+        i_register_t i;
+        f_register_t f;
+
+        register_t *GetRegisterByOperandNum(int num);
     };
 
     class RegistersManager {

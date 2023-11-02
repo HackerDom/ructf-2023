@@ -49,7 +49,6 @@ namespace werk::server {
 
         mutable std::mutex updateMutex;
         State state;
-        std::uint64_t totalTicksCount;
         std::uint64_t ticksLimit;
 
         void updateStatusInternal(vm::Vm::Status status);
