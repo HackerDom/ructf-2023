@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.11
+#!/usr/bin/python3.11
 import asyncio
 import base64
 import random
