@@ -9,7 +9,9 @@ from client.ancestor.ancestor_pb2 import (
     AddDirectAncestorRequest,
     AddDirectAncestorResponse,
     CreateAncestorResponse,
-    GetAncestorRequest
+    GetAncestorRequest,
+    EmptyRequest,
+    AncestorsCountResponse
 )
 from client.ancestor.ancestor_pb2_grpc import AncestorServStub
 from client.auth.auth_pb2 import (
@@ -94,5 +96,13 @@ class Client:
             self.ancestor_stub.AddDirectAncestor,
             AddDirectAncestorRequest(ancestor_id=ancestor_id.bytes),
             'AddDirectAncestor',
+            metadata=(('authorization', f'Bearer {token}'),),
+        )
+
+    def get_ancestors_count(self, token: str) -> AncestorsCountResponse:
+        return _send_request(
+            self.ancestor_stub.GetAncestorsCount,
+            EmptyRequest(),
+            'GetAncestorsCount',
             metadata=(('authorization', f'Bearer {token}'),),
         )

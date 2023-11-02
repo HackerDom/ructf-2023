@@ -1,0 +1,12 @@
+**/node_modules/
+**/build
+cleaner
+node_modules
+build
+**/rusi_frontir/
+rusi_frontir/
+.git
+.idea
+.gitignore
+.env
+npm-debug.log

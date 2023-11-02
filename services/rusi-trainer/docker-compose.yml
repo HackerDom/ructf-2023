@@ -1,0 +1,83 @@
+services:
+  rusi-db:
+    image: mysql
+    restart: unless-stopped
+    mem_limit: 1G
+    memswap_limit: 1G
+    cpu_count: 1
+    pids_limit: 128
+    logging:
+      options:
+        max-file: "2"
+        max-size: "5m"
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    volumes:
+      - baikaldata:/var/lib/mysql
+  rusi-trainer-api:
+    build: .
+    command: sh -c "npm run typeormig migration:run && npm run start"
+    restart: unless-stopped
+    mem_limit: 1G
+    memswap_limit: 1G
+    cpu_count: 1
+    pids_limit: 128
+    logging:
+      options:
+        max-file: "2"
+        max-size: "5m"
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
+    volumes:
+      - ./secrets:/usr/rusi-trainer/secrets
+    env_file:
+      - .env
+    depends_on:
+      - rusi-db
+  cleaner:
+    build: ./cleaner
+    cpus: 1
+    pids_limit: 256
+    mem_limit: 256M
+    memswap_limit: 256M
+    ulimits:
+      nofile:
+        soft: 12000
+        hard: 12000
+    logging:
+      options:
+        max-file: "1"
+        max-size: "1m"
+    restart: unless-stopped
+    stop_grace_period: 1s
+    depends_on:
+      - rusi-db
+  rusi-front:
+    build: ./rusi_frontir
+    cpus: 1
+    pids_limit: 256
+    mem_limit: 256M
+    memswap_limit: 256M
+    ulimits:
+      nofile:
+        soft: 12000
+        hard: 12000
+    logging:
+      options:
+        max-file: "1"
+        max-size: "1m"
+    restart: unless-stopped
+    ports:
+      - "41114:80"
+
+volumes:
+  baikaldata:

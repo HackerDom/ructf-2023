@@ -1,6 +1,7 @@
 #!/usr/bin/env python3.11
-
+import asyncio
 import base64
+import random
 import traceback
 import uuid
 
@@ -17,7 +18,7 @@ data_gen = DataGenerator()
 
 
 @checker.define_check
-def check_service(request: CheckRequest) -> Verdict:
+async def check_service(request: CheckRequest) -> Verdict:
     user, ancestor = data_gen.random_data()
 
     try:
@@ -59,6 +60,30 @@ def check_service(request: CheckRequest) -> Verdict:
                 if not resp or not resp.success:
                     utils.raise_wrong_data_exc('AddDirectAncestorResponse', resp)
 
+            print(">>Add more ancestors...")
+            count = random.randint(2, 5)
+            for i in range(count):
+                _, anc = data_gen.random_data()
+                resp = client.create_ancestor(
+                    id=anc.id,
+                    name=anc.name,
+                    description=anc.description,
+                    ancestor_type=user.species_type,
+                    burial_place=anc.burial_place,
+                    token=token,
+                )
+                if not resp or not resp.id:
+                    utils.raise_wrong_data_exc('CreateAncestorResponse', resp)
+            print(f'>>Total ancestors: {count + 1}')
+
+            print(">>Wait service redis cache")
+            await asyncio.sleep(11)
+
+            print(">>Checking ancestors count get...")
+            resp = client.get_ancestors_count(token=token)
+            if not resp or resp.count != count + 1:
+                utils.raise_wrong_data_exc('AncestorsCount', resp.count)
+
             return Verdict.OK()
 
     except utils.VerdictException as e:
@@ -77,7 +102,7 @@ class HyperboreaLegendsChecker(VulnChecker):
 
         try:
             if not request.flag_id or not request.public_flag_id:
-                return Verdict.CORRUPT('Flag is missing!')
+                return Verdict.MUMBLE('Flag is missing!')
             token = request.flag_id
             ancestor_id = uuid.UUID(bytes=base64.b64decode(request.public_flag_id))
             with Client(host=request.hostname, port=PORT) as client:

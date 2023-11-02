@@ -2,6 +2,7 @@ using Domain;
 using Google.Protobuf;
 using Grpc.Core;
 using Infrastructure.Database;
+using Infrastructure.Redis;
 using Microsoft.AspNetCore.Authorization;
 
 namespace API.Services;
@@ -11,12 +12,14 @@ public class AncestorService : AncestorServ.AncestorServBase
 {
     private readonly IAncestorRepository _ancestorRepository;
     private readonly JwtAuthManager _jwtAuthManager;
+    private readonly IRedisUserRepository _redisUserRepository;
 
     public AncestorService(JwtAuthManager jwtAuthManager,
-        IAncestorRepository ancestorRepository)
+        IAncestorRepository ancestorRepository, IRedisUserRepository redisUserRepository)
     {
         _jwtAuthManager = jwtAuthManager;
         _ancestorRepository = ancestorRepository;
+        _redisUserRepository = redisUserRepository;
     }
 
     public override async Task<AncestorData> GetAncestor(
@@ -138,6 +141,16 @@ public class AncestorService : AncestorServ.AncestorServBase
         return await Task.FromResult(new AddDirectAncestorResponse { Success = true });
     }
 
+    public override async Task<AncestorsCountResponse> GetAncestorsCount(
+        EmptyRequest request,
+        ServerCallContext context
+    )
+    {
+        var user = await _jwtAuthManager.GetUserByContext(context);
+        var redisData = await _redisUserRepository.GetByIdAsync(user.Id);
+        return await Task.FromResult(new AncestorsCountResponse { Count = redisData?.AncestorsCount ?? 0 });
+    }
+    
     private Guid ParseGuid(ByteString guidBytes)
     {
         try

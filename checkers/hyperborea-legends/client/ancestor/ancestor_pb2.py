@@ -6,30 +6,35 @@ from google.protobuf import descriptor as _descriptor
 from google.protobuf import descriptor_pool as _descriptor_pool
 from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
-
 # @@protoc_insertion_point(imports)
 
 _sym_db = _symbol_database.Default()
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(
-    b'\n\x0e\x61ncestor.proto\" \n\x12GetAncestorRequest\x12\n\n\x02id\x18\x01 \x01(\x0c\"j\n\x0c\x41ncestorData\x12\n\n\x02id\x18\x01 \x01(\x0c\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x15\n\rancestor_type\x18\x04 \x01(\t\x12\x14\n\x0c\x62urial_place\x18\x05 \x01(\t\"$\n\x16\x43reateAncestorResponse\x12\n\n\x02id\x18\x01 \x01(\x0c\"/\n\x18\x41\x64\x64\x44irectAncestorRequest\x12\x13\n\x0b\x61ncestor_id\x18\x01 \x01(\x0c\",\n\x19\x41\x64\x64\x44irectAncestorResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x32\xc7\x01\n\x0c\x41ncestorServ\x12\x31\n\x0bGetAncestor\x12\x13.GetAncestorRequest\x1a\r.AncestorData\x12\x38\n\x0e\x43reateAncestor\x12\r.AncestorData\x1a\x17.CreateAncestorResponse\x12J\n\x11\x41\x64\x64\x44irectAncestor\x12\x19.AddDirectAncestorRequest\x1a\x1a.AddDirectAncestorResponseB\x06\xaa\x02\x03\x41PIb\x06proto3')
+
+
+
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0e\x61ncestor.proto\" \n\x12GetAncestorRequest\x12\n\n\x02id\x18\x01 \x01(\x0c\"j\n\x0c\x41ncestorData\x12\n\n\x02id\x18\x01 \x01(\x0c\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x13\n\x0b\x64\x65scription\x18\x03 \x01(\t\x12\x15\n\rancestor_type\x18\x04 \x01(\t\x12\x14\n\x0c\x62urial_place\x18\x05 \x01(\t\"$\n\x16\x43reateAncestorResponse\x12\n\n\x02id\x18\x01 \x01(\x0c\"/\n\x18\x41\x64\x64\x44irectAncestorRequest\x12\x13\n\x0b\x61ncestor_id\x18\x01 \x01(\x0c\",\n\x19\x41\x64\x64\x44irectAncestorResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\"\x0e\n\x0c\x45mptyRequest\"\'\n\x16\x41ncestorsCountResponse\x12\r\n\x05\x63ount\x18\x01 \x01(\x03\x32\x84\x02\n\x0c\x41ncestorServ\x12\x31\n\x0bGetAncestor\x12\x13.GetAncestorRequest\x1a\r.AncestorData\x12\x38\n\x0e\x43reateAncestor\x12\r.AncestorData\x1a\x17.CreateAncestorResponse\x12J\n\x11\x41\x64\x64\x44irectAncestor\x12\x19.AddDirectAncestorRequest\x1a\x1a.AddDirectAncestorResponse\x12;\n\x11GetAncestorsCount\x12\r.EmptyRequest\x1a\x17.AncestorsCountResponseB\x06\xaa\x02\x03\x41PIb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'ancestor_pb2', _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
-    DESCRIPTOR._options = None
-    DESCRIPTOR._serialized_options = b'\252\002\003API'
-    _globals['_GETANCESTORREQUEST']._serialized_start = 18
-    _globals['_GETANCESTORREQUEST']._serialized_end = 50
-    _globals['_ANCESTORDATA']._serialized_start = 52
-    _globals['_ANCESTORDATA']._serialized_end = 158
-    _globals['_CREATEANCESTORRESPONSE']._serialized_start = 160
-    _globals['_CREATEANCESTORRESPONSE']._serialized_end = 196
-    _globals['_ADDDIRECTANCESTORREQUEST']._serialized_start = 198
-    _globals['_ADDDIRECTANCESTORREQUEST']._serialized_end = 245
-    _globals['_ADDDIRECTANCESTORRESPONSE']._serialized_start = 247
-    _globals['_ADDDIRECTANCESTORRESPONSE']._serialized_end = 291
-    _globals['_ANCESTORSERV']._serialized_start = 294
-    _globals['_ANCESTORSERV']._serialized_end = 493
+  DESCRIPTOR._options = None
+  DESCRIPTOR._serialized_options = b'\252\002\003API'
+  _globals['_GETANCESTORREQUEST']._serialized_start=18
+  _globals['_GETANCESTORREQUEST']._serialized_end=50
+  _globals['_ANCESTORDATA']._serialized_start=52
+  _globals['_ANCESTORDATA']._serialized_end=158
+  _globals['_CREATEANCESTORRESPONSE']._serialized_start=160
+  _globals['_CREATEANCESTORRESPONSE']._serialized_end=196
+  _globals['_ADDDIRECTANCESTORREQUEST']._serialized_start=198
+  _globals['_ADDDIRECTANCESTORREQUEST']._serialized_end=245
+  _globals['_ADDDIRECTANCESTORRESPONSE']._serialized_start=247
+  _globals['_ADDDIRECTANCESTORRESPONSE']._serialized_end=291
+  _globals['_EMPTYREQUEST']._serialized_start=293
+  _globals['_EMPTYREQUEST']._serialized_end=307
+  _globals['_ANCESTORSCOUNTRESPONSE']._serialized_start=309
+  _globals['_ANCESTORSCOUNTRESPONSE']._serialized_end=348
+  _globals['_ANCESTORSERV']._serialized_start=351
+  _globals['_ANCESTORSERV']._serialized_end=611
 # @@protoc_insertion_point(module_scope)

@@ -8,16 +8,15 @@ type UserPairModel struct {
 	TokenHash string
 }
 
-type AsmCodeModel struct {
+type ImageModel struct {
 	gorm.Model
-	UUID       string `gorm:"uniqueIndex"`
 	Owner      string
 	StorageKey string
 }
 
 type RunModel struct {
 	gorm.Model
-	ImageUUID string
-	Owner     string
-	Vd        uint64
+	ImageId uint32
+	Owner   string
+	Vd      uint64
 }

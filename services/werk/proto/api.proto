@@ -46,21 +46,21 @@ message CreateImageRequest {
 }
 
 message CreateImageResponse {
-  string image_uuid = 1;
+  uint32 image_id = 1;
 }
 
 message RunVMRequest {
   UserPair user_pair = 1;
-  string image_uuid = 2;
+  uint32 image_id = 2;
 }
 
 message RunVMResponse {
-  string run_uuid = 1;
+  uint32 run_id = 1;
 }
 
 message GetVMStateRequest {
   UserPair user_pair = 1;
-  string run_uuid = 2;
+  uint32 run_id = 2;
 }
 
 message GetVMStateResponse {
@@ -76,7 +76,7 @@ message GetVMStateResponse {
 
 message KillVMRequest {
   UserPair user_pair = 1;
-  string run_uuid = 2;
+  uint32 run_id = 2;
 }
 
 message KillVMResponse {
@@ -84,7 +84,7 @@ message KillVMResponse {
 
 message GetVMSerialRequest {
   UserPair user_pair = 1;
-  string run_uuid = 2;
+  uint32 run_id = 2;
 }
 
 message GetVMSerialResponse {

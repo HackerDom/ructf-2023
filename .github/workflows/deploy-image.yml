@@ -1,0 +1,14 @@
+name: Deploy image
+on:
+  workflow_dispatch: {}
+
+jobs:
+  rebuild_image:
+    name: Deploy image
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: deploy image
+      run: (cd ansible && ansible-playbook  --private-key .keys/cs_key cloud-update-image.yml)

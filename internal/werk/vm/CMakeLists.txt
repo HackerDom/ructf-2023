@@ -3,16 +3,24 @@ project(vm)
 
 set(HEADERS
         include/vm.hpp
+        include/arch/opcodes.hpp
+        include/arch/types.hpp
+        include/arch/registers.hpp
+        include/arch/constants.hpp
+        include/arch/instructions.hpp
         )
 
 set(SOURCES
         src/vm.cpp
+        src/arch/opcodes.cpp
+        src/arch/registers.cpp
+        src/arch/instructions.cpp
         )
 
 add_library(vm STATIC ${HEADERS} ${SOURCES})
-target_link_libraries(vm glog::glog)
+target_link_libraries(vm common glog::glog)
 target_include_directories(vm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_executable(vm_tests ${HEADERS} ${SOURCES} tests/main.cpp)
 target_include_directories(vm_tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(vm_tests glog::glog gtest)
+target_link_libraries(vm_tests common glog::glog gtest)

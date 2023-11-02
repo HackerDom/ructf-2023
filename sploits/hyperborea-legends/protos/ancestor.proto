@@ -6,6 +6,7 @@ service AncestorServ {
     rpc GetAncestor(GetAncestorRequest) returns (AncestorData);
     rpc CreateAncestor(AncestorData) returns (CreateAncestorResponse);
     rpc AddDirectAncestor(AddDirectAncestorRequest) returns (AddDirectAncestorResponse);
+    rpc GetAncestorsCount(EmptyRequest) returns (AncestorsCountResponse);
 }
 
 message GetAncestorRequest {
@@ -31,3 +32,10 @@ message AddDirectAncestorRequest {
 message AddDirectAncestorResponse {
     bool success = 1;
 }
+
+message EmptyRequest {}
+
+message AncestorsCountResponse {
+    int64 count = 1;
+}
+

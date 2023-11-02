@@ -41,3 +41,13 @@ class AddDirectAncestorResponse(_message.Message):
     SUCCESS_FIELD_NUMBER: _ClassVar[int]
     success: bool
     def __init__(self, success: bool = ...) -> None: ...
+
+class EmptyRequest(_message.Message):
+    __slots__ = []
+    def __init__(self) -> None: ...
+
+class AncestorsCountResponse(_message.Message):
+    __slots__ = ["count"]
+    COUNT_FIELD_NUMBER: _ClassVar[int]
+    count: int
+    def __init__(self, count: _Optional[int] = ...) -> None: ...
