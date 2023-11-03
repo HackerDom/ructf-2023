@@ -27,6 +27,7 @@ SPLOITS = [
     "funficfy",
     "hyperborea-legends",
     "memos", 
+    "perune", 
     "rusi-trainer",
     "rustest",
     "werk",
