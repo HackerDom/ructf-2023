@@ -22,9 +22,9 @@
           v-model="password"
         /><label for="password" title="Password">Тайнопись</label>
       </div>
-      <button class="slavic-button" type="submit">Возойти</button>
+      <button class="slavic-button" type="submit" title="Login">Возойти</button>
       <div class="groster">
-        <p class="error" v-if="error">Недосмотр: {{ error }}</p>
+        <p class="error" v-if="error" title="Error">Недосмотр: {{ error }}</p>
         <p>
           Ещё не с Перуном?
           <router-link to="/register" class="link" title="Register">Приобщиться</router-link>

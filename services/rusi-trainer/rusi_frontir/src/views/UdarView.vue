@@ -1,8 +1,8 @@
 <template>
   <div class="udar-viewer">
     <div class="not-found-error" v-if="!found">
-      <h1 class="not-found">Нет такого удара в собрании вашем</h1>
-      <h2 class="not-found-help">
+      <h1 class="not-found" title="Not found item">Нет такого удара в собрании вашем</h1>
+      <h2 class="not-found-help" title="Create it item">
         <router-link to="/teach">Обучите</router-link> этому приёму молодцев наших
       </h2>
     </div>
@@ -25,6 +25,7 @@
     <router-link
       class="slavic-button"
       tag="button"
+      title="Change item"
       :to="{ path: '/teach', query: { name: udar.name } }"
       v-if="udar && canEdit"
     >

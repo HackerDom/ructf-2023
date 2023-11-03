@@ -1,6 +1,6 @@
 <template>
   <div class="block">
-    <h1 class="helper">УХОДИ ПОДЛЫЙ ЯЩЕР!!!</h1>
+    <h1 class="helper" title="GO AWAY LIZARD!!!">УХОДИ ПОДЛЫЙ ЯЩЕР!!!</h1>
   </div>
 </template>
 

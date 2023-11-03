@@ -1,6 +1,6 @@
 <template>
   <div class="about">
-    <h1>
+    <h1 title="Collection of great techniques of ancient Rus">
       Собрание великих приёмов <br />
       древних русов
     </h1>
