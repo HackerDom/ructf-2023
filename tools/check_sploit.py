@@ -7,13 +7,14 @@ import json
 
 
 SERVICE_NAME = sys.argv[1]
+HOST = sys.argv[2]
 FLAG_ID = "flag-id"
 TEST_FLAG = "=" + "".join(random.choice(string.ascii_lowercase) for _ in range(32))
 
 
 print(f"Checking sploit using flag '{TEST_FLAG}'")
 p = subprocess.Popen(
-    [f"./{SERVICE_NAME}.checker.py", "PUT", "127.0.0.1", FLAG_ID, TEST_FLAG, "1"],
+    [f"./{SERVICE_NAME}.checker.py", "PUT", HOST, FLAG_ID, TEST_FLAG, "1"],
     cwd=f"checkers/{SERVICE_NAME}",
     stdout=subprocess.PIPE,
     stderr=subprocess.PIPE,
@@ -27,7 +28,7 @@ flag_private = json.loads(flag_data)["private_content"]
 print(f"Private flag id: {flag_private}")
 
 p = subprocess.Popen(
-    [f"./{SERVICE_NAME}.sploit.py", "127.0.0.1", FLAG_ID],
+    [f"./{SERVICE_NAME}.sploit.py", HOST, FLAG_ID],
     cwd=f"sploits/{SERVICE_NAME}",
     stdout=subprocess.PIPE,
     stderr=subprocess.PIPE,
