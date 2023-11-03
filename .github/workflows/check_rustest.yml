@@ -56,7 +56,7 @@ jobs:
     - name: Setup sploit libraries
       run: if [ -f sploits/rustest/requirements.txt ]; then python -m pip install -r sploits/rustest/requirements.txt; fi
     - name: Test sploit on service
-      run: (./tools/check_sploit.py rustest 127.0.0.1)
+      run: TERM=linux ./tools/check_sploit.py rustest 127.0.0.1
   check_stand_sploit_rustest:
     name: Check stand sploit rustest
     runs-on: self-hosted
