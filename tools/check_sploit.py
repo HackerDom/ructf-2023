@@ -9,7 +9,7 @@ import json
 SERVICE_NAME = sys.argv[1]
 HOST = sys.argv[2]
 FLAG_ID = "flag-id"
-TEST_FLAG = "=" + "".join(random.choice(string.ascii_lowercase) for _ in range(32))
+TEST_FLAG = "".join(random.choice(string.ascii_uppercase) for _ in range(31)) + "="
 
 
 print(f"Checking sploit using flag '{TEST_FLAG}'")
