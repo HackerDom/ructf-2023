@@ -441,3 +441,51 @@ TEST(Vm, RetInstruction) {
         }
     );
 }
+
+TEST(Vm, OutInstruction) {
+    uint8_t *memory = new uint8_t[kMemorySize];
+    Defer f([memory]{ delete[] memory; });
+
+    uint16_t instructionShort = 0xd400; // out v4
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 'c', 0x1337, 0, 0}, .sp = 0x458},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->GetSerial(), std::vector<char>({'c'}));
+        }
+    );
+}
+
+TEST(Vm, HexoutInstruction) {
+    uint8_t *memory = new uint8_t[kMemorySize];
+    Defer f([memory]{ delete[] memory; });
+
+    uint16_t instructionShort = 0xdc00; // hexout v4
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 0xdead, 0x1337, 0, 0}, .sp = 0x458},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->GetSerial(), std::vector<char>({'0', 'x', 'd', 'e', 'a', 'd'}));
+        }
+    );
+
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 0x000d, 0x1337, 0, 0}, .sp = 0x458},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->GetSerial(), std::vector<char>({'0', 'x', '0', '0', '0', 'd'}));
+        }
+    );
+}

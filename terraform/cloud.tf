@@ -1,14 +1,9 @@
 resource "digitalocean_droplet" "cloud" {
-  image  = "ubuntu-20-04-x64"
-  name   = "cloud"
-  region = var.region
-  size   = "g-2vcpu-8gb"
-  ssh_keys = [
-    data.digitalocean_ssh_key.cs.id,
-    data.digitalocean_ssh_key.cerebralobserver.id,
-    data.digitalocean_ssh_key.dvl.id,
-    data.digitalocean_ssh_key.lololozhkin.id,
-  ]
+  image    = "ubuntu-20-04-x64"
+  name     = "cloud"
+  region   = var.region
+  size     = "g-2vcpu-8gb"
+  ssh_keys = local.all_ssh_keys
   connection {
     host        = self.ipv4_address
     user        = "root"
