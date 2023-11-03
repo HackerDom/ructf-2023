@@ -309,7 +309,7 @@ TEST(Vm, PopInstruction) {
     uint8_t *memory = new uint8_t[kMemorySize];
     Defer f([memory]{ delete[] memory; });
 
-    uint16_t instructionShort = 0x2400; // push v4
+    uint16_t instructionShort = 0x2400; // pop v4
     std::memset(memory, 0, kMemorySize);
     memory[0x88a] = 0xde;
     memory[0x889] = 0xad;
@@ -327,7 +327,7 @@ TEST(Vm, PopInstruction) {
         }
     );
 
-    instructionShort = 0x2600; // push v6
+    instructionShort = 0x2600; // pop v6
     std::memset(memory, 0, kMemorySize);
     memory[0x0001] = 0xde;
     memory[0x0000] = 0xad;
@@ -380,6 +380,48 @@ TEST(Vm, PoweroffInstruction) {
         RegistersSet{.v = {0, 0, 0, 0, 0xde, 0x13, 0, 0}},
         [memory](std::shared_ptr<Vm> v){
             ASSERT_EQ(v->GetStatus(), Vm::Status::Finished);
+        }
+    );
+}
+
+TEST(Vm, CallInstruction) {
+    uint8_t *memory = new uint8_t[kMemorySize];
+    Defer f([memory]{ delete[] memory; });
+
+    uint16_t instructionShort = 0x6d00; // call v5
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 0xde, 0x1337, 0, 0}, .sp = 0x456},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(memory[0x457], 0x39);
+            ASSERT_EQ(memory[0x458], 0x13);
+            ASSERT_EQ(v->registers.sp, 0x458);
+            ASSERT_EQ(v->registers.pc, 0x1337);
+        }
+    );
+}
+
+TEST(Vm, RetInstruction) {
+    uint8_t *memory = new uint8_t[kMemorySize];
+    Defer f([memory]{ delete[] memory; });
+
+    uint16_t instructionShort = 0xe800; // ret
+    memory[0x457] = 0x39;
+    memory[0x458] = 0x13;
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 0xde, 0x1337, 0, 0}, .sp = 0x458},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.sp, 0x456);
+            ASSERT_EQ(v->registers.pc, 0x1339);
         }
     );
 }

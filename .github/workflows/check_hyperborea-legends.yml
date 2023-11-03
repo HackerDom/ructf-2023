@@ -65,8 +65,8 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v2
     - name: Setup checker libraries
-      run: if [ -f checkers/hyperborea-legends/requirements.txt ]; then python3.11 -m pip install -r checkers/hyperborea-legends/requirements.txt; fi
+      run: if [ -f checkers/hyperborea-legends/requirements.txt ]; then python3 -m pip install -r checkers/hyperborea-legends/requirements.txt; fi
     - name: Setup sploit libraries
-      run: if [ -f sploits/hyperborea-legends/requirements.txt ]; then python3.11 -m pip install -r sploits/hyperborea-legends/requirements.txt; fi
+      run: if [ -f sploits/hyperborea-legends/requirements.txt ]; then python3 -m pip install -r sploits/hyperborea-legends/requirements.txt; fi
     - name: Test sploit on service
       run: (./tools/check_sploit.py hyperborea-legends test1.cloud.ructf.org)

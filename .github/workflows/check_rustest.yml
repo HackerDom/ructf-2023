@@ -65,8 +65,8 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v2
     - name: Setup checker libraries
-      run: if [ -f checkers/rustest/requirements.txt ]; then python3.11 -m pip install -r checkers/rustest/requirements.txt; fi
+      run: if [ -f checkers/rustest/requirements.txt ]; then python3 -m pip install -r checkers/rustest/requirements.txt; fi
     - name: Setup sploit libraries
-      run: if [ -f sploits/rustest/requirements.txt ]; then python3.11 -m pip install -r sploits/rustest/requirements.txt; fi
+      run: if [ -f sploits/rustest/requirements.txt ]; then python3 -m pip install -r sploits/rustest/requirements.txt; fi
     - name: Test sploit on service
       run: (./tools/check_sploit.py rustest test1.cloud.ructf.org)

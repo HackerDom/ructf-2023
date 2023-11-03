@@ -112,9 +112,9 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v2
     - name: Setup checker libraries
-      run: if [ -f checkers/{service}/requirements.txt ]; then python3.11 -m pip install -r checkers/{service}/requirements.txt; fi
+      run: if [ -f checkers/{service}/requirements.txt ]; then python3 -m pip install -r checkers/{service}/requirements.txt; fi
     - name: Setup sploit libraries
-      run: if [ -f sploits/{service}/requirements.txt ]; then python3.11 -m pip install -r sploits/{service}/requirements.txt; fi
+      run: if [ -f sploits/{service}/requirements.txt ]; then python3 -m pip install -r sploits/{service}/requirements.txt; fi
     - name: Test sploit on service
       run: (./tools/check_sploit.py {service} test1.cloud.ructf.org)
 """[1:]
