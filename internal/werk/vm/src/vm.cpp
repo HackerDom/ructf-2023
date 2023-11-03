@@ -60,16 +60,16 @@ namespace werk::vm {
         *(reinterpret_cast<uint8_t*>(out)) = memoryBytePtr[registers.sp--];
     }
 
-    bool Vm::load(ParsedInstruction &instr) {
+    Vm::Status Vm::load(ParsedInstruction &instr) {
         auto *target = registers.GetRegisterByOperandNum(instr.operands.first);
         if (target == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         auto i = registers.i;
 
         if (kServiceRegionStart <= i && i <= kServiceRegionEnd) {
-            return false;
+            return Status::Crashed;
         }
 
         auto low = memoryBytePtr[i];
@@ -77,297 +77,297 @@ namespace werk::vm {
 
         *target = (high << 8) | low;
 
-        return true;
+        return Status::Running;
     }
 
-    bool Vm::store(ParsedInstruction &instr) {
+    Vm::Status Vm::store(ParsedInstruction &instr) {
         auto *target = registers.GetRegisterByOperandNum(instr.operands.first);
         if (target == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         auto i = registers.i;
 
         if (kServiceRegionStart <= i && i <= kServiceRegionEnd) {
-            return false;
+            return Status::Crashed;
         }
 
         memoryBytePtr[i] = (*target & 0xff);
         memoryBytePtr[i + 1] = ((*target & 0xff00) >> 8);
 
-        return true;
+        return Status::Running;
     }
 
-    bool Vm::mov(ParsedInstruction &instr) {
+    Vm::Status Vm::mov(ParsedInstruction &instr) {
         uint16_t src = 0;
         if (instr.operands.first == 9) {
             if (!instr.imm.defined) {
-                return false;
+                return Status::Crashed;
             }
 
             src = instr.imm.value;
         } else {
             auto *s = registers.GetRegisterByOperandNum(instr.operands.first);
             if (s == nullptr) {
-                return false;
+                return Status::Crashed;
             }
             src = *s;
         }
 
         uint16_t *dst = registers.GetRegisterByOperandNum(instr.operands.second);
         if (dst == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         *dst = src;
 
-        return true;
+        return Status::Running;
     }
 
-    bool Vm::push(ParsedInstruction &instr) {
+    Vm::Status Vm::push(ParsedInstruction &instr) {
         auto *val = registers.GetRegisterByOperandNum(instr.operands.first);
         if (val == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         push16(*val);
 
-        return true;
+        return Status::Running;
     }
 
-    bool Vm::pop(ParsedInstruction &instr) {
+    Vm::Status Vm::pop(ParsedInstruction &instr) {
         auto *val = registers.GetRegisterByOperandNum(instr.operands.first);
         if (val == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         pop16(val);
 
-        return true;
+        return Status::Running;
     }
 
-    bool Vm::add(ParsedInstruction &instr) {
+    Vm::Status Vm::add(ParsedInstruction &instr) {
         auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
         if (op1 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
         if (op2 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
         if (dst == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         *dst = static_cast<uint16_t>(*op1 + *op2);
 
-        return true;
+        return Status::Running;
     }
 
-    bool Vm::sub(ParsedInstruction &instr) {
+    Vm::Status Vm::sub(ParsedInstruction &instr) {
         auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
         if (op1 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
         if (op2 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
         if (dst == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         *dst = static_cast<uint16_t>(*op1 - *op2);
 
-        return true;
+        return Status::Running;
     }
 
-    bool Vm::mul(ParsedInstruction &instr) {
+    Vm::Status Vm::mul(ParsedInstruction &instr) {
         auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
         if (op1 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
         if (op2 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
         if (dst == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         *dst = static_cast<uint16_t>(*op1 * *op2);
 
-        return true;
+        return Status::Running;
     }
 
-    bool Vm::and_(ParsedInstruction &instr) {
+    Vm::Status Vm::and_(ParsedInstruction &instr) {
         auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
         if (op1 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
         if (op2 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
         if (dst == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         *dst = static_cast<uint16_t>(*op1 & *op2);
 
-        return true;
+        return Status::Crashed;
     }
 
-    bool Vm::or_(ParsedInstruction &instr) {
+    Vm::Status Vm::or_(ParsedInstruction &instr) {
         auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
         if (op1 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
         if (op2 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
         if (dst == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         *dst = static_cast<uint16_t>(*op1 | *op2);
 
-        return true;
+        return Status::Running;
     }
 
-    bool Vm::xor_(ParsedInstruction &instr) {
+    Vm::Status Vm::xor_(ParsedInstruction &instr) {
         auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
         if (op1 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
         if (op2 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
         if (dst == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         *dst = static_cast<uint16_t>(*op1 ^ *op2);
 
-        return true;
+        return Status::Running;
     }
 
-    bool Vm::shl(ParsedInstruction &instr) {
+    Vm::Status Vm::shl(ParsedInstruction &instr) {
         auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
         if (op1 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
         if (op2 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
         if (dst == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         *dst = (*op1 << *op2);
 
-        return true;
+        return Status::Running;
     }
 
-    bool Vm::shr(ParsedInstruction &instr) {
+    Vm::Status Vm::shr(ParsedInstruction &instr) {
         auto *op1 = registers.GetRegisterByOperandNum(instr.operands.first);
         if (op1 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *op2 = registers.GetRegisterByOperandNum(instr.operands.second);
         if (op2 == nullptr) {
-            return false;
+            return Status::Crashed;
         }
         auto *dst = registers.GetRegisterByOperandNum(instr.operands.third);
         if (dst == nullptr) {
-            return false;
+            return Status::Crashed;
         }
 
         *dst = (*op1 >> *op2);
 
-        return true;
+        return Status::Running;
     }
 
-    bool Vm::call(ParsedInstruction &instr) {
-        return false;
+    Vm::Status Vm::call(ParsedInstruction &instr) {
+        return Status::Crashed;
     }
 
-    bool Vm::nop(ParsedInstruction &) {
-        return true;
+    Vm::Status Vm::nop(ParsedInstruction &) {
+        return Status::Running;
     }
 
-    bool Vm::jmp(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::jmp(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::jl(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::jl(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::jg(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::jg(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::jle(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::jle(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::jge(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::jge(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::je(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::je(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::jne(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::jne(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::hlt(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::hlt(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::pushb(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::pushb(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::popb(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::popb(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::cmp(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::cmp(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::out(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::out(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::hexout(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::hexout(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::hexouta(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::hexouta(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::ret(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::ret(ParsedInstruction &) {
+        return Status::Crashed;
     }
 
-    bool Vm::poweroff(ParsedInstruction &) {
-        return false;
+    Vm::Status Vm::poweroff(ParsedInstruction &) {
+        return Status::Finished;
     }
 
     Vm::Status Vm::Tick(int opsCount) {
@@ -403,8 +403,9 @@ namespace werk::vm {
             return Status::Crashed;
         }
 
-        if (!instructionHandlers[static_cast<int>(instruction.opcode)](instruction)) {
-            return Status::Crashed;
+        status = instructionHandlers[static_cast<int>(instruction.opcode)](instruction);
+        if (status != Running) {
+            return status;
         }
 
         if (!instruction.setPc) {
@@ -414,7 +415,7 @@ namespace werk::vm {
         --remainOpsCount;
         ++totalTicksCount;
 
-        return Status::Running;
+        return status;
     }
 
     uint16_t Vm::readTwoBytesAt(uint16_t addr) {
