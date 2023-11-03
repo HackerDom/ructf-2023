@@ -476,4 +476,16 @@ TEST(Vm, HexoutInstruction) {
             ASSERT_EQ(v->GetSerial(), std::vector<char>({'0', 'x', 'd', 'e', 'a', 'd'}));
         }
     );
+
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 0x000d, 0x1337, 0, 0}, .sp = 0x458},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->GetSerial(), std::vector<char>({'0', 'x', '0', '0', '0', 'd'}));
+        }
+    );
 }
