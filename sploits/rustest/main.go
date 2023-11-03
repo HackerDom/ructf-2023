@@ -68,8 +68,12 @@ func getResp(ctx context.Context, client *http.Client, url string, method string
 	}
 	defer resp.Body.Close()
 
-	if err := json.NewDecoder(resp.Body).Decode(jsonResp); err != nil {
-		return fmt.Errorf("cannot parse json from response body: %w", err)
+	var buf bytes.Buffer
+	_, _ = io.Copy(&buf, resp.Body)
+	s := buf.String()
+
+	if err := json.NewDecoder(&buf).Decode(jsonResp); err != nil {
+		return fmt.Errorf("cannot parse json from response body `%s`: %w", s, err)
 	}
 
 	return nil
@@ -327,14 +331,16 @@ func main() {
 		url     string
 		workers uint
 	)
-	flag.StringVar(&url, "url", "", "(required) url of server to run sploit on")
-	flag.StringVar(&testID, "test", "", "(required) testID of test to hack")
 	flag.UintVar(&workers, "workers", 8, "amount of concurrent workers")
 	flag.Parse()
+	hostname := flag.Arg(0)
+	testID = flag.Arg(1)
 
-	if testID == "" || url == "" {
+	if testID == "" || hostname == "" {
 		log.Panic("`test` and `url` vars are required")
 	}
+
+	url = fmt.Sprintf("http://%s:13337", hostname)
 
 	client := makeClient()
 
@@ -342,5 +348,5 @@ func main() {
 	f, attempts := concurrentSploit(client, url, testID, workers)
 	dur := time.Since(start)
 
-	fmt.Printf("%s\nattempts: %d\ntime: %s\nrequests: %d", f, attempts, dur.String(), requestsTotal.Load())
+	fmt.Printf("%s\nattempts: %d\ntime: %s\nrequests: %d\n", f, attempts, dur.String(), requestsTotal.Load())
 }
