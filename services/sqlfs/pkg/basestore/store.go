@@ -12,6 +12,7 @@ type BaseStore interface {
 	RunInTransaction(_ context.Context, f func(context.Context) error) error
 	QueryRowContext(_ context.Context, query string, args ...any) *sql.Row
 	ExecContext(_ context.Context, query string, args ...any) (sql.Result, error)
+	QueryContext(_ context.Context, query string, args ...any) (*sql.Rows, error)
 }
 
 func New(db *sql.DB) BaseStore {
@@ -23,6 +24,18 @@ type baseStore struct {
 }
 
 func (bs *baseStore) RunInTransaction(ctx context.Context, f func(context.Context) error) error {
+	if tx, ok := fromContext(ctx); ok {
+		if err := f(ctx); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				zerolog.Ctx(ctx).Err(err).Msg("failed to rollback transaction")
+			}
+
+			return err
+		}
+
+		return nil
+	}
+
 	tx, err := bs.db.Begin()
 	if err != nil {
 		return fmt.Errorf("failed to begin transaction: %w", err)
@@ -60,4 +73,13 @@ func (bs *baseStore) ExecContext(ctx context.Context, query string, args ...any)
 	}
 
 	return bs.db.ExecContext(ctx, query, args...)
+}
+
+func (bs *baseStore) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+	tx, ok := fromContext(ctx)
+	if ok {
+		return tx.QueryContext(ctx, query, args...)
+	}
+
+	return bs.db.QueryContext(ctx, query, args...)
 }

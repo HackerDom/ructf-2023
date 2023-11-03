@@ -28,20 +28,33 @@ func (s *store) GetNodeIno(ctx context.Context, path string) (uint64, error) {
 }
 
 func (s *store) CreateEntry(ctx context.Context, path, filename string, ino uint64) error {
-	query, args, err := enriesTable.Insert().Rows(goqu.Record{
-		"path":     path,
-		"filename": filename,
-		"ino":      ino,
-	}).ToSQL()
-	if err != nil {
-		return fmt.Errorf("failed to build query: %w", err)
-	}
+	return s.RunInTransaction(ctx, func(ctx context.Context) error {
+		query, args, err := enriesTable.Insert().Rows(goqu.Record{
+			"path":     path,
+			"filename": filename,
+			"ino":      ino,
+		}).ToSQL()
+		if err != nil {
+			return fmt.Errorf("failed to build query: %w", err)
+		}
 
-	if _, err := s.ExecContext(ctx, query, args...); err != nil {
-		return fmt.Errorf("failed to exec query %s: %w", query, err)
-	}
+		if _, err := s.ExecContext(ctx, query, args...); err != nil {
+			return fmt.Errorf("failed to exec query %s: %w", query, err)
+		}
 
-	return nil
+		query, args, err = nodesTable.Update().Set(
+			goqu.Record{"nlink": goqu.L("nlink + 1")},
+		).Where(goqu.C("ino").Eq(ino)).Returning("nlink").ToSQL()
+		if err != nil {
+			return fmt.Errorf("failed to build query: %w", err)
+		}
+
+		if _, err := s.ExecContext(ctx, query, args...); err != nil {
+			return fmt.Errorf("failed to execute query %s: %w", query, err)
+		}
+
+		return nil
+	})
 }
 
 func (s *store) GetEntriesCount(ctx context.Context, options ...SelectOption) (uint64, error) {
@@ -65,22 +78,43 @@ func (s *store) GetEntriesCount(ctx context.Context, options ...SelectOption) (u
 	return count, nil
 }
 
-func (s *store) DeleteEntries(ctx context.Context, path, name string) (uint64, error) {
-	query, args, err := enriesTable.Delete().Where(goqu.Ex{
-		"path":     path,
-		"filename": name,
-	}).Returning("ino").ToSQL()
-	if err != nil {
-		return 0, fmt.Errorf("failed to build query: %w", err)
-	}
-
+func (s *store) DeleteEntry(ctx context.Context, path, name string) (uint64, uint64, error) {
 	var ino uint64
-	row := s.QueryRowContext(ctx, query, args...)
-	if err := row.Scan(&ino); err != nil {
-		return 0, fmt.Errorf("failed to exec query %s: %w", query, err)
+	var nlink uint64
+
+	err := s.RunInTransaction(ctx, func(ctx context.Context) error {
+		query, args, err := enriesTable.Delete().Where(goqu.Ex{
+			"path":     path,
+			"filename": name,
+		}).Returning("ino").ToSQL()
+		if err != nil {
+			return fmt.Errorf("failed to build query: %w", err)
+		}
+
+		row := s.QueryRowContext(ctx, query, args...)
+		if err := row.Scan(&ino); err != nil {
+			return fmt.Errorf("failed to exec query %s: %w", query, err)
+		}
+
+		query, args, err = nodesTable.Update().Set(
+			goqu.Record{"nlink": goqu.L("nlink - 1")},
+		).Where(goqu.C("ino").Eq(ino)).Returning("nlink").ToSQL()
+		if err != nil {
+			return fmt.Errorf("failed to build query: %w", err)
+		}
+
+		row = s.QueryRowContext(ctx, query, args...)
+		if err := row.Scan(&nlink); err != nil {
+			return fmt.Errorf("failed to execute query %s: %w", query, err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return 0, 0, err
 	}
 
-	return ino, nil
+	return ino, nlink, nil
 }
 
 func (s *store) UpdateEntries(

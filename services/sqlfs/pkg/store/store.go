@@ -28,11 +28,11 @@ type Store interface {
 	CreateNode(_ context.Context, mode uint32, size uint64, nlink uint64) (*model.Node, error)
 	CreateEntry(_ context.Context, path string, filename string, ino uint64) error
 	GetEntriesCount(_ context.Context, options ...SelectOption) (uint64, error)
-	DeleteEntries(_ context.Context, path string, name string) (ino uint64, _ error)
-	DecrementNodeNlink(_ context.Context, ino uint64) (nlink uint64, _ error)
-	DeleteNode(_ context.Context, ino uint64) error
+	DeleteEntry(_ context.Context, path string, name string) (ino uint64, nlink uint64, _ error)
+	TryDeleteZeroNlinkNode(_ context.Context, ino uint64) (bool, error)
 	UpdateEntries(_ context.Context, currentPath string, newPath string, _ *UpdateEntryMask, _ ...SelectOption) error
 	GetNodeByEntry(_ context.Context, path string, name string) (*model.Node, error)
+	CreateEntriesIter() EntriesIter
 }
 
 func New(baseStore basestore.BaseStore) Store {
