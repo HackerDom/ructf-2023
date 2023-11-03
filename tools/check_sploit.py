@@ -19,7 +19,8 @@ p = subprocess.Popen(
     stdout=subprocess.PIPE,
     stderr=subprocess.PIPE,
 )
-flag_data, _ = p.communicate()
+flag_data, err = p.communicate()
+print(err)
 print(f"Putted flag '{flag_data}'")
 
 FLAG_ID = json.loads(flag_data)["public_flag_id"]
