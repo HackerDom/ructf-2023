@@ -180,6 +180,7 @@ impl Authenticator {
         Ok(())
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn authenticate(
         &self,
         req: UserLoginRequest,
@@ -189,21 +190,29 @@ impl Authenticator {
             .get_user(&req.login)
             .await
             .context("cannot authenticate user")?;
+
+        tracing::debug!("got response about user from storage");
+
         let user = match user {
             Some(user) => user,
             None => return Err(AuthenticationError::UserNotFound { login: req.login }),
         };
+
+        tracing::debug!("user exists");
 
         let password_hash = self.hash_password(&req.password);
         if user.hash_password != password_hash {
             return Err(AuthenticationError::InvalidPassword { login: req.login });
         }
 
+        tracing::debug!("hashes of password are equal, user is now authenticated");
+
         Ok(UserLoginResponse {
             token: self.generate_token_for_user(&user),
         })
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn register(
         &self,
         req: RegisterUserRequest,
@@ -217,6 +226,8 @@ impl Authenticator {
             return Err(AuthenticationError::UserAlreadyExists { login: req.login });
         }
 
+        tracing::debug!("user is not present in database, could be registered");
+
         let user = User {
             login: req.login,
             hash_password: self.hash_password(&req.password),
@@ -228,11 +239,14 @@ impl Authenticator {
             .await
             .context("cannot register user")?;
 
+        tracing::debug!("user persisted to database");
+
         Ok(RegisterUserResponse {
             token: self.generate_token_for_user(&user),
         })
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn validate_token(&self, token: &str) -> Result<String, AuthenticationError> {
         let key = self
             .jwt_secret

@@ -219,6 +219,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-trace-id"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "179428535861159e550209d711f35667d304cbd77c2dc4037f0f107eff423941"
+dependencies = [
+ "axum",
+ "futures",
+ "tower",
+ "uuid",
+]
+
+[[package]]
 name = "backtrace"
 version = "0.3.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1285,6 +1297,7 @@ dependencies = [
  "aide",
  "anyhow",
  "axum",
+ "axum-trace-id",
  "base64 0.21.5",
  "dashmap",
  "digest",

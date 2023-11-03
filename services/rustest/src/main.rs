@@ -1,6 +1,7 @@
 #![forbid(unsafe_code)]
 pub mod application;
 pub mod authenticator;
+pub mod constants;
 pub mod dto;
 pub mod routes;
 pub mod storage;
@@ -35,13 +36,17 @@ async fn main() -> Result<()> {
     .await?;
 
     let mut storage = ETCDRustestStorage::new(client);
+    tracing::info!("started cache warming");
     storage.warm_caches(20).await?;
+    tracing::info!("cache warmed successfully");
     let storage = Arc::new(storage);
 
     let rus_app = Arc::new(RussApplication::new(Arc::clone(&storage)));
 
     let mut authenticator = Authenticator::new(Arc::clone(&storage));
+    tracing::info!("started initialization of authenticator");
     authenticator.init().await?;
+    tracing::info!("authenticator warmed successfuly");
 
     let authenticator = Arc::new(authenticator);
 
@@ -49,7 +54,7 @@ async fn main() -> Result<()> {
 
     let filter = filter::Targets::new()
         .with_target("", Level::INFO)
-        .with_target("rustest", Level::INFO)
+        .with_target("rustest", Level::DEBUG)
         .with_target("tower_http", Level::INFO)
         .with_target("tower_http::trace::make_span", Level::DEBUG);
 

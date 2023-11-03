@@ -12,7 +12,7 @@ use thiserror::Error;
 
 use crate::{
     dto::{Question, Rustest, User},
-    storage::ETCDRustestStorage,
+    storage::ETCDRustestStorage, constants::PAGE_SIZE,
 };
 
 #[derive(Clone, Debug, Error, OperationIo)]
@@ -232,6 +232,7 @@ impl RussApplication {
         RussApplication { storage }
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn get_rustest(
         &self,
         req: GetRustestRequest,
@@ -258,10 +259,13 @@ impl RussApplication {
         Ok(GetRustestResponse::Masked(rustest.into()))
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn get_rustest_user_state(
         &self,
         req: RustestUserStateRequest,
     ) -> Result<RustestUserStateResponse, RustestApplicationError> {
+        tracing::debug!("trying to find rustest");
+
         let rustest = self
             .storage
             .get_rustest(&req.test_id)
@@ -280,6 +284,8 @@ impl RussApplication {
             }
         };
 
+        tracing::debug!("rustest found in storage");
+
         if req.user_id == rustest.owner {
             return Err(RustestApplicationError::ActionNotAllowed {
                 action: format!(
@@ -288,6 +294,8 @@ impl RussApplication {
                 ),
             });
         }
+
+        tracing::debug!("rustest can be solved by user, user differs from author");
 
         if !self
             .storage
@@ -300,6 +308,8 @@ impl RussApplication {
             });
         }
 
+        tracing::debug!("user exists in database");
+
         // user and test existence checked, now we can retrieve user state for this test
         let user_state = self
             .storage
@@ -310,13 +320,19 @@ impl RussApplication {
                 req.test_id, req.user_id
             ))?;
 
+        tracing::debug!("got user state from database");
+
         if user_state.cur_round as usize >= rustest.questions.len() {
             // all rounds are seen, time for finals
             let final_state = if user_state.cur_round == user_state.points {
+                tracing::info!("user won the victorine, replying with reward");
+
                 FinalRustestState::Win {
                     reward: rustest.reward,
                 }
             } else {
+                tracing::info!("user lose the victorine");
+
                 FinalRustestState::Lose
             };
 
@@ -327,12 +343,15 @@ impl RussApplication {
             .clone()
             .into();
 
+        tracing::info!("round is in running state, replying with next question");
+
         Ok(RustestUserStateResponse::Running {
             question,
             round: user_state.cur_round,
         })
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn submit_answer(
         &self,
         req: SubmitAnswerRequest,
@@ -355,6 +374,8 @@ impl RussApplication {
             }
         };
 
+        tracing::debug!("got rustest from storage");
+
         if req.user_id == rustest.owner {
             return Err(RustestApplicationError::ActionNotAllowed {
                 action: format!(
@@ -363,6 +384,8 @@ impl RussApplication {
                 ),
             });
         }
+
+        tracing::debug!("user is able to solve test");
 
         if !self
             .storage
@@ -375,6 +398,8 @@ impl RussApplication {
             });
         }
 
+        tracing::debug!("user exists");
+
         // user and rustest exist, we can retrieve their's state
         let user_state = self
             .storage
@@ -385,6 +410,8 @@ impl RussApplication {
                 req.test_id, req.user_id
             ))?;
 
+        tracing::debug!("got user state on test");
+
         if user_state.cur_round != req.round {
             return Err(RustestApplicationError::InvalidDataProvided {
                 reason: format!(
@@ -393,6 +420,8 @@ impl RussApplication {
                 ),
             });
         }
+
+        tracing::debug!("user trying to submit answer on correct round");
 
         if req.round as usize >= rustest.questions.len() {
             return Err(RustestApplicationError::InvalidDataProvided {
@@ -405,6 +434,8 @@ impl RussApplication {
 
         let question = rustest.questions.get(req.round as usize).unwrap();
         let increment_points = req.answer == question.correct_idx;
+        tracing::info!(increment_points);
+
         let next_state = self
             .storage
             .increment_user_round_on_test(
@@ -419,17 +450,25 @@ impl RussApplication {
                 req.test_id, req.user_id
             ))?;
 
+        tracing::debug!("state of user persisted to database");
+
         if next_state.cur_round as usize >= rustest.questions.len() {
             let final_state = if next_state.points == next_state.cur_round {
+                tracing::info!("user won the victorine! replying with reward");
+
                 FinalRustestState::Win {
                     reward: rustest.reward,
                 }
             } else {
+                tracing::info!("user lose the victorine");
+
                 FinalRustestState::Lose
             };
 
             return Ok(SubmitAnswerResponse::Final { final_state });
         }
+
+        tracing::info!("state is not final, replying with next question");
 
         Ok(SubmitAnswerResponse::Running {
             question: rustest.questions[next_state.cur_round as usize]
@@ -439,6 +478,7 @@ impl RussApplication {
         })
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn create_rustest(
         &self,
         req: CreateRustestRequest,
@@ -454,12 +494,16 @@ impl RussApplication {
             });
         }
 
+        tracing::debug!("user exists");
+
         req.rustest
             .validate()
             .context("cannot create rustest, rustest is invalid")
             .map_err(|err| RustestApplicationError::InvalidDataProvided {
                 reason: err.to_string(),
             })?;
+        
+        tracing::info!("provided rustest is valid");
 
         let test = self
             .storage
@@ -467,9 +511,12 @@ impl RussApplication {
             .await
             .context(format!("cannot create rustest for user `{}`", req.user_id))?;
 
+        tracing::debug!("rustest persisted to database");
+
         Ok(CreateRustestResponse { rustest: test })
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn get_users_rustests(
         &self,
         req: UserRustestsRequest,
@@ -485,6 +532,8 @@ impl RussApplication {
             });
         }
 
+        tracing::debug!("user exists");
+
         let rustests = self
             .storage
             .rustests_of_user(&req.user_id)
@@ -493,24 +542,28 @@ impl RussApplication {
             .map(|rustests| UserRustestsResponse {
                 rustests: rustests.into_iter().map(|val| val.into()).collect(),
             })?;
+        
+        tracing::debug!("rustests of user retrieved successfully");
 
         Ok(rustests)
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn get_all_users_by_page(
         &self,
         req: GetUsersRequest,
     ) -> Result<GetUsersResponse, RustestApplicationError> {
-        let page_size = 20;
         let resp = self
             .storage
-            .get_users_by_page(req.page, page_size)
+            .get_users_by_page(req.page, PAGE_SIZE)
             .await
             .context(format!("cannot get {}'s page of users", req.page))
             .map(|(users, cnt)| GetUsersResponse {
-                pages_total: (cnt + page_size - 1) / page_size,
+                pages_total: (cnt + PAGE_SIZE - 1) / PAGE_SIZE,
                 users: users.into_iter().map(|user| user.into()).collect(),
             })?;
+
+        tracing::debug!("successfuly retrieved page of users");
 
         Ok(resp)
     }
@@ -519,16 +572,17 @@ impl RussApplication {
         &self,
         req: GetRustestsRequest,
     ) -> Result<GetRustestsResponse, RustestApplicationError> {
-        let page_size = 20;
         let resp = self
             .storage
-            .get_rustests_by_page(req.page, page_size)
+            .get_rustests_by_page(req.page, PAGE_SIZE)
             .await
             .context(format!("cannot get {}'s page of rustests", req.page))
             .map(|(rustests, cnt)| GetRustestsResponse {
-                pages_total: (cnt + page_size - 1) / page_size,
+                pages_total: (cnt + PAGE_SIZE - 1) / PAGE_SIZE,
                 rustests: rustests.into_iter().map(|rustest| rustest.into()).collect(),
             })?;
+        
+        tracing::debug!("successfully retrieved page of rustests");
 
         Ok(resp)
     }
