@@ -12,20 +12,20 @@ TEST(Instructions, GetOpcode) {
     ASSERT_EQ(GetOpcode(static_cast<uint16_t>(0xffff)), 31);
 }
 
-TEST(Instructions, IsExtendedInstruction) {
-    ASSERT_EQ(IsExtendedInstruction(static_cast<uint16_t>(0xfafe)), false);
-    ASSERT_EQ(IsExtendedInstruction(static_cast<uint16_t>(0x8101)), true);
+TEST(Instructions, IsInstructionWithImm) {
+    ASSERT_EQ(IsInstructionWithImm(static_cast<uint16_t>(0xfafe)), false);
+    ASSERT_EQ(IsInstructionWithImm(static_cast<uint16_t>(0x8101)), true);
 }
 
 TEST(Instructions, NonMovOps) {
     uint16_t b = 0xfd78;
-    ASSERT_EQ(GetNonMovFirstOp(b), 5);
-    ASSERT_EQ(GetNonMovSecondOp(b), 3);
-    ASSERT_EQ(GetNonMovThirdOp(b), 6);
+    ASSERT_EQ(GetShortInstructionFirstOp(b), 5);
+    ASSERT_EQ(GetShortInstructionSecondOp(b), 3);
+    ASSERT_EQ(GetShortInstructionThirdOp(b), 6);
 }
 
 TEST(Instructions, MovOps) {
     uint16_t b = 0xfd58;
-    ASSERT_EQ(GetMovFirstOp(b), 10);
-    ASSERT_EQ(GetMovSecondOp(b), 11);
+    ASSERT_EQ(GetLongInstructionFirstOp(b), 10);
+    ASSERT_EQ(GetLongInstructionSecondOp(b), 11);
 }

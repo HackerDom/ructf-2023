@@ -44,33 +44,38 @@ namespace werk::vm {
     constexpr uint16_t kNonMovThirdOpMask  = 0x001c; // 0b0000_0000_0001_1100
     constexpr uint16_t kMovFirstOpMask     = 0x0780; // 0b0000_0111_1000_0000
     constexpr uint16_t kMovSecondOpMask    = 0x0078; // 0b0000_0000_0111_1000
-    constexpr uint16_t kSizeBitMask        = 0x0001; // 0b0000_0000_0000_0001
+    constexpr uint16_t kExtendendArgsMask  = 0x0002; // 0b0000_0000_0000_0010
+    constexpr uint16_t kLoadImmBitMask     = 0x0001; // 0b0000_0000_0000_0001
 
     inline int GetOpcode(uint16_t b) {
         return (b & kOpcodeNumMask) >> 11;
     }
 
-    inline bool IsExtendedInstruction(uint16_t b) {
-        return (b & kSizeBitMask) != 0;
+    inline bool IsInstructionWithExtendedArgs(uint16_t b) {
+        return (b & kExtendendArgsMask) != 0;
     }
 
-    inline int GetNonMovFirstOp(uint16_t b) {
+    inline bool IsInstructionWithImm(uint16_t b) {
+        return (b & kLoadImmBitMask) != 0;
+    }
+
+    inline int GetShortInstructionFirstOp(uint16_t b) {
         return (b & kNonMovFirstOpMask) >> 8;
     }
 
-    inline int GetNonMovSecondOp(uint16_t b) {
+    inline int GetShortInstructionSecondOp(uint16_t b) {
         return (b & kNonMovSecondOpMask) >> 5;
     }
 
-    inline int GetNonMovThirdOp(uint16_t b) {
+    inline int GetShortInstructionThirdOp(uint16_t b) {
         return (b & kNonMovThirdOpMask) >> 2;
     }
 
-    inline int GetMovFirstOp(uint16_t b) {
+    inline int GetLongInstructionFirstOp(uint16_t b) {
         return (b & kMovFirstOpMask) >> 7;
     }
 
-    inline int GetMovSecondOp(uint16_t b) {
+    inline int GetLongInstructionSecondOp(uint16_t b) {
         return (b & kMovSecondOpMask) >> 3;
     }
 
@@ -84,5 +89,10 @@ namespace werk::vm {
             opcode == Jg ||
             opcode == Jle ||
             opcode == Jge;
+    }
+
+    inline int IsLongInstruction(Opcode opcode) {
+        // pc can be set by imm value
+        return opcode == Mov || IsSetPcInstruction(opcode);
     }
 }

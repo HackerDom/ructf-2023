@@ -60,13 +60,14 @@ teams: |
   {name => 'BinaryBears',           logo => '/logos/team_20.png',  network => '10.60.1.0/24', host => '10.60.1.3', token => 'CLOUD_1_a20f03f3173d26044ad174b6829f99c3', tags => ['onsite'] },
   
 services: |
-  {name => 'example', path => 'checkers/example/example.checker.py', timeout => 30, tcp_port => 2222},
+  {name => 'funficfy', path => 'checkers/funficfy/funficfy.checker.py', timeout => 30, tcp_port => 1337},
   {name => 'hyperborea-legends', path => 'checkers/hyperborea-legends/hyperborea-legends.checker.py', timeout => 30, tcp_port => 42424},
+  {name => 'memos', path => 'checkers/memos/memos.checker.py', timeout => 30, tcp_port => 17171},
   {name => 'perune', path => 'checkers/perune/perune.checker.py', timeout => 30, tcp_port => 18484},
   {name => 'rusi-trainer', path => 'checkers/rusi-trainer/rusi-trainer.checker.py', timeout => 30, tcp_port => 41114},
   {name => 'rustest', path => 'checkers/rustest/rustest.checker.py', timeout => 30, tcp_port => 13337},
-  {name => 'sqlfs', path => 'checkers/sqlfs/sqlfs.checker.py', timeout => 30, tcp_port => 22},
   {name => 'werk', path => 'checkers/werk/werk.checker.py', timeout => 30, tcp_port => 7654},
+  {name => 'wise-mystical-tree', path => 'checkers/wise-mystical-tree/wise-mystical-tree.checker.py', timeout => 30, tcp_port => 6174},
 
 queues: |
   {}
