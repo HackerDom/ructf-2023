@@ -17,15 +17,16 @@ public interface IAncestorRepository
 
 public class AncestorRepository : IAncestorRepository
 {
-    private readonly IDbConnection _db;
+    private readonly string _connString;
 
     public AncestorRepository(IConfiguration configuration)
     {
-        _db = new NpgsqlConnection(configuration["DatabaseConnectionString"]);
+        _connString = configuration["DatabaseConnectionString"]!;
     }
 
     public async Task CreateAsync(Ancestor ancestor)
     {
+        await using var db = new NpgsqlConnection(_connString);
         const string query =
             "INSERT INTO ancestors (id, name, description, species, burialPlace, ownerId) VALUES (@id, @name, @description, @species, @burialPlace, @ownerId)";
         var queryParams = new
@@ -37,12 +38,13 @@ public class AncestorRepository : IAncestorRepository
             burialPlace = ancestor.BurialPlace,
             ownerId = ancestor.OwnerId
         };
-        await _db.ExecuteAsync(query, queryParams);
+        await db.ExecuteAsync(query, queryParams);
     }
 
     public async Task<bool> CheckExistsByIdAsync(Guid id)
     {
-        var result = await _db.QueryFirstAsync<int>(
+        await using var db = new NpgsqlConnection(_connString);
+        var result = await db.QueryFirstAsync<int>(
             "SELECT COUNT(*) FROM ancestors WHERE id = @id",
             new { id = id.ToByteArray() }
         );
@@ -51,14 +53,16 @@ public class AncestorRepository : IAncestorRepository
 
     public async Task AddDirectAncestorToUser(Guid ancestorId, int userId)
     {
-        await _db.ExecuteAsync(
+        await using var db = new NpgsqlConnection(_connString);
+        await db.ExecuteAsync(
             "UPDATE users SET directAncestors = directAncestors || @ancestorId WHERE id = @userId",
             new { ancestorId = ancestorId.ToByteArray(), userId });
     }
 
     public async Task<Ancestor?> GetByIdAsync(Guid id)
     {
-        var ancestor = await _db.QueryFirstOrDefaultAsync<Ancestor>(
+        await using var db = new NpgsqlConnection(_connString);
+        var ancestor = await db.QueryFirstOrDefaultAsync<Ancestor>(
             "SELECT * FROM ancestors WHERE id = @id",
             new { id = id.ToByteArray() }
         );

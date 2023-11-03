@@ -16,16 +16,17 @@ public interface IUserRepository
 
 public class UserRepository : IUserRepository
 {
-    private readonly IDbConnection _db;
+    private readonly string _connString;
 
     public UserRepository(IConfiguration configuration)
     {
-        _db = new NpgsqlConnection(configuration["DatabaseConnectionString"]);
+        _connString = configuration["DatabaseConnectionString"]!;
     }
 
     public async Task<bool> CheckUsernameExistsAsync(string username)
     {
-        var result = await _db.QueryFirstAsync<int>(
+        await using var db = new NpgsqlConnection(_connString);
+        var result = await db.QueryFirstAsync<int>(
             "SELECT COUNT(*) FROM users WHERE username = @username",
             new { username }
         );
@@ -34,7 +35,8 @@ public class UserRepository : IUserRepository
 
     public async Task<int> CreateAsync(string username, string password, string type)
     {
-        var id = await _db.QueryFirstAsync<int>(
+        await using var db = new NpgsqlConnection(_connString);
+        var id = await db.QueryFirstAsync<int>(
             "INSERT INTO users (username, password, species) VALUES (@username, @password, @type) RETURNING id",
             new { username, password, type }
         );
@@ -43,7 +45,8 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByIdAsync(int id)
     {
-        var user = await _db.QueryFirstOrDefaultAsync<User>(
+        await using var db = new NpgsqlConnection(_connString);
+        var user = await db.QueryFirstOrDefaultAsync<User>(
             "SELECT * FROM users WHERE id = @id",
             new { id }
         );
@@ -52,7 +55,8 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByUsernameAsync(string username)
     {
-        var user = await _db.QueryFirstOrDefaultAsync<User>(
+        await using var db = new NpgsqlConnection(_connString);
+        var user = await db.QueryFirstOrDefaultAsync<User>(
             "SELECT * FROM users WHERE username = @username",
             new { username }
         );
