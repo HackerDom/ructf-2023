@@ -180,6 +180,21 @@ def get_page_of_tests(session: requests.Session, url: str, token: str, page: int
     return resp_data, None
 
 
+def get_page_of_users(session: requests.Session, url: str, token: str, page: int = 0) -> tuple[dict, Optional[CheckerError]]:
+    resp_data, _, err = get_json_response(
+        f'{url}/api/users',
+        'get',
+        headers={'Authorization': f'Bearer {token}'},
+        query={'page': page},
+        session=session,
+    )
+
+    if err is not None:
+        return {}, err.wrapped_by('cannot get page of tests')
+
+    return resp_data, None
+
+
 def solve_test_with_answers(session: requests.Session, url: str, token: str, test_id: str, correct_answers: [int]) -> tuple[dict, Optional[CheckerError]]:
     cur_state, err = get_test_state(session, url, token, test_id)
     if err is not None:
@@ -291,6 +306,45 @@ def check(req: gornilo.CheckRequest) -> gornilo.Verdict:
         if 'reward' not in final_state or final_state['reward'] != reward:
             print(f'check error: user doesn`t get the reward after winning the rustest, or reward is corrupted {final_state=}, {reward=}')
             return gornilo.Verdict.MUMBLE('user doesn`t get the reward after winning the rustest, or reward is corrupted')
+
+        # check last page of users and tests
+        # to warm caches and avoid linear scan dos attacks
+        # (I have forgotten to implement it on the side of service)
+        resp, err = get_page_of_users(session, url, token, page=0)
+        if err is not None:
+            print(err.error_message)
+            return err.verdict
+
+        if 'pages_total' not in resp:
+            return gornilo.Verdict.MUMBLE('pagination of users doesn`t work')
+
+        pages_total = resp['pages_total']
+        if pages_total > 0:
+            resp, err = get_page_of_users(session, url, token, page=pages_total - 1)
+            if err is not None:
+                print(err.error_message)
+                return err.verdict
+
+            if 'users' not in resp or len(resp['users']) == 0:
+                return gornilo.Verdict.MUMBLE('pagination of users doesn`t work')
+
+        resp, err = get_page_of_tests(session, url, token, page=0)
+        if err is not None:
+            print(err.error_message)
+            return err.verdict
+
+        if 'pages_total' not in resp:
+            return gornilo.Verdict.MUMBLE('pagination of tests doesn`t work')
+
+        pages_total = resp['pages_total']
+        if pages_total > 0:
+            resp, err = get_page_of_tests(session, url, token, page=pages_total - 1)
+            if err is not None:
+                print(err.error_message)
+                return err.verdict
+
+            if 'rustests' not in resp or len(resp['rustests']) == 0:
+                return gornilo.Verdict.MUMBLE('pagination of tests doesn`t work')
 
     return gornilo.Verdict.OK()
 
