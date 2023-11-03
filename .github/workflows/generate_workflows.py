@@ -124,7 +124,7 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v2
     - name: Setup checker libraries
-      run: if [ -f checkers/{service}/requirements.txt ]; then python -m pip install -r checkers/{service}/requirements.txt; fi
+      run: if [ -f checkers/{service}/requirements.txt ]; then python3 -m pip install -r checkers/{service}/requirements.txt; fi
     - name: Test checker on service
       run: (cd ./checkers/{service} && ./{service}.checker.py TEST test1.cloud.ructf.org)
   check_stand_sploit_{service}:
