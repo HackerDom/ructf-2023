@@ -4,7 +4,7 @@ import sys
 import os
 import secrets
 
-N = 20
+N = 500
 S = 1
 
 def genpass(n=12):

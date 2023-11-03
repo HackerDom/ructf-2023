@@ -1,7 +1,7 @@
 import os
 import sys
 
-N = 20
+N = 500
 
 SERVER = "vpn.ructf.org"
 

@@ -23,6 +23,6 @@ gen_conf() {
   ../easyrsa/easyrsa --batch --pki-dir="team${NUM}-net" gen-dh
 }
 
-for i in {1..19}; do
+for i in {1..499}; do
  gen_conf "$i"
 done
