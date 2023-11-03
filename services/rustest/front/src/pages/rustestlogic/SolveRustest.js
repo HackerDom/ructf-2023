@@ -102,7 +102,7 @@ function SolveRustest() {
     };
 
     const handleAnswerChange = (event) => {
-        setFormData({ ...formData, answer: event.target.value });
+        setFormData({ ...formData, answer: parseInt(event.target.value) });
     };
 
     return (
