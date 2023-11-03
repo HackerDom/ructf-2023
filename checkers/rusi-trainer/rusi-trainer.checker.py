@@ -127,7 +127,9 @@ def check_valid_udar(c: api.APIClient):
     # Check can create with three trusted
     another_name = generate_name()
     another_flag = generate_flag()
-    rand_user_id = random.randint(1, 9999)
+    rand_user_id = random.randint(1, 99999)
+    while rand_user_id == user['id'] or another_user['id'] == rand_user_id:
+        rand_user_id = random.randint(1, 99999)
     res = c.make_udar(another_name, another_flag, [user['id'], another_user['id'], rand_user_id], random.randint(1, 4), random_string(100))
     if res is not None:
         print(str(res)[:100])
