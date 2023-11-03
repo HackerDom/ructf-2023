@@ -38,7 +38,7 @@ function RegisterPage() {
                     <h2>Registration</h2>
                     <Form className="mt-4">
                         <Form.Group controlId="formBasicEmail" className="m-2">
-                            <Form.Label>Email address</Form.Label>
+                            <Form.Label>Login</Form.Label>
                             <Form.Control
                                 type="email"
                                 placeholder="Enter your email"
