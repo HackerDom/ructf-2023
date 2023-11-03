@@ -54,12 +54,16 @@ def gen_question(answers_num: int) -> dict:
     )
 
 
+def gen_reward():
+    return __gen_str(5, 10)
+
+
 def gen_test(questions_num: int, answers_num: int, flag: Optional[str] = None) -> dict:
     description = gen_test_description()
     questions = [gen_question(answers_num) for _ in range(questions_num)]
     name = ' '.join(__gen_word(3, 8) for _ in range(random.randint(5, 10))).capitalize()
     if flag is None:
-        flag = __gen_str(5, 10)
+        flag = gen_reward()
 
     return dict(
         name=name,
