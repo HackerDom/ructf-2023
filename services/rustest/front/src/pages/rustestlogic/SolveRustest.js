@@ -38,7 +38,7 @@ function SolveRustest() {
                 }
 
                 if (roundResponse.data.round) {
-                    setFormData({...formData, round: roundResponse.data.round});
+                    setFormData({...formData, round: roundResponse.data.round, answer: -1});
                 }
 
                 if (roundResponse.data.question) {
@@ -68,7 +68,7 @@ function SolveRustest() {
             })
             .then((response) => {
                 if (response.data.round) {
-                    setFormData({...formData, round: response.data.round});
+                    setFormData({...formData, round: response.data.round, answer: -1});
                 }
                 if (response.data.question) {
                     setAnswers(response.data.question.allowed_answers)
@@ -85,7 +85,7 @@ function SolveRustest() {
                 }
 
                 if (response.data.round) {
-                    setFormData({...formData, round: response.data.round});
+                    setFormData({...formData, round: response.data.round, answer: -1});
                 }
 
                 if (response.data.question) {
@@ -143,7 +143,7 @@ function SolveRustest() {
                                     />
                                 ))}
                             </Form.Group>
-                            <Button variant="primary" onClick={handleSubmit}>
+                            <Button variant="primary" onClick={handleSubmit} disabled={formData.answer === -1}>
                                 Submit
                             </Button>
                         </Form>
