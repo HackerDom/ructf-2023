@@ -418,6 +418,8 @@ namespace werk::vm {
 
         memoryBytePtr[static_cast<uint16_t>(registers.sp + 1)] = static_cast<uint8_t>(*val & 0xff);
         ++registers.sp;
+
+        return Status::Running;
     }
 
     Vm::Status Vm::popb(ParsedInstruction &instr) {
@@ -427,17 +429,37 @@ namespace werk::vm {
         }
 
         *(reinterpret_cast<uint8_t*>(val)) = memoryBytePtr[registers.sp--];
+
+        return Status::Running;
     }
 
-    Vm::Status Vm::out(ParsedInstruction &) {
-        return Status::Crashed;
+    Vm::Status Vm::out(ParsedInstruction &instr) {
+        auto *ch = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (ch == nullptr) {
+            return Vm::Status::Crashed;
+        }
+
+        serial.push_back(*reinterpret_cast<char*>(ch));
+
+        return Status::Running;
     }
 
-    Vm::Status Vm::hexout(ParsedInstruction &) {
-        return Status::Crashed;
+    Vm::Status Vm::hexout(ParsedInstruction &instr) {
+        auto *n = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (n == nullptr) {
+            return Vm::Status::Crashed;
+        }
+
+        auto s = utils::Format("0x%04x", static_cast<int>(*n));
+
+        for (char c : s) {
+            serial.push_back(c);
+        }
+
+        return Status::Running;
     }
 
-    Vm::Status Vm::hexouta(ParsedInstruction &) {
+    Vm::Status Vm::hexouta(ParsedInstruction &instr) {
         return Status::Crashed;
     }
 
