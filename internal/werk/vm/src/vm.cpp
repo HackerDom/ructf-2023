@@ -410,12 +410,23 @@ namespace werk::vm {
         return Status::Crashed;
     }
 
-    Vm::Status Vm::pushb(ParsedInstruction &) {
-        return Status::Crashed;
+    Vm::Status Vm::pushb(ParsedInstruction &instr) {
+        auto *val = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (val == nullptr) {
+            return Status::Crashed;
+        }
+
+        memoryBytePtr[static_cast<uint16_t>(registers.sp + 1)] = static_cast<uint8_t>(*val & 0xff);
+        ++registers.sp;
     }
 
-    Vm::Status Vm::popb(ParsedInstruction &) {
-        return Status::Crashed;
+    Vm::Status Vm::popb(ParsedInstruction &instr) {
+        auto *val = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (val == nullptr) {
+            return Status::Crashed;
+        }
+
+        *(reinterpret_cast<uint8_t*>(val)) = memoryBytePtr[registers.sp--];
     }
 
     Vm::Status Vm::out(ParsedInstruction &) {
