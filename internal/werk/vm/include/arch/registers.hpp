@@ -15,7 +15,8 @@ namespace werk::vm {
         pc_register_t pc;
         sp_register_t sp;
         i_register_t i;
-        f_register_t f;
+        bool fEq;
+        bool fLess;
 
         register_t *GetRegisterByOperandNum(int num);
     };

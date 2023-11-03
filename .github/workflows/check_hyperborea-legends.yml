@@ -56,7 +56,7 @@ jobs:
     - name: Setup sploit libraries
       run: if [ -f sploits/hyperborea-legends/requirements.txt ]; then python -m pip install -r sploits/hyperborea-legends/requirements.txt; fi
     - name: Test sploit on service
-      run: (./tools/check_sploit.py hyperborea-legends 127.0.0.1)
+      run: TERM=linux ./tools/check_sploit.py hyperborea-legends 127.0.0.1
   check_stand_sploit_hyperborea-legends:
     name: Check stand sploit hyperborea-legends
     runs-on: self-hosted
@@ -69,4 +69,4 @@ jobs:
     - name: Setup sploit libraries
       run: if [ -f sploits/hyperborea-legends/requirements.txt ]; then python3 -m pip install -r sploits/hyperborea-legends/requirements.txt; fi
     - name: Test sploit on service
-      run: (./tools/check_sploit.py hyperborea-legends test1.cloud.ructf.org)
+      run: TERM=linux ./tools/check_sploit.py hyperborea-legends test1.cloud.ructf.org

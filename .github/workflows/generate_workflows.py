@@ -104,7 +104,7 @@ jobs:
     - name: Setup sploit libraries
       run: if [ -f sploits/{service}/requirements.txt ]; then python -m pip install -r sploits/{service}/requirements.txt; fi
     - name: Test sploit on service
-      run: (./tools/check_sploit.py {service} 127.0.0.1)
+      run: TERM=linux ./tools/check_sploit.py {service} 127.0.0.1
   check_stand_sploit_{service}:
     name: Check stand sploit {service}
     runs-on: self-hosted
@@ -117,7 +117,7 @@ jobs:
     - name: Setup sploit libraries
       run: if [ -f sploits/{service}/requirements.txt ]; then python3 -m pip install -r sploits/{service}/requirements.txt; fi
     - name: Test sploit on service
-      run: (./tools/check_sploit.py {service} test1.cloud.ructf.org)
+      run: TERM=linux ./tools/check_sploit.py {service} test1.cloud.ructf.org
 """[1:]
 
 

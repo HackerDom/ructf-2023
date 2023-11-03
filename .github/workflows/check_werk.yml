@@ -56,7 +56,7 @@ jobs:
     - name: Setup sploit libraries
       run: if [ -f sploits/werk/requirements.txt ]; then python -m pip install -r sploits/werk/requirements.txt; fi
     - name: Test sploit on service
-      run: (./tools/check_sploit.py werk 127.0.0.1)
+      run: TERM=linux ./tools/check_sploit.py werk 127.0.0.1
   check_stand_sploit_werk:
     name: Check stand sploit werk
     runs-on: self-hosted
@@ -69,4 +69,4 @@ jobs:
     - name: Setup sploit libraries
       run: if [ -f sploits/werk/requirements.txt ]; then python3 -m pip install -r sploits/werk/requirements.txt; fi
     - name: Test sploit on service
-      run: (./tools/check_sploit.py werk test1.cloud.ructf.org)
+      run: TERM=linux ./tools/check_sploit.py werk test1.cloud.ructf.org
