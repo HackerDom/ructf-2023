@@ -359,7 +359,6 @@ services: |
   {name => 'perune', path => 'checkers/perune/perune.checker.py', timeout => 30, tcp_port => 18484},
   {name => 'rusi-trainer', path => 'checkers/rusi-trainer/rusi-trainer.checker.py', timeout => 30, tcp_port => 41114},
   {name => 'rustest', path => 'checkers/rustest/rustest.checker.py', timeout => 30, tcp_port => 13337},
-  {name => 'werk', path => 'checkers/werk/werk.checker.py', timeout => 30, tcp_port => 7654},
   {name => 'wise-mystical-tree', path => 'checkers/wise-mystical-tree/wise-mystical-tree.checker.py', timeout => 30, tcp_port => 6174},
 
 queues: |
