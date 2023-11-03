@@ -130,11 +130,15 @@ impl ETCDRustestStorage {
     }
 
     /// Returns test from etcd storage. If test not found, None is returned.
+    #[tracing::instrument(skip_all)]
     pub async fn get_rustest(&self, test_id: &str) -> Result<Option<Rustest>> {
         let mut cache_guard = self.rustest_cache.lock().await;
         if let Some(test) = cache_guard.get(test_id).cloned() {
+            tracing::debug!("got rustest from cache: hot path");
             return Ok(Some(test));
         }
+
+        tracing::debug!("test wasn't present in cache, going to etcd");
 
         let test: Option<Rustest> =
             get_deserialized_value_by_key(&self.client, format!("/rustest/rustests/{}", test_id))
@@ -142,10 +146,15 @@ impl ETCDRustestStorage {
                 .map_err(|err| anyhow!(err))
                 .context("cannot fetch rustest")?;
 
+        tracing::debug!("got response from etcd");
+
         if let Some(test) = test {
             cache_guard.put(test_id.to_string(), test.clone());
+            tracing::debug!("rustest persisted to cache");
             return Ok(Some(test));
         }
+
+        tracing::debug!("provided rustest wasn't present in storage");
 
         Ok(None)
     }
@@ -156,6 +165,7 @@ impl ETCDRustestStorage {
     /// If user or rustest doesn't exist, creating needed keys anyway.
     /// If previous_state is not none, uses it as a hint for update. Allows to save one network call.
     /// If previous_state is None, makes request to etcd storage to retrieve state.
+    #[tracing::instrument(skip_all)]
     pub async fn increment_user_round_on_test(
         &self,
         user_id: &str,
@@ -164,11 +174,18 @@ impl ETCDRustestStorage {
         previous_state: Option<RustestUserState>,
     ) -> Result<RustestUserState> {
         let mut new_state = match previous_state {
-            Some(state) => state,
-            None => self
-                .get_user_state_on_test(user_id, test_id)
-                .await
-                .context("cannot increment user round on test")?,
+            Some(state) => {
+                tracing::debug!("got previous state, using it, don't need to make network call");
+
+                state
+            }
+            None => {
+                tracing::debug!("state wasn't provided, going to etcd");
+
+                self.get_user_state_on_test(user_id, test_id)
+                    .await
+                    .context("cannot increment user round on test")?
+            }
         };
 
         new_state.cur_round += 1;
@@ -197,6 +214,7 @@ impl ETCDRustestStorage {
     /// Returns user state for provided user on given test.
     /// This function doesn't check existence of user, or test, caller must do so.
     /// If user or test not found, needed keys are cerated in etcd and filled with zeroes.
+    #[tracing::instrument(skip_all)]
     pub async fn get_user_state_on_test(
         &self,
         user_id: &str,
@@ -221,13 +239,19 @@ impl ETCDRustestStorage {
                 user_id, test_id
             ))?;
 
+        tracing::debug!("got response from etcd");
+
         if !resp.succeeded {
             // transaction failed, key wasn't present in storage, return default values
+            tracing::debug!("user state wasn't present in etcd. state was created by transaction, returning default values");
+
             return Ok(RustestUserState {
                 points: 0,
                 cur_round: 0,
             });
         }
+
+        tracing::debug!("state is present in storage, using it");
 
         if resp.responses.len() != 2 {
             bail!(RustestStorageError::UnderlyingStorage {
@@ -245,20 +269,21 @@ impl ETCDRustestStorage {
     /// Creates rustest and links it with author.
     /// Returns created rustest with filled ID field.
     /// User existence isn't checked, caller must do so.
+    #[tracing::instrument(skip_all)]
     pub async fn create_rustest_with_author(
         &self,
         test: Rustest,
         author_id: &str,
     ) -> Result<Rustest> {
-        let id = Uuid::new_v4().to_string();
+        let test_id = Uuid::new_v4().to_string();
         let test = Rustest {
-            id: id.clone(),
+            id: test_id.clone(),
             owner: author_id.to_string(),
             ..test
         };
 
-        let rustest_path = format!("/rustest/rustests/{}", id);
-        let user_rustest_path = format!("/rustest/user/{}/rustests/{}", author_id, id);
+        let rustest_path = format!("/rustest/rustests/{}", test_id);
+        let user_rustest_path = format!("/rustest/user/{}/rustests/{}", author_id, test_id);
 
         let put_to_rustests = gen_put_request_with_serialized_value(&rustest_path, &test)?;
         let put_to_user_rustests =
@@ -275,6 +300,8 @@ impl ETCDRustestStorage {
             .await
             .context("cannot create rustest with author: cannot finish transaction to etcd")?;
 
+        tracing::debug!(test_id, message = "got response from etcd");
+
         if txn_response.succeeded {
             // rustest existed
             bail!(RustestStorageError::Unexpected {
@@ -282,15 +309,23 @@ impl ETCDRustestStorage {
             })
         }
 
+        tracing::debug!(
+            test_id,
+            message = "rustest successfully created, adding it to cache"
+        );
+
         self.rustest_cache
             .lock()
             .await
             .put(test.id.clone(), test.clone());
 
+        tracing::debug!(test_id, message = "rustest successfully added to cache");
+
         Ok(test)
     }
 
     /// Retrieves all rustests of given user. Doesn't check for user existence, caller must do so.
+    #[tracing::instrument(skip_all)]
     pub async fn rustests_of_user(&self, user_id: &str) -> Result<Vec<Rustest>> {
         let path = format!("/rustest/user/{}/rustests/", user_id);
         let resp = self
@@ -310,6 +345,7 @@ impl ETCDRustestStorage {
 
     /// Creates user and persists him to etcd storage.
     /// If user existed in etcd storage before, error returned.
+    #[tracing::instrument(skip_all)]
     pub async fn create_user(&self, user: User) -> Result<User> {
         let user_key = format!("/rustest/users/{}", user.login);
 
@@ -326,25 +362,35 @@ impl ETCDRustestStorage {
             .await
             .context("cannot create user in etcd storage")?;
 
+        tracing::debug!("got response from etcd");
+
         if txn_response.succeeded {
             // value existed in etcd, so user was created already
             bail!(RustestStorageError::AlreadyExists { key: user_key });
         }
+
+        tracing::debug!("transaction successfully created user in storage, adding to cache");
 
         self.user_cache
             .lock()
             .await
             .put(user.login.clone(), user.clone());
 
+        tracing::debug!("user added to cache");
+
         Ok(user)
     }
 
     /// Retrieves user from etcd storage or cache. If user doesn't exist, returns None.
+    #[tracing::instrument(skip_all)]
     pub async fn get_user(&self, user_id: &str) -> Result<Option<User>> {
         let mut cache_guard = self.user_cache.lock().await;
         if let Some(user) = cache_guard.get(user_id).cloned() {
+            tracing::debug!("got user from cache, hot path");
             return Ok(Some(user));
         }
+
+        tracing::debug!("user is not present in cache, going to etcd");
 
         let path = format!("/rustest/users/{}", user_id);
         let user: Option<User> = get_deserialized_value_by_key(&self.client, path)
@@ -352,15 +398,19 @@ impl ETCDRustestStorage {
             .map_err(|err| anyhow!(err))?;
 
         if let Some(user) = user {
+            tracing::debug!("user found in etcd");
+
             cache_guard.put(user_id.to_string(), user.clone());
             return Ok(Some(user));
         }
+
+        tracing::debug!("user not present in etcd storage");
 
         Ok(None)
     }
 
     /// Get all users from etcd storage by `page` with `page_size`
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip_all)]
     pub async fn get_users_by_page(
         &self,
         page: usize,
@@ -377,7 +427,7 @@ impl ETCDRustestStorage {
     }
 
     /// Get all rustests from etcd storage by `page` with `page_size`
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip_all)]
     pub async fn get_rustests_by_page(
         &self,
         page: usize,
@@ -434,7 +484,7 @@ impl ETCDRustestStorage {
         prefix: &str,
     ) -> Result<Option<i64>> {
         if offset == 0 {
-            tracing::info!("got create revision for zero offset (lucky path)");
+            tracing::debug!("got create revision for zero offset (lucky path)");
             return Ok(Some(0));
         }
 
@@ -446,7 +496,7 @@ impl ETCDRustestStorage {
             return Ok(Some(revision));
         }
 
-        tracing::info!("couldn't get create revision for offset from cache, going to etcd");
+        tracing::debug!("couldn't get create revision for offset from cache, going to etcd");
         let samples_needed = offset as u64 - largest_leq_offset;
         let resp = self
             .client
@@ -466,7 +516,7 @@ impl ETCDRustestStorage {
 
         let largest_create_revision = resp.kvs.last().map(|kv| kv.create_revision);
         if let Some(revision) = largest_create_revision {
-            tracing::info!(
+            tracing::debug!(
                 "got revision for offset from etcd, putting it in cache for further usage"
             );
 

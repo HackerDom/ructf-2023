@@ -17,7 +17,7 @@ use axum::{
     Extension, Json, Router, TypedHeader,
 };
 
-use tower::ServiceBuilder;
+use axum_trace_id::{SetTraceIdLayer, TraceId};
 use tower_http::services::{ServeDir, ServeFile};
 use tower_http::{
     cors::{Any, CorsLayer},
@@ -94,21 +94,23 @@ pub fn build_router(state: AppState) -> Router {
         .finish_api(&mut api)
         .layer(Extension(api))
         .layer(
-            ServiceBuilder::new()
-                .layer(
-                    TraceLayer::new_for_http()
-                        .on_request(DefaultOnRequest::new().level(Level::INFO))
-                        .on_response(DefaultOnResponse::new().level(Level::INFO))
-                        .on_failure(DefaultOnFailure::new().level(Level::ERROR)),
-                )
-                .layer(NormalizePathLayer::trim_trailing_slash())
-                .layer(
-                    CorsLayer::new()
-                        .allow_methods(Any)
-                        .allow_origin(Any)
-                        .allow_headers(Any),
-                ),
+            TraceLayer::new_for_http()
+                .make_span_with(|request: &Request<_>| {
+                    let trace_id = request.extensions().get::<TraceId<String>>().unwrap();
+                    tracing::info_span!("http_request", trace_id = trace_id.id)
+                })
+                .on_request(DefaultOnRequest::new().level(Level::INFO))
+                .on_response(DefaultOnResponse::new().level(Level::INFO))
+                .on_failure(DefaultOnFailure::new().level(Level::ERROR)),
         )
+        .layer(NormalizePathLayer::trim_trailing_slash())
+        .layer(
+            CorsLayer::new()
+                .allow_methods(Any)
+                .allow_origin(Any)
+                .allow_headers(Any),
+        )
+        .layer(SetTraceIdLayer::<String>::new())
         .with_state(state)
 }
 
@@ -117,13 +119,22 @@ struct AuthenticatedUser {
     login: String,
 }
 
+fn trace_err<T: ToString>(err: T) -> T {
+    tracing::error!(error = err.to_string());
+    err
+}
+
 async fn auth<B>(
     State(state): State<AppState>,
     TypedHeader(bearer): TypedHeader<Authorization<Bearer>>,
     mut request: Request<B>,
     next: Next<B>,
 ) -> Result<Response, AuthenticationError> {
-    let login = state.authenticator.validate_token(bearer.token()).await?;
+    let login = state
+        .authenticator
+        .validate_token(bearer.token())
+        .await
+        .map_err(trace_err)?;
     request.extensions_mut().insert(AuthenticatedUser { login });
 
     Ok(next.run(request).await)
@@ -148,6 +159,7 @@ async fn get_rustest_state(
         })
         .await
         .map(jsonify)
+        .map_err(trace_err)
 }
 
 #[debug_handler]
@@ -163,7 +175,12 @@ async fn submit_answer(
         ..req
     };
 
-    state.rus_app.submit_answer(req).await.map(jsonify)
+    state
+        .rus_app
+        .submit_answer(req)
+        .await
+        .map(jsonify)
+        .map_err(trace_err)
 }
 
 #[debug_handler]
@@ -173,7 +190,12 @@ async fn user_registration(
 ) -> Result<Json<RegisterUserResponse>, AuthenticationError> {
     req.validate()?;
 
-    state.authenticator.register(req).await.map(jsonify)
+    state
+        .authenticator
+        .register(req)
+        .await
+        .map(jsonify)
+        .map_err(trace_err)
 }
 
 #[debug_handler]
@@ -183,7 +205,12 @@ async fn user_login(
 ) -> Result<Json<UserLoginResponse>, AuthenticationError> {
     req.validate()?;
 
-    state.authenticator.authenticate(req).await.map(jsonify)
+    state
+        .authenticator
+        .authenticate(req)
+        .await
+        .map(jsonify)
+        .map_err(trace_err)
 }
 
 #[debug_handler]
@@ -200,7 +227,12 @@ async fn create_rustest(
         },
     };
 
-    state.rus_app.create_rustest(req).await.map(jsonify)
+    state
+        .rus_app
+        .create_rustest(req)
+        .await
+        .map(jsonify)
+        .map_err(trace_err)
 }
 
 #[debug_handler]
@@ -217,6 +249,7 @@ async fn get_rustest(
         })
         .await
         .map(jsonify)
+        .map_err(trace_err)
 }
 
 #[debug_handler]
@@ -231,6 +264,7 @@ async fn get_my_rustests(
         })
         .await
         .map(jsonify)
+        .map_err(trace_err)
 }
 
 #[debug_handler]
@@ -244,6 +278,7 @@ async fn get_user_rustests(
         .get_users_rustests(UserRustestsRequest { user_id })
         .await
         .map(jsonify)
+        .map_err(trace_err)
 }
 
 #[debug_handler]
@@ -252,7 +287,12 @@ async fn get_all_users_by_page(
     Extension(_user): Extension<AuthenticatedUser>,
     Query(req): Query<GetUsersRequest>,
 ) -> Result<Json<GetUsersResponse>, RustestApplicationError> {
-    state.rus_app.get_all_users_by_page(req).await.map(jsonify)
+    state
+        .rus_app
+        .get_all_users_by_page(req)
+        .await
+        .map(jsonify)
+        .map_err(trace_err)
 }
 
 #[debug_handler]
@@ -266,6 +306,7 @@ async fn get_all_rustests_by_page(
         .get_all_rustests_by_page(req)
         .await
         .map(jsonify)
+        .map_err(trace_err)
 }
 
 fn jsonify<T>(resp: T) -> Json<T> {
