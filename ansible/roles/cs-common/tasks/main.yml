@@ -61,3 +61,15 @@
     apply:
       tags: node_exporter
   tags: node_exporter
+
+- name: add game routes
+  template:
+    src: 90-game.yaml
+    dest: /etc/netplan/90-game.yaml
+    mode: 0644
+    owner: root
+    group: root
+
+- name: apply netplan
+  shell: |
+    netplan apply

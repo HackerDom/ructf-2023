@@ -1,0 +1,9 @@
+network:
+    version: 2
+    ethernets:
+        eth1:
+            routes:
+            -   to: 10.60.0.0/14
+                via: 10.10.10.2
+            -   to: 10.80.0.0/14
+                via: 10.10.10.2
