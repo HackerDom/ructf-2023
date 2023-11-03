@@ -366,3 +366,20 @@ TEST(Vm, ArithInstructions) {
         }
     );
 }
+
+TEST(Vm, PoweroffInstruction) {
+    uint8_t *memory = new uint8_t[kMemorySize];
+    Defer f([memory]{ delete[] memory; });
+
+    uint16_t instructionShort = 0xf000; // poweroff
+    testVmRunInstruction(
+        memory,
+        &instructionShort,
+        sizeof(instructionShort),
+        0x1337,
+        RegistersSet{.v = {0, 0, 0, 0, 0xde, 0x13, 0, 0}},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Finished);
+        }
+    );
+}
