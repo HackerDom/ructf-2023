@@ -54,23 +54,23 @@ namespace werk::vm {
         return (b & kSizeBitMask) != 0;
     }
 
-    inline int GetNonMovFirstOp(uint16_t b) {
+    inline int GetShortInstructionFirstOp(uint16_t b) {
         return (b & kNonMovFirstOpMask) >> 8;
     }
 
-    inline int GetNonMovSecondOp(uint16_t b) {
+    inline int GetShortInstructionSecondOp(uint16_t b) {
         return (b & kNonMovSecondOpMask) >> 5;
     }
 
-    inline int GetNonMovThirdOp(uint16_t b) {
+    inline int GetShortInstructionThirdOp(uint16_t b) {
         return (b & kNonMovThirdOpMask) >> 2;
     }
 
-    inline int GetMovFirstOp(uint16_t b) {
+    inline int GetLongInstructionFirstOp(uint16_t b) {
         return (b & kMovFirstOpMask) >> 7;
     }
 
-    inline int GetMovSecondOp(uint16_t b) {
+    inline int GetLongInstructionSecondOp(uint16_t b) {
         return (b & kMovSecondOpMask) >> 3;
     }
 
@@ -84,5 +84,10 @@ namespace werk::vm {
             opcode == Jg ||
             opcode == Jle ||
             opcode == Jge;
+    }
+
+    inline int IsLongInstruction(Opcode opcode) {
+        // pc can be set by imm value
+        return opcode == Mov || IsSetPcInstruction(opcode);
     }
 }

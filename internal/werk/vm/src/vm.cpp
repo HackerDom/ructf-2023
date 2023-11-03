@@ -298,7 +298,7 @@ namespace werk::vm {
         return true;
     }
 
-    bool Vm::call(ParsedInstruction &) {
+    bool Vm::call(ParsedInstruction &instr) {
         return false;
     }
 
@@ -447,13 +447,13 @@ namespace werk::vm {
             out.size = 4;
         }
 
-        if (opcode != Opcode::Mov) {
-            out.operands.first = GetNonMovFirstOp(firstPart);
-            out.operands.second = GetNonMovSecondOp(firstPart);
-            out.operands.third = GetNonMovThirdOp(firstPart);
+        if (IsLongInstruction(out.opcode)) {
+            out.operands.first = GetLongInstructionFirstOp(firstPart);
+            out.operands.second = GetLongInstructionSecondOp(firstPart);
         } else {
-            out.operands.first = GetMovFirstOp(firstPart);
-            out.operands.second = GetMovSecondOp(firstPart);
+            out.operands.first = GetShortInstructionFirstOp(firstPart);
+            out.operands.second = GetShortInstructionSecondOp(firstPart);
+            out.operands.third = GetShortInstructionThirdOp(firstPart);
         }
 
         out.setPc = IsSetPcInstruction(static_cast<Opcode>(opcode));
