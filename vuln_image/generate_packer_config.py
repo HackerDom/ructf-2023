@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
 SERVICES = [
-    "hyperborea-legends", 
+    "funficfy",
+    "hyperborea-legends",
+    "memos",
     "perune", 
     "rusi-trainer",
     "rustest",
     "werk",
+    "wise-mystical-tree",
 ]
 
 TEMPLATE = """

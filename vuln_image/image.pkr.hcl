@@ -56,11 +56,14 @@ build {
       "apt-get install -y -q haveged",
 
       # Add users for services
+      "useradd -m -s /bin/bash funficfy",
       "useradd -m -s /bin/bash hyperborea-legends",
+      "useradd -m -s /bin/bash memos",
       "useradd -m -s /bin/bash perune",
       "useradd -m -s /bin/bash rusi-trainer",
       "useradd -m -s /bin/bash rustest",
       "useradd -m -s /bin/bash werk",
+      "useradd -m -s /bin/bash wise-mystical-tree",
     ]
   }
 
@@ -96,8 +99,16 @@ build {
 
   # Copy services
   provisioner "file" {
+    source = "../services/funficfy/"
+    destination = "/home/funficfy/"
+  }
+  provisioner "file" {
     source = "../services/hyperborea-legends/"
     destination = "/home/hyperborea-legends/"
+  }
+  provisioner "file" {
+    source = "../services/memos/"
+    destination = "/home/memos/"
   }
   provisioner "file" {
     source = "../services/perune/"
@@ -115,11 +126,19 @@ build {
     source = "../services/werk/"
     destination = "/home/werk/"
   }
+  provisioner "file" {
+    source = "../services/wise-mystical-tree/"
+    destination = "/home/wise-mystical-tree/"
+  }
 
   # Build and run services for the first time
   provisioner "shell" {
     inline = [
+      "cd ~funficfy",
+      "docker-compose build || true",
       "cd ~hyperborea-legends",
+      "docker-compose build || true",
+      "cd ~memos",
       "docker-compose build || true",
       "cd ~perune",
       "docker-compose build || true",
@@ -129,14 +148,19 @@ build {
       "docker-compose build || true",
       "cd ~werk",
       "docker-compose build || true",
+      "cd ~wise-mystical-tree",
+      "docker-compose build || true",
 
       "systemctl daemon-reload",
 
+      "systemctl enable ructf-service@funficfy",
       "systemctl enable ructf-service@hyperborea-legends",
+      "systemctl enable ructf-service@memos",
       "systemctl enable ructf-service@perune",
       "systemctl enable ructf-service@rusi-trainer",
       "systemctl enable ructf-service@rustest",
       "systemctl enable ructf-service@werk",
+      "systemctl enable ructf-service@wise-mystical-tree",
     ]
   }
 
