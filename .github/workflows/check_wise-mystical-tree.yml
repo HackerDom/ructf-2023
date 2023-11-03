@@ -69,4 +69,4 @@ jobs:
     - name: Setup sploit libraries
       run: if [ -f sploits/wise-mystical-tree/requirements.txt ]; then python3 -m pip install -r sploits/wise-mystical-tree/requirements.txt; fi
     - name: Test sploit on service
-      run: (./tools/check_sploit.py wise-mystical-tree test1.cloud.ructf.org)
+      run: TERM=linux ./tools/check_sploit.py wise-mystical-tree test1.cloud.ructf.org

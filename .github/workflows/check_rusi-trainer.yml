@@ -69,4 +69,4 @@ jobs:
     - name: Setup sploit libraries
       run: if [ -f sploits/rusi-trainer/requirements.txt ]; then python3 -m pip install -r sploits/rusi-trainer/requirements.txt; fi
     - name: Test sploit on service
-      run: (./tools/check_sploit.py rusi-trainer test1.cloud.ructf.org)
+      run: TERM=linux ./tools/check_sploit.py rusi-trainer test1.cloud.ructf.org
