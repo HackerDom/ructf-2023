@@ -1,0 +1,37 @@
+version: '2.2'
+
+services:
+  memos:
+    build: service
+    cpus: 1
+    pids_limit: 32768
+    mem_limit: 1G
+    memswap_limit: 1G
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
+    restart: unless-stopped
+    stop_grace_period: 3s
+    volumes:
+      - storage:/var/memos/storage:rw
+    ports:
+      - "127.0.0.1:17171:31337"
+
+  cleaner:
+    build: cleaner
+    cpus: 1
+    pids_limit: 256
+    mem_limit: 256M
+    memswap_limit: 256M
+    ulimits:
+      nofile:
+        soft: 16384
+        hard: 16384
+    restart: unless-stopped
+    stop_grace_period: 3s
+    volumes:
+      - storage:/var/memos/storage:rw
+
+volumes:
+  storage:
