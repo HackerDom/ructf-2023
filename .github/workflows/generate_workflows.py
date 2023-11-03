@@ -2,40 +2,44 @@
 
 
 SERVICES = [
-    "example", 
     "funficfy",
     "hyperborea-legends",
     "memos", 
     "perune", 
     "rusi-trainer",
     "rustest",
-    "sqlfs",
     "werk",
     "wise-mystical-tree",
 ]
 
 CHECKERS = [
-    "example", 
     "funficfy",
     "hyperborea-legends",
     "memos", 
     "perune", 
     "rusi-trainer",
     "rustest",
-    "sqlfs",
     "werk",
     "wise-mystical-tree",
 ]
 
 SPLOITS = [
-    "example", 
+    "funficfy",
+    "hyperborea-legends",
+    "memos", 
+    "rusi-trainer",
+    "rustest",
+    "werk",
+    "wise-mystical-tree",
+]
+
+STAND_SPLOITS = [
     "funficfy",
     "hyperborea-legends",
     "memos", 
     "perune", 
     "rusi-trainer",
     "rustest",
-    "sqlfs",
     "werk",
     "wise-mystical-tree",
 ]
@@ -99,7 +103,20 @@ jobs:
     - name: Setup sploit libraries
       run: if [ -f sploits/{service}/requirements.txt ]; then python -m pip install -r sploits/{service}/requirements.txt; fi
     - name: Test sploit on service
-      run: (./tools/check_sploit.py {service})
+      run: (./tools/check_sploit.py {service} 127.0.0.1)
+  check_stand_sploit_{service}:
+    name: Check stand sploit {service}
+    runs-on: self-hosted
+    if: {stand_sploit_enabled}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup checker libraries
+      run: if [ -f checkers/{service}/requirements.txt ]; then python3.11 -m pip install -r checkers/{service}/requirements.txt; fi
+    - name: Setup sploit libraries
+      run: if [ -f sploits/{service}/requirements.txt ]; then python3.11 -m pip install -r sploits/{service}/requirements.txt; fi
+    - name: Test sploit on service
+      run: (./tools/check_sploit.py {service} test1.cloud.ructf.org)
 """[1:]
 
 
@@ -114,6 +131,7 @@ for service in SERVICES:
             service_lower=service.lower(),
             checker_enabled=template_bool(service in CHECKERS),
             sploit_enabled=template_bool(service in SPLOITS),
+            stand_sploit_enabled=template_bool(service in STAND_SPLOITS)
         )
         f.write(template)
 

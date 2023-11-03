@@ -56,4 +56,17 @@ jobs:
     - name: Setup sploit libraries
       run: if [ -f sploits/perune/requirements.txt ]; then python -m pip install -r sploits/perune/requirements.txt; fi
     - name: Test sploit on service
-      run: (./tools/check_sploit.py perune)
+      run: (./tools/check_sploit.py perune 127.0.0.1)
+  check_stand_sploit_perune:
+    name: Check stand sploit perune
+    runs-on: self-hosted
+    if: ${{ true }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup checker libraries
+      run: if [ -f checkers/perune/requirements.txt ]; then python3.11 -m pip install -r checkers/perune/requirements.txt; fi
+    - name: Setup sploit libraries
+      run: if [ -f sploits/perune/requirements.txt ]; then python3.11 -m pip install -r sploits/perune/requirements.txt; fi
+    - name: Test sploit on service
+      run: (./tools/check_sploit.py perune test1.cloud.ructf.org)

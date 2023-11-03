@@ -56,4 +56,17 @@ jobs:
     - name: Setup sploit libraries
       run: if [ -f sploits/rustest/requirements.txt ]; then python -m pip install -r sploits/rustest/requirements.txt; fi
     - name: Test sploit on service
-      run: (./tools/check_sploit.py rustest)
+      run: (./tools/check_sploit.py rustest 127.0.0.1)
+  check_stand_sploit_rustest:
+    name: Check stand sploit rustest
+    runs-on: self-hosted
+    if: ${{ true }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup checker libraries
+      run: if [ -f checkers/rustest/requirements.txt ]; then python3.11 -m pip install -r checkers/rustest/requirements.txt; fi
+    - name: Setup sploit libraries
+      run: if [ -f sploits/rustest/requirements.txt ]; then python3.11 -m pip install -r sploits/rustest/requirements.txt; fi
+    - name: Test sploit on service
+      run: (./tools/check_sploit.py rustest test1.cloud.ructf.org)
