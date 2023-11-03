@@ -61,45 +61,16 @@
     - restart nginx
   tags: update
 
+- name: create certs directory
+  file:
+    path: /etc/letsencrypt/live/{{ cs_base_url|urlsplit('hostname') }}/
+    state: directory
 
-- name: Install certbot
-  pip:
-    name:
-      - certbot
-      - certbot-nginx
-    executable: pip3
-  tags:
-    - nginx
-    - certbot
-
-# - name: Register certbot
-#   shell: |
-#     certbot -n register --agree-tos --email me@domain.example
-#     touch /etc/letsencrypt/.registered
-#   args:
-#     creates: /etc/letsencrypt/.registered
-#   tags:
-#     - nginx
-#     - certbot
-
-# - name: Setup cronjob for renewal
-#   cron:
-#     name: certbot-renewal
-#     job: "/bin/bash -lc '/usr/local/bin/certbot -q renew'"
-#     minute: "0"
-#     hour: "14"
-#   tags:
-#     - nginx
-#     - certbot
-
-# # - name: 'Get certificate'
-# #   command: '/usr/local/bin/certbot -n --nginx certonly -d {{ cs_base_url }}'
-# #   args:
-# #     creates: '/etc/letsencrypt/live/{{ cs_base_url }}'
-# #   ignore_errors: true
-# #   tags:
-# #     - nginx
-# #     - certbot
+- name: copy nginx certs
+  copy: src=nginx/{{item}} dest=/etc/letsencrypt/live/{{ cs_base_url|urlsplit('hostname') }}/{{item}}
+  with_items:
+    - fullchain.pem
+    - privkey.pem
 
 - name: nginx cs config
   template:
