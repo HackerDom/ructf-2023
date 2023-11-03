@@ -111,7 +111,7 @@ def login_as(session: requests.Session, url: str, login: str, password: str) -> 
             f'token field wasn`t present in login json response {resp_data=}'
         )
 
-    return resp_data['json'], None
+    return resp_data['token'], None
 
 
 def get_test_state(session: requests.Session, url: str, token: str, test_id: str) -> tuple[dict, Optional[CheckerError]]:
@@ -241,6 +241,56 @@ def build_url(req) -> str:
 
 @checker.define_check
 def check(req: gornilo.CheckRequest) -> gornilo.Verdict:
+    url = build_url(req)
+
+    with requests.Session() as session:
+        # check that registration is available
+        login = generators.gen_login()
+        password = generators.gen_password()
+
+        token, err = register_with(session, url, login, password)
+        if err is not None:
+            print(f'check error: {err.error_message}')
+            return err.verdict
+
+        # check that registered user can log in with his credentials
+        _, err = login_as(session, url, login, password)
+        if err is not None:
+            print(f'check error: {err.error_message}')
+            return err.verdict
+
+        # check that user is able to create tests
+        reward = generators.gen_reward()
+        test = generators.gen_test(2, 2, reward)
+        correct_answers = [question['correct_idx'] for question in test['questions']]
+
+        test, err = create_rustest(session, url, token, test)
+        if err is not None:
+            print(f'check error: {err.error_message}')
+            return err.verdict
+
+        test_id = test['id']
+
+        # try to solve test correctly and get reward
+        # BUT we need to register one more user for it
+        token, err = register_random(session, url)
+        if err is not None:
+            print('check error: cannot register user')
+            return err.verdict
+
+        final_state, err = solve_test_with_answers(session, url, token, test_id, correct_answers)
+        if err is not None:
+            print(f'check error: {err.error_message}')
+            return err.verdict
+
+        if final_state['result'] != 'Win':
+            print(f'check error: user cannot win the rustest with correct answers')
+            return gornilo.Verdict.MUMBLE('user cannot win the rustest with correct answers')
+
+        if 'reward' not in final_state or final_state['reward'] != reward:
+            print(f'check error: user doesn`t get the reward after winning the rustest, or reward is corrupted {final_state=}, {reward=}')
+            return gornilo.Verdict.MUMBLE('user doesn`t get the reward after winning the rustest, or reward is corrupted')
+
     return gornilo.Verdict.OK()
 
 
@@ -296,12 +346,12 @@ class RaceChecker(gornilo.VulnChecker):
                 return err.verdict
 
             if final_state['result'] != 'Win' or 'reward' not in final_state:
-                print('wrong state {final_state}')
+                print('get error: wrong state {final_state}')
                 return gornilo.Verdict.CORRUPT('cannot win the victorine to get reward')
 
             svc_reward = final_state['reward']
             if svc_reward != flag:
-                print(f'wrong flag (svc flag) != (checker flag) {svc_reward} != {flag}')
+                print(f'get error: wrong flag (svc flag) != (checker flag) {svc_reward} != {flag}')
                 return gornilo.Verdict.CORRUPT('wrong flag')
 
         return gornilo.Verdict.OK()
