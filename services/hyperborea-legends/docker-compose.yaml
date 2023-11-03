@@ -63,6 +63,10 @@ services:
     depends_on:
       - postgres
       - redis
+    logging:
+      options:
+        max-file: "2"
+        max-size: "5m"
     mem_limit: 1G
     memswap_limit: 1G
     pids_limit: 512

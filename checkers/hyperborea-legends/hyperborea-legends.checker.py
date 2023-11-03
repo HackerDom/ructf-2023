@@ -9,6 +9,7 @@ from gornilo import CheckRequest, Verdict, NewChecker, VulnChecker, GetRequest, 
 
 import utils
 from grpc_client import Client
+from transliterate import translit
 from data_generator import DataGenerator
 
 PORT = 42424
@@ -77,7 +78,7 @@ async def check_service(request: CheckRequest) -> Verdict:
             print(f'>>Total ancestors: {count + 1}')
 
             print(">>Wait service redis cache")
-            await asyncio.sleep(11)
+            await asyncio.sleep(15)
 
             print(">>Checking ancestors count get...")
             resp = client.get_ancestors_count(token=token)
@@ -111,9 +112,9 @@ class HyperboreaLegendsChecker(VulnChecker):
                 if resp.burial_place == flag:
                     print(f'>>Successfully got flag "{flag}"')
                     return Verdict.OK()
-                print("Ancestor burial place doesn't contains a correct flag")
-                print(f'expected: "{flag}" but got "{resp.burial_place}')
-                return Verdict.CORRUPT('Flag is missing!')
+                print(">>Ancestor burial place doesn't contains a correct flag")
+                print(f'>>expected: "{flag}" but got "{resp.burial_place}')
+                return Verdict.CORRUPT('Flag is corrupted!')
         except utils.VerdictException as e:
             print(e)
             return e.verdict
@@ -128,12 +129,12 @@ class HyperboreaLegendsChecker(VulnChecker):
 
         try:
             with Client(host=request.hostname, port=PORT) as client:
-                print(f'Register and login user: {user.username}')
+                print(f'>>Register and login user: {user.username}')
                 client.register_user(username=user.username, password=user.password, species_type='GreatRuss')
                 token = client.login_user(username=user.username, password=user.password).access_token
                 flag_id = token
 
-                print(f'Create ancestor: {ancestor.name}')
+                print(f">>Create ancestor: {translit(ancestor.name, language_code='ru', reversed=True)}")
                 resp = client.create_ancestor(
                     id=ancestor.id,
                     name=ancestor.name,
@@ -143,6 +144,7 @@ class HyperboreaLegendsChecker(VulnChecker):
                     token=token,
                 )
 
+                print(f'>>Successfully put flag "{flag}"')
                 public_flag_id = base64.b64encode(resp.id).decode()
                 return Verdict.OK_WITH_FLAG_ID(public_flag_id, flag_id)
         except utils.VerdictException as e:
