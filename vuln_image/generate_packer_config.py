@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 
 SERVICES = [
-    "example", 
     "hyperborea-legends", 
     "perune", 
-    "rusi_trainer",
+    "rusi-trainer",
     "rustest",
-    "sqlfs",
     "werk",
 ]
 
