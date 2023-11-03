@@ -500,7 +500,7 @@ namespace werk::vm {
 
     Vm::Status Vm::tickInternal(int &remainOpsCount) {
         if (hltOpsRemains != 0) {
-            if (hltOpsRemains < remainOpsCount) {
+            if (hltOpsRemains < static_cast<uint64_t>(remainOpsCount)) {
                 hltOpsRemains = 0;
                 remainOpsCount -= hltOpsRemains;
             } else {

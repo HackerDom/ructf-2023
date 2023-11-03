@@ -41,21 +41,7 @@ namespace werk::vm {
 
         Status tickInternal(int &remainOpsCount);
 
-        struct ParsedInstruction {
-            Opcode opcode;
-            struct {
-                bool extended;
-                int first;
-                int second;
-                int third;
-            } operands;
-            struct {
-                uint16_t value;
-                bool defined;
-            } imm;
-            uint16_t size;
-            bool setPc;
-        };
+        typedef UnpackedInstruction ParsedInstruction;
 
         typedef std::function<Status(ParsedInstruction&)> InstructionHandlerT;
 
