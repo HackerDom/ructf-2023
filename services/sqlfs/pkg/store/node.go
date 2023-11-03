@@ -104,62 +104,27 @@ func (s *store) CreateNode(ctx context.Context, mode uint32, size uint64, nlink 
 	return node, nil
 }
 
-func (s *store) IncrementNodeNlink(ctx context.Context, ino uint64) (uint64, error) {
-	query, args, err := nodesTable.Update().Set(
-		goqu.Record{"nlink": goqu.L("nlink + 1")},
-	).Where(goqu.C("ino").Eq(ino)).Returning("nlink").ToSQL()
-	if err != nil {
-		return 0, fmt.Errorf("failed to build query: %w", err)
-	}
-
-	var nlink uint64
-	row := s.QueryRowContext(ctx, query, args...)
-	if err := row.Scan(&nlink); err != nil {
-		return 0, fmt.Errorf("failed to execute query %s: %w", query, err)
-	}
-
-	return nlink, nil
-}
-
-func (s *store) DecrementNodeNlink(ctx context.Context, ino uint64) (uint64, error) {
-	query, args, err := nodesTable.Update().Set(
-		goqu.Record{"nlink": goqu.L("nlink - 1")},
-	).Where(goqu.C("ino").Eq(ino)).Returning("nlink").ToSQL()
-	if err != nil {
-		return 0, fmt.Errorf("failed to build query: %w", err)
-	}
-
-	var nlink uint64
-	row := s.QueryRowContext(ctx, query, args...)
-	if err := row.Scan(&nlink); err != nil {
-		return 0, fmt.Errorf("failed to execute query %s: %w", query, err)
-	}
-
-	return nlink, nil
-}
-
-func (s *store) DeleteNode(ctx context.Context, ino uint64) error {
+func (s *store) TryDeleteZeroNlinkNode(ctx context.Context, ino uint64) (bool, error) {
 	query, args, err := nodesTable.Delete().
-		Where(goqu.C("ino").Eq(ino)).ToSQL()
+		Where(goqu.And(
+			goqu.C("ino").Eq(ino),
+			goqu.C("nlink").Lt(1),
+		)).ToSQL()
 	if err != nil {
-		return fmt.Errorf("failed to build query: %w", err)
+		return false, fmt.Errorf("failed to build query: %w", err)
 	}
 
 	r, err := s.ExecContext(ctx, query, args...)
 	if err != nil {
-		return fmt.Errorf("failed to exec query %s: %w", query, err)
+		return false, fmt.Errorf("failed to exec query %s: %w", query, err)
 	}
 
 	deleted, err := r.RowsAffected()
 	if err != nil {
-		return fmt.Errorf("failed to exec query %s: %w", query, err)
+		return false, fmt.Errorf("failed to exec query %s: %w", query, err)
 	}
 
-	if deleted != 1 {
-		return fmt.Errorf("failed to delete node with query %s: zero rows affected", query)
-	}
-
-	return nil
+	return deleted == 1, nil
 }
 
 func (s *store) GetNodeByEntry(ctx context.Context, path, name string) (*model.Node, error) {

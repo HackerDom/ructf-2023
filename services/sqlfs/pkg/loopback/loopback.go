@@ -26,7 +26,10 @@ const (
 	FS_BLOCKS     = FS_SIZE_LIMIT / FS_BLOCK_SIZE
 )
 
-var errFileNotFound = errors.New("file not found")
+var (
+	errFileNotFound = errors.New("file not found")
+	errDirNotEmpty  = errors.New("directory is not empty")
+)
 
 // LoopbackRoot holds the parameters for creating a new loopback
 // filesystem. Loopback filesystem delegate their operations to an
@@ -178,7 +181,7 @@ func (n *LoopbackNode) Mknod(
 	mode, rdev uint32,
 	out *fuse.EntryOut,
 ) (*fs.Inode, syscall.Errno) {
-	node, err := n.createNode(ctx, name, mode, 0, 1)
+	node, err := n.createNode(ctx, name, mode, 0)
 	if err != nil {
 		n.RootData.logger.Err(err).Msg("failed to create node")
 		return nil, syscall.EIO
@@ -208,7 +211,7 @@ func (n *LoopbackNode) Mkdir(
 
 	err := n.RootData.store.RunInTransaction(ctx, func(ctx context.Context) error {
 		var err error
-		node, err = n.createNode(ctx, name, mode|syscall.S_IFDIR, 4096, 2)
+		node, err = n.createNode(ctx, name, mode|syscall.S_IFDIR, 4096)
 		if err != nil {
 			return fmt.Errorf("failed to create node: %w", err)
 		}
@@ -219,22 +222,18 @@ func (n *LoopbackNode) Mkdir(
 			return fmt.Errorf("failed to create self entry: %w", err)
 		}
 
-		if err := n.RootData.store.CreateEntry(ctx, selfChildPath, "..", node.Ino); err != nil {
-			return fmt.Errorf("failed to create parent entry: %w", err)
-		}
-
 		parentPath := n.Path(n.Root())
 		if parentPath == "" {
 			return nil
 		}
 
-		ino, err := n.RootData.store.GetNodeIno(ctx, parentPath)
+		parentIno, err := n.RootData.store.GetNodeIno(ctx, parentPath)
 		if err != nil {
 			return fmt.Errorf("failed to get ino of parent node")
 		}
 
-		if _, err := n.RootData.store.IncrementNodeNlink(ctx, ino); err != nil {
-			return fmt.Errorf("failed to increnent nlink of parent node: %w", err)
+		if err := n.RootData.store.CreateEntry(ctx, selfChildPath, "..", parentIno); err != nil {
+			return fmt.Errorf("failed to create parent entry: %w", err)
 		}
 
 		return nil
@@ -259,24 +258,7 @@ func (n *LoopbackNode) Mkdir(
 }
 
 func (n *LoopbackNode) Rmdir(ctx context.Context, name string) syscall.Errno {
-	errDirNotEmpty := errors.New("directory is not empty")
-	errFileNotFound := errors.New("file not found")
-
-	err := n.RootData.store.RunInTransaction(ctx, func(ctx context.Context) error {
-		fullPath := path.Join(n.Path(n.Root()), name)
-		childCount, err := n.RootData.store.GetEntriesCount(
-			ctx, store.WithPath(fullPath),
-		)
-		if err != nil {
-			return fmt.Errorf("failed to get entries: %w", err)
-		}
-
-		if childCount > 0 {
-			return errDirNotEmpty
-		}
-
-		return n.unlink(ctx, name, 1)
-	})
+	err := n.unlink(ctx, path.Join(n.Path(n.Root()), name), true)
 
 	switch {
 	case errors.Is(err, errDirNotEmpty):
@@ -292,7 +274,29 @@ func (n *LoopbackNode) Rmdir(ctx context.Context, name string) syscall.Errno {
 }
 
 func (n *LoopbackNode) Unlink(ctx context.Context, name string) syscall.Errno {
-	err := n.unlink(ctx, name, 0)
+	nodePath := path.Join(n.Path(n.Root()), name)
+
+	ino, err := n.RootData.store.GetNodeIno(ctx, nodePath)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return syscall.ENOENT
+	case err == nil:
+	default:
+		n.RootData.logger.Err(err).Str("path", nodePath).Msg("failed to get ino of node")
+		return syscall.EIO
+	}
+
+	node, err := n.RootData.store.GetNode(ctx, ino)
+	switch {
+	case errors.Is(err, sql.ErrNoRows):
+		return syscall.ENOENT
+	case err == nil:
+	default:
+		n.RootData.logger.Err(err).Msg("failed to get node")
+		return syscall.EIO
+	}
+
+	err = n.unlink(ctx, nodePath, node.Mode&syscall.S_IFDIR != 0)
 	switch {
 	case errors.Is(err, errFileNotFound):
 		return syscall.ENOENT
@@ -377,7 +381,7 @@ func (n *LoopbackNode) Create(
 	mode uint32,
 	out *fuse.EntryOut,
 ) (*fs.Inode, fs.FileHandle, uint32, syscall.Errno) {
-	node, err := n.createNode(ctx, name, mode, 0, 1)
+	node, err := n.createNode(ctx, name, mode, 0)
 	if err != nil {
 		n.RootData.logger.Err(err).Msg("failed to create node")
 		return nil, nil, 0, syscall.EIO
@@ -602,7 +606,6 @@ func (n *LoopbackNode) createNode(
 	name string,
 	mode uint32,
 	size uint64,
-	nlink uint64,
 ) (*model.Node, error) {
 	p := filepath.Join(n.Path(n.Root()), name)
 	var node *model.Node
@@ -612,7 +615,7 @@ func (n *LoopbackNode) createNode(
 	case errors.Is(err, sql.ErrNoRows):
 		err := n.RootData.store.RunInTransaction(ctx, func(ctx context.Context) error {
 			var err error
-			node, err = n.RootData.store.CreateNode(ctx, mode, size, nlink)
+			node, err = n.RootData.store.CreateNode(ctx, mode, size, 0)
 			if err != nil {
 				return fmt.Errorf("failed to create node: %w", err)
 			}
@@ -663,28 +666,55 @@ func nodeToStat(node *model.Node) *syscall.Stat_t {
 	}
 }
 
-func (n *LoopbackNode) unlink(ctx context.Context, name string, deleteNlink uint64) error {
-	return n.RootData.store.RunInTransaction(ctx, func(ctx context.Context) error {
-		ino, err := n.RootData.store.DeleteEntries(ctx, n.Path(n.Root()), name)
+func (n *LoopbackNode) unlink(ctx context.Context, nodePath string, isDir bool) error {
+	dir, name := path.Split(nodePath)
+	var ino, nlink uint64
+
+	err := n.RootData.store.RunInTransaction(ctx, func(ctx context.Context) error {
+		var err error
+		ino, nlink, err = n.RootData.store.DeleteEntry(ctx, dir, name)
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			return errFileNotFound
 		case err == nil:
 		default:
-			return fmt.Errorf("failed to delete entries: %w", err)
+			return fmt.Errorf("failed to delete entry: %w", err)
 		}
 
-		nlink, err := n.RootData.store.DecrementNodeNlink(ctx, ino)
-		if err != nil {
-			return fmt.Errorf("failed to decrement node nlink: %w", err)
-		}
-
-		if nlink > deleteNlink {
-			return nil
-		}
-
-		if err := n.RootData.store.DeleteNode(ctx, ino); err != nil {
+		if _, err := n.RootData.store.TryDeleteZeroNlinkNode(ctx, ino); err != nil {
 			return fmt.Errorf("failed to delete node: %w", err)
+		}
+
+		return nil
+	})
+	if err != nil {
+		return fmt.Errorf("failed to unlink node: %w", err)
+	}
+
+	if !isDir {
+		return nil
+	}
+
+	if nlink > 1 {
+		return errDirNotEmpty
+	}
+
+	return n.RootData.store.RunInTransaction(ctx, func(ctx context.Context) error {
+		if _, _, err := n.RootData.store.DeleteEntry(ctx, nodePath, "."); err != nil {
+			return fmt.Errorf("failed to delete dot entry: %w", err)
+		}
+
+		if _, _, err := n.RootData.store.DeleteEntry(ctx, nodePath, ".."); err != nil {
+			return fmt.Errorf("failed to delete double-dot entry: %w", err)
+		}
+
+		deleted, err := n.RootData.store.TryDeleteZeroNlinkNode(ctx, ino)
+		if err != nil {
+			return fmt.Errorf("failed to delete node: %w", err)
+		}
+
+		if !deleted {
+			return errDirNotEmpty
 		}
 
 		return nil
