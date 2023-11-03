@@ -10,11 +10,11 @@
         В байкале осталось <span class="left"> {{ water }} </span> литров воды
       </div>
       <template #footer>
-        <router-link class="slavic-button" to="/"> За новыми приёмами! </router-link>
+        <router-link class="slavic-button" title="Go battle" to="/"> За новыми приёмами! </router-link>
       </template>
     </va-modal>
-    <h1 class="helper-title">Молодец, отдохни, да испей водицы</h1>
-    <h1 class="helper">Откуда будишь черпать воду?</h1>
+    <h1 class="helper-title" title="Rest and drink some water">Молодец, отдохни, да испей водицы</h1>
+    <h1 class="helper" title="">Откуда будишь черпать воду?</h1>
     <form class="field" @submit.prevent="drink">
       <input
         class="gate"
@@ -24,7 +24,7 @@
         placeholder="Откда исьёшь водицу?"
         required
         v-model="from"
-      /><label for="name" title="Name">Вода из</label>
+      /><label for="name" title="Water from?">Вода из</label>
     </form>
   </div>
 </template>

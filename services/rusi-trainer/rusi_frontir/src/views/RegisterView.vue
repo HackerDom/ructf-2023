@@ -21,9 +21,9 @@
       </div>
       <button class="slavic-button" type="submit" title="Register">Приобщиться</button>
       <div class="groster">
-        <p class="error" v-if="error">Недосмотр: {{ error }}</p>
+        <p class="error" title="Error" v-if="error">Недосмотр: {{ error }}</p>
         <p>
-          Уже во собрании? <router-link to="/login" class="link" title="Войти">Возойти</router-link>
+          Уже во собрании? <router-link to="/login" class="link" title="Login">Возойти</router-link>
         </p>
       </div>
     </form>

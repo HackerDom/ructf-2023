@@ -29,11 +29,11 @@
         /><label for="description" title="Description">Описание</label>
       </div>
       <div class="field">
-        <label>Показ удара</label>
+        <label title="Image for udar">Показ удара</label>
         <va-carousel class="carousel" v-model="form.map" :items="items" />
       </div>
       <div class="field extra">
-        <p class="helper">Добавь учеников по грамоте его</p>
+        <p class="helper" title="Students ids">Добавь учеников по грамоте его</p>
         <input
           class="gate"
           id="trusted"
@@ -48,7 +48,7 @@
           <button
             class="slavic-button smaller"
             type="button"
-            title=" Ещё ученик"
+            title="Добавить ученика"
             @click="newTrusted"
           >
             +
@@ -58,7 +58,7 @@
 
       <div class="groster">
         <button class="slavic-button" type="submit" title="Teach udar">Обучить удару</button>
-        <p class="error" v-if="error">Недосмотр: {{ error }}</p>
+        <p class="error" title="Error" v-if="error">Недосмотр: {{ error }}</p>
       </div>
     </form>
   </div>
