@@ -8,13 +8,13 @@ def __gen_str(min_str_len: int, max_str_len: int) -> str:
     str_len = random.randint(min_str_len, max_str_len)
     str_bytes = random.randbytes(str_len)
 
-    string = base64.b32encode(str_bytes).decode().lower().strip('=')
-    return string[:str_len]
+    s = base64.b32encode(str_bytes).decode().lower().strip('=')
+    return s[:str_len]
 
 
 def __gen_word(min_word_len: int, max_word_len: int) -> str:
     word_len = random.randint(min_word_len, max_word_len)
-    return ''.join(random.choice(string.ascii_lowercase))
+    return ''.join(random.choice(string.ascii_lowercase) for _ in range(word_len))
 
 
 def gen_login() -> str:
@@ -33,7 +33,7 @@ def gen_test_description():
         sentences.append(sentence.capitalize())
 
     description = '. '.join(sentences)
-    return description
+    return f'{description}.'
 
 
 def gen_question(answers_num: int) -> dict:
@@ -42,7 +42,7 @@ def gen_question(answers_num: int) -> dict:
 
     answers = []
     for i in range(answers_num):
-        answer = ' '.join(__gen_word(3, 8)).capitalize()
+        answer = ' '.join(__gen_word(3, 8) for _ in range(random.randint(4, 8))).capitalize()
         answers.append(answer)
 
     correct_idx = random.randint(0, answers_num - 1)
