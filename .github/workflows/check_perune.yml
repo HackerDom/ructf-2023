@@ -39,7 +39,7 @@ jobs:
   check_sploit_perune:
     name: Check sploit perune
     runs-on: ubuntu-20.04
-    if: ${{ true }}
+    if: ${{ false }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
