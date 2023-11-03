@@ -436,7 +436,7 @@ namespace werk::vm {
         }
         out.opcode = static_cast<Opcode>(opcode);
         out.size = 2;
-        out.imm.defined = IsExtendedInstruction(firstPart);
+        out.imm.defined = IsInstructionWithImm(firstPart);
 
         if (out.imm.defined) {
             // imm is in out of memory bound
@@ -447,7 +447,7 @@ namespace werk::vm {
             out.size = 4;
         }
 
-        if (IsLongInstruction(out.opcode)) {
+        if (IsInstructionWithExtendedArgs(firstPart)) {
             out.operands.first = GetLongInstructionFirstOp(firstPart);
             out.operands.second = GetLongInstructionSecondOp(firstPart);
         } else {

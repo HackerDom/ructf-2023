@@ -44,14 +44,19 @@ namespace werk::vm {
     constexpr uint16_t kNonMovThirdOpMask  = 0x001c; // 0b0000_0000_0001_1100
     constexpr uint16_t kMovFirstOpMask     = 0x0780; // 0b0000_0111_1000_0000
     constexpr uint16_t kMovSecondOpMask    = 0x0078; // 0b0000_0000_0111_1000
-    constexpr uint16_t kSizeBitMask        = 0x0001; // 0b0000_0000_0000_0001
+    constexpr uint16_t kExtendendArgsMask  = 0x0002; // 0b0000_0000_0000_0010
+    constexpr uint16_t kLoadImmBitMask     = 0x0001; // 0b0000_0000_0000_0001
 
     inline int GetOpcode(uint16_t b) {
         return (b & kOpcodeNumMask) >> 11;
     }
 
-    inline bool IsExtendedInstruction(uint16_t b) {
-        return (b & kSizeBitMask) != 0;
+    inline bool IsInstructionWithExtendedArgs(uint16_t b) {
+        return (b & kExtendendArgsMask) != 0;
+    }
+
+    inline bool IsInstructionWithImm(uint16_t b) {
+        return (b & kLoadImmBitMask) != 0;
     }
 
     inline int GetShortInstructionFirstOp(uint16_t b) {

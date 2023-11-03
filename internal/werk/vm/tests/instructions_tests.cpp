@@ -12,9 +12,9 @@ TEST(Instructions, GetOpcode) {
     ASSERT_EQ(GetOpcode(static_cast<uint16_t>(0xffff)), 31);
 }
 
-TEST(Instructions, IsExtendedInstruction) {
-    ASSERT_EQ(IsExtendedInstruction(static_cast<uint16_t>(0xfafe)), false);
-    ASSERT_EQ(IsExtendedInstruction(static_cast<uint16_t>(0x8101)), true);
+TEST(Instructions, IsInstructionWithImm) {
+    ASSERT_EQ(IsInstructionWithImm(static_cast<uint16_t>(0xfafe)), false);
+    ASSERT_EQ(IsInstructionWithImm(static_cast<uint16_t>(0x8101)), true);
 }
 
 TEST(Instructions, NonMovOps) {

@@ -48,6 +48,7 @@ TEST(Vm, LoadInstruction) {
         [](std::shared_ptr<Vm> v){
             ASSERT_EQ(v->registers.v[3], 0xbbaa);
             ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 
@@ -65,6 +66,7 @@ TEST(Vm, LoadInstruction) {
         [](std::shared_ptr<Vm> v){
             ASSERT_EQ(v->registers.v[0], 0xdead);
             ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 
@@ -82,6 +84,7 @@ TEST(Vm, LoadInstruction) {
         [](std::shared_ptr<Vm> v){
             ASSERT_EQ(v->registers.v[7], 0xcafe);
             ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 
@@ -122,6 +125,7 @@ TEST(Vm, StoreInstruction) {
             ASSERT_EQ(memory[0x1000], 0xad);
             ASSERT_EQ(memory[0x1001], 0xde);
             ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 
@@ -150,7 +154,7 @@ TEST(Vm, MovInstruction) {
     uint8_t *memory = new uint8_t[kMemorySize];
     Defer f([memory]{ delete[] memory; });
 
-    uint16_t instructionShort = 0x1008; // mov v0, v1
+    uint16_t instructionShort = 0x100a; // mov v0, v1
     testVmRunInstruction(
         memory,
         &instructionShort,
@@ -161,10 +165,11 @@ TEST(Vm, MovInstruction) {
             ASSERT_EQ(v->registers.v[1], 0xdead);
             ASSERT_EQ(v->registers.v[0], 0xdead);
             ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 
-    instructionShort = 0x1390; // mov v7, v2
+    instructionShort = 0x1392; // mov v7, v2
     testVmRunInstruction(
         memory,
         &instructionShort,
@@ -175,10 +180,11 @@ TEST(Vm, MovInstruction) {
             ASSERT_EQ(v->registers.v[2], 0xcafe);
             ASSERT_EQ(v->registers.v[7], 0xcafe);
             ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 
-    instructionShort = 0x11c8; // mov v3, reg9 (invalid)
+    instructionShort = 0x11ca; // mov v3, reg9 (invalid)
     testVmRunInstruction(
         memory,
         &instructionShort,
@@ -190,7 +196,7 @@ TEST(Vm, MovInstruction) {
         }
     );
 
-    instructionShort = 0x14a0; // mov $imm, v4 (no size bit set)
+    instructionShort = 0x14a2; // mov $imm, v4 (no size bit set)
     testVmRunInstruction(
         memory,
         &instructionShort,
@@ -202,7 +208,7 @@ TEST(Vm, MovInstruction) {
         }
     );
 
-    uint8_t instructionLong[] = {0xa1, 0x14, 0xfe, 0xca}; // mov $imm, v4 | 0x14a1cafe
+    uint8_t instructionLong[] = {0xa3, 0x14, 0xfe, 0xca}; // mov $imm, v4 | 0x14a1cafe
     testVmRunInstruction(
         memory,
         instructionLong,
@@ -212,10 +218,11 @@ TEST(Vm, MovInstruction) {
         [memory](std::shared_ptr<Vm> v){
             ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
             ASSERT_EQ(v->registers.v[4], 0xcafe);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 4);
         }
     );
 
-    instructionShort = 0x13c0; // mov v7, i
+    instructionShort = 0x13c2; // mov v7, i
     testVmRunInstruction(
         memory,
         &instructionShort,
@@ -225,10 +232,11 @@ TEST(Vm, MovInstruction) {
         [memory](std::shared_ptr<Vm> v){
             ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
             ASSERT_EQ(v->registers.i, 0xdead);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 
-    instructionShort = 0x17c0; // mov reg15 (invalid), i
+    instructionShort = 0x17c2; // mov reg15 (invalid), i
     testVmRunInstruction(
         memory,
         &instructionShort,
@@ -258,6 +266,7 @@ TEST(Vm, PushInstruction) {
             ASSERT_EQ(v->registers.sp, 0x88a);
             ASSERT_EQ(memory[0x889], 0xad);
             ASSERT_EQ(memory[0x88a], 0xde);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 
@@ -274,6 +283,7 @@ TEST(Vm, PushInstruction) {
             ASSERT_EQ(v->registers.sp, 0x0);
             ASSERT_EQ(memory[0xffff], 0xad);
             ASSERT_EQ(memory[0x0000], 0xde);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 
@@ -290,6 +300,7 @@ TEST(Vm, PushInstruction) {
             ASSERT_EQ(v->registers.sp, 0x1);
             ASSERT_EQ(memory[0x0000], 0xad);
             ASSERT_EQ(memory[0x0001], 0xde);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 }
@@ -312,6 +323,7 @@ TEST(Vm, PopInstruction) {
             ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
             ASSERT_EQ(v->registers.sp, 0x888);
             ASSERT_EQ(v->registers.v[4], 0xdead);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 
@@ -329,6 +341,7 @@ TEST(Vm, PopInstruction) {
             ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
             ASSERT_EQ(v->registers.sp, 0xffff);
             ASSERT_EQ(v->registers.v[6], 0xdead);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 }
@@ -349,6 +362,7 @@ TEST(Vm, ArithInstructions) {
             ASSERT_EQ(v->registers.v[1], 0x107a);
             ASSERT_EQ(v->registers.v[4], 0xde);
             ASSERT_EQ(v->registers.v[5], 0x13);
+            ASSERT_EQ(v->registers.pc, 0x1337 + 2);
         }
     );
 }
