@@ -56,13 +56,11 @@ build {
       "apt-get install -y -q haveged",
 
       # Add users for services
-      "useradd -m -s /bin/bash example",
       "useradd -m -s /bin/bash hyperborea-legends",
+      "useradd -m -s /bin/bash perune",
       "useradd -m -s /bin/bash rusi-trainer",
       "useradd -m -s /bin/bash rustest",
-      "useradd -m -s /bin/bash sqlfs",
       "useradd -m -s /bin/bash werk",
-      "useradd -m -s /bin/bash perune",
     ]
   }
 
@@ -98,16 +96,8 @@ build {
 
   # Copy services
   provisioner "file" {
-    source = "../services/example/"
-    destination = "/home/example/"
-  }
-  provisioner "file" {
     source = "../services/hyperborea-legends/"
     destination = "/home/hyperborea-legends/"
-  }
-  provisioner "file" {
-    source = "../services/perune/"
-    destination = "/home/perune/"
   }
   provisioner "file" {
     source = "../services/perune/"
@@ -122,10 +112,6 @@ build {
     destination = "/home/rustest/"
   }
   provisioner "file" {
-    source = "../services/sqlfs/"
-    destination = "/home/sqlfs/"
-  }
-  provisioner "file" {
     source = "../services/werk/"
     destination = "/home/werk/"
   }
@@ -133,8 +119,6 @@ build {
   # Build and run services for the first time
   provisioner "shell" {
     inline = [
-      "cd ~example",
-      "docker-compose build || true",
       "cd ~hyperborea-legends",
       "docker-compose build || true",
       "cd ~perune",
@@ -143,19 +127,15 @@ build {
       "docker-compose build || true",
       "cd ~rustest",
       "docker-compose build || true",
-      "cd ~sqlfs",
-      "docker-compose build || true",
       "cd ~werk",
       "docker-compose build || true",
 
       "systemctl daemon-reload",
 
-      "systemctl enable ructf-service@example",
       "systemctl enable ructf-service@hyperborea-legends",
       "systemctl enable ructf-service@perune",
       "systemctl enable ructf-service@rusi-trainer",
       "systemctl enable ructf-service@rustest",
-      "systemctl enable ructf-service@sqlfs",
       "systemctl enable ructf-service@werk",
     ]
   }
