@@ -95,4 +95,22 @@ namespace werk::vm {
         // pc can be set by imm value
         return opcode == Mov || IsSetPcInstruction(opcode);
     }
+
+    struct UnpackedInstruction {
+        Opcode opcode;
+        struct {
+            bool extended;
+            int first;
+            int second;
+            int third;
+        } operands;
+        struct {
+            uint16_t value;
+            bool defined;
+        } imm;
+        uint16_t size;
+        bool setPc;
+    };
+
+    std::size_t EmitUnpackedInstruction(const UnpackedInstruction &instr, uint8_t *out, std::size_t max);
 }

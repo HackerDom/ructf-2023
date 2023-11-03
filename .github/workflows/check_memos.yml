@@ -57,6 +57,17 @@ jobs:
       run: if [ -f sploits/memos/requirements.txt ]; then python -m pip install -r sploits/memos/requirements.txt; fi
     - name: Test sploit on service
       run: TERM=linux ./tools/check_sploit.py memos 127.0.0.1
+  check_stand_checker_memos:
+    name: Check stand checker memos
+    runs-on: self-hosted
+    if: ${{ true }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup checker libraries
+      run: if [ -f checkers/memos/requirements.txt ]; then python -m pip install -r checkers/memos/requirements.txt; fi
+    - name: Test checker on service
+      run: (cd ./checkers/memos && ./memos.checker.py TEST test1.cloud.ructf.org)
   check_stand_sploit_memos:
     name: Check stand sploit memos
     runs-on: self-hosted

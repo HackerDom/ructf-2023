@@ -6,6 +6,7 @@ pg_cs_user: cs
 pg_cs_pass: A2VFMmd4HQ5Zs8KyPG7RTX
 pg_cs_db: cs
 pg_cs_host: 10.10.10.4
+pg_listen_hosts: 10.10.10.7,10.10.10.8,10.10.10.9,10.10.10.10
 pg_cs_port: 5432
 pg_max_connections: 1024
 pg_shared_buffers: 1GB
@@ -34,7 +35,7 @@ cs_nginx_auth_password: $apr1$6OmQV6wU$ftVd42g5DkXmOhAt1epsn.
 
 grafana_admin_pass: At4BpKRW5sxm3Hz7rPgQcC
 
-cs_base_url: http://188.166.65.8/
+cs_base_url: https://monitor.cloud.ructf.org/
 cs_admin_auth: root:5uperS3cre7
 cs_ctf_name: RuCTF 2023
 cs_flags_secret: N2Y9GudQx3j6BnyFVXwCU7

@@ -57,6 +57,17 @@ jobs:
       run: if [ -f sploits/funficfy/requirements.txt ]; then python -m pip install -r sploits/funficfy/requirements.txt; fi
     - name: Test sploit on service
       run: TERM=linux ./tools/check_sploit.py funficfy 127.0.0.1
+  check_stand_checker_funficfy:
+    name: Check stand checker funficfy
+    runs-on: self-hosted
+    if: ${{ true }}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup checker libraries
+      run: if [ -f checkers/funficfy/requirements.txt ]; then python -m pip install -r checkers/funficfy/requirements.txt; fi
+    - name: Test checker on service
+      run: (cd ./checkers/funficfy && ./funficfy.checker.py TEST test1.cloud.ructf.org)
   check_stand_sploit_funficfy:
     name: Check stand sploit funficfy
     runs-on: self-hosted

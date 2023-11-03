@@ -14,8 +14,8 @@
     owner: root
     group: root
 
-- name: ensure compose running
-  docker_compose:
-    project_src: /root/node_exporter
-    state: present
-    restarted: yes
+# - name: ensure compose running
+#   docker_compose:
+#     project_src: /root/node_exporter
+#     state: present
+#     restarted: yes

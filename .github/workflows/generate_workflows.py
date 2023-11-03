@@ -34,6 +34,17 @@ SPLOITS = [
     "wise-mystical-tree",
 ]
 
+STAND_CHECKERS = [
+  "funficfy",
+  "hyperborea-legends",
+  "memos",
+  "perune",
+  "rusi-trainer",
+  "rustest",
+  "werk",
+  "wise-mystical-tree",
+]
+
 STAND_SPLOITS = [
     "funficfy",
     "hyperborea-legends",
@@ -105,6 +116,17 @@ jobs:
       run: if [ -f sploits/{service}/requirements.txt ]; then python -m pip install -r sploits/{service}/requirements.txt; fi
     - name: Test sploit on service
       run: TERM=linux ./tools/check_sploit.py {service} 127.0.0.1
+  check_stand_checker_{service}:
+    name: Check stand checker {service}
+    runs-on: self-hosted
+    if: {stand_checker_enabled}
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Setup checker libraries
+      run: if [ -f checkers/{service}/requirements.txt ]; then python -m pip install -r checkers/{service}/requirements.txt; fi
+    - name: Test checker on service
+      run: (cd ./checkers/{service} && ./{service}.checker.py TEST test1.cloud.ructf.org)
   check_stand_sploit_{service}:
     name: Check stand sploit {service}
     runs-on: self-hosted
@@ -132,7 +154,8 @@ for service in SERVICES:
             service_lower=service.lower(),
             checker_enabled=template_bool(service in CHECKERS),
             sploit_enabled=template_bool(service in SPLOITS),
-            stand_sploit_enabled=template_bool(service in STAND_SPLOITS)
+            stand_sploit_enabled=template_bool(service in STAND_SPLOITS),
+            stand_checker_enabled=template_bool(service in STAND_CHECKERS)
         )
         f.write(template)
 
