@@ -37,6 +37,7 @@ namespace werk::vm {
         Status status;
         std::vector<char> serial;
         uint64_t totalTicksCount;
+        uint64_t hltOpsRemains;
 
         Status tickInternal(int &remainOpsCount);
 

@@ -21,6 +21,15 @@ add_library(vm STATIC ${HEADERS} ${SOURCES})
 target_link_libraries(vm common glog::glog)
 target_include_directories(vm PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+add_executable(vm_exe
+        ${HEADERS}
+        ${SOURCES}
+        src/main.cpp
+        )
+target_include_directories(vm_exe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set_target_properties(vm_exe PROPERTIES OUTPUT_NAME "vm")
+target_link_libraries(vm_exe common glog::glog)
+
 add_executable(vm_tests
         ${HEADERS}
         ${SOURCES}

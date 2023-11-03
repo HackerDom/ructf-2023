@@ -8,6 +8,10 @@ namespace werk::vm {
     Vm::Vm(void *memory) : memory(memory), memoryBytePtr(reinterpret_cast<uint8_t*>(memory)) {
         status = Running;
         totalTicksCount = 0;
+        hltOpsRemains = 0;
+        registers.pc = kProgramLoadOffset;
+        registers.sp = kStackStartPosition;
+
         appendHandler(Opcode::Load, [this](ParsedInstruction &i) {return this->load(i);});
         appendHandler(Opcode::Store, [this](ParsedInstruction &i) {return this->store(i);});
         appendHandler(Opcode::Mov, [this](ParsedInstruction &i) {return this->mov(i);});
@@ -495,14 +499,34 @@ namespace werk::vm {
     }
 
     Vm::Status Vm::tickInternal(int &remainOpsCount) {
+        if (hltOpsRemains != 0) {
+            if (hltOpsRemains < remainOpsCount) {
+                hltOpsRemains = 0;
+                remainOpsCount -= hltOpsRemains;
+            } else {
+                remainOpsCount = 0;
+                hltOpsRemains -= remainOpsCount;
+            }
+
+            return Status::Running;
+        }
+
         ParsedInstruction instruction{};
         if (!parseInstruction(instruction)) {
             return Status::Crashed;
         }
 
-        status = instructionHandlers[static_cast<int>(instruction.opcode)](instruction);
-        if (status != Running) {
-            return status;
+        if (instruction.opcode != Opcode::Hlt) {
+            status = instructionHandlers[static_cast<int>(instruction.opcode)](instruction);
+            if (status != Running) {
+                return status;
+            }
+        } else {
+            auto *t = registers.GetRegisterByOperandNum(instruction.operands.first);
+            if (t == nullptr) {
+                return Status::Crashed;
+            }
+            hltOpsRemains += *t;
         }
 
         if (!instruction.setPc) {
