@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import sys
 from typing import Optional
 
 import gornilo
@@ -27,6 +28,7 @@ def make_request(
         payload: Optional[dict],
         headers: Optional[dict],
         query: Optional[dict],
+        session: Optional[requests.Session],
 ) -> tuple[Optional[requests.Response], Optional[CheckerError]]:
     kwargs = {}
     if payload is not None:
@@ -37,7 +39,11 @@ def make_request(
         kwargs['params'] = query
 
     try:
-        resp = requests.request(method, url, **kwargs)
+        if session is not None:
+            resp = session.request(method, url, **kwargs)
+        else:
+            resp = requests.request(method, url, **kwargs)
+
         return resp, None
     except requests.exceptions.ConnectionError:
         return None, CheckerError(gornilo.Verdict.DOWN('cannot connect to the service'), 'cannot make request to service: connection error')
@@ -52,8 +58,9 @@ def get_json_response(
         payload: Optional[dict] = None,
         headers: Optional[dict] = None,
         query: Optional[dict] = None,
+        session: Optional[requests.Session] = None
 ) -> tuple[dict, Optional[requests.Response], Optional[CheckerError]]:
-    resp, err = make_request(url, method, payload, headers, query)
+    resp, err = make_request(url, method, payload, headers, query, session)
     if err is not None:
         return {}, None, err.wrapped_by('cannot get json response: cannot make any request to server')
 
@@ -62,20 +69,20 @@ def get_json_response(
     except requests.exceptions.JSONDecodeError:
         return {}, resp, CheckerError(
             gornilo.Verdict.MUMBLE('cannot parse json'),
-            'cannot get json response: cannot parse json from response'
+            f'cannot get json response: cannot parse json from response ({resp.text})'
         )
     except Exception as ex:
         print(ex)
         raise
 
 
-def register_with(url: str, login: str, password: str) -> tuple[str, Optional[CheckerError]]:
+def register_with(session: requests.session, url: str, login: str, password: str) -> tuple[str, Optional[CheckerError]]:
     payload = dict(
         login=login,
         password=password,
     )
 
-    resp_data, _, err = get_json_response(f'{url}/api/register', method='post', payload=payload)
+    resp_data, _, err = get_json_response(f'{url}/api/register', method='post', payload=payload, session=session)
     if err is not None:
         return '', err.wrapped_by(f'cannot register user, {login=}')
 
@@ -85,16 +92,16 @@ def register_with(url: str, login: str, password: str) -> tuple[str, Optional[Ch
             f'token field wasn`t present in register json response {resp_data=}'
         )
 
-    return resp_data['json'], None
+    return resp_data['token'], None
 
 
-def login_as(url: str, login: str, password: str) -> tuple[str, Optional[CheckerError]]:
+def login_as(session: requests.Session, url: str, login: str, password: str) -> tuple[str, Optional[CheckerError]]:
     payload = dict(
         login=login,
         password=password,
     )
 
-    resp_data, _, err = get_json_response(f'{url}/api/login', method='post', payload=payload)
+    resp_data, _, err = get_json_response(f'{url}/api/login', method='post', payload=payload, session=session)
     if err is not None:
         return '', err.wrapped_by(f'user cannot login, {login=}')
 
@@ -107,11 +114,12 @@ def login_as(url: str, login: str, password: str) -> tuple[str, Optional[Checker
     return resp_data['json'], None
 
 
-def get_test_state(url: str, token: str, test_id: str) -> tuple[dict, Optional[CheckerError]]:
+def get_test_state(session: requests.Session, url: str, token: str, test_id: str) -> tuple[dict, Optional[CheckerError]]:
     resp_data, _, err = get_json_response(
         f'{url}/api/rustest/{test_id}/solve',
         'get',
-        headers={'token': f'Authorization: Bearer {token}'}
+        headers={'Authorization': f'Bearer {token}'},
+        session=session,
     )
 
     if err is not None:
@@ -120,12 +128,13 @@ def get_test_state(url: str, token: str, test_id: str) -> tuple[dict, Optional[C
     return resp_data, None
 
 
-def submit_answer_on_test_round(url: str, token: str, test_id: str, rnd: int, answer: int) -> tuple[dict, Optional[CheckerError]]:
+def submit_answer_on_test_round(session: requests.Session, url: str, token: str, test_id: str, rnd: int, answer: int) -> tuple[dict, Optional[CheckerError]]:
     resp_data, _, err = get_json_response(
         f'{url}/api/rustest/{test_id}/submit',
         'post',
         payload={'round': rnd, 'answer': answer},
-        headers={'Authorization': f'Bearer {token}'}
+        headers={'Authorization': f'Bearer {token}'},
+        session=session
     )
 
     if err is not None:
@@ -134,12 +143,13 @@ def submit_answer_on_test_round(url: str, token: str, test_id: str, rnd: int, an
     return resp_data, None
 
 
-def create_rustest(url: str, token: str, test: dict) -> tuple[dict, Optional[CheckerError]]:
+def create_rustest(session: requests.Session, url: str, token: str, test: dict) -> tuple[dict, Optional[CheckerError]]:
     resp_data, _, err = get_json_response(
         f'{url}/api/rustest',
         'post',
         payload=test,
-        headers={'Authorization': f'Bearer {token}'}
+        headers={'Authorization': f'Bearer {token}'},
+        session=session,
     )
 
     if err is not None:
@@ -154,12 +164,13 @@ def create_rustest(url: str, token: str, test: dict) -> tuple[dict, Optional[Che
     return resp_data, None
 
 
-def get_page_of_tests(url: str, token: str, page: int = 0) -> tuple[dict, Optional[CheckerError]]:
+def get_page_of_tests(session: requests.Session, url: str, token: str, page: int = 0) -> tuple[dict, Optional[CheckerError]]:
     resp_data, _, err = get_json_response(
         f'{url}/api/rustests',
         'get',
         headers={'Authorization': f'Bearer {token}'},
         query={'page': page},
+        session=session,
     )
 
     if err is not None:
@@ -168,8 +179,8 @@ def get_page_of_tests(url: str, token: str, page: int = 0) -> tuple[dict, Option
     return resp_data, None
 
 
-def solve_test_with_answers(url: str, token: str, test_id: str, correct_answers: [int]) -> tuple[dict, Optional[CheckerError]]:
-    cur_state, err = get_test_state(url, token, test_id)
+def solve_test_with_answers(session: requests.Session, url: str, token: str, test_id: str, correct_answers: [int]) -> tuple[dict, Optional[CheckerError]]:
+    cur_state, err = get_test_state(session, url, token, test_id)
     if err is not None:
         return {}, err.wrapped_by('cannot solve test: cannot get initial state')
 
@@ -180,7 +191,7 @@ def solve_test_with_answers(url: str, token: str, test_id: str, correct_answers:
         )
 
     for rnd_idx, ans in enumerate(correct_answers):
-        resp, err = submit_answer_on_test_round(url, token, test_id, rnd_idx, ans)
+        resp, err = submit_answer_on_test_round(session, url, token, test_id, rnd_idx, ans)
         if err is not None:
             return {}, err.wrapped_by(f'cannot submit answer on test round {test_id=}, {rnd_idx=}')
 
@@ -218,10 +229,10 @@ def solve_test_with_answers(url: str, token: str, test_id: str, correct_answers:
     return final_state, None
 
 
-def register_random(url: str) -> tuple[str, Optional[CheckerError]]:
+def register_random(session: requests.Session, url: str) -> tuple[str, Optional[CheckerError]]:
     login = generators.gen_login()
     password = generators.gen_password()
-    return register_with(url, login, password)
+    return register_with(session, url, login, password)
 
 
 def build_url(req) -> str:
@@ -230,7 +241,7 @@ def build_url(req) -> str:
 
 @checker.define_check
 def check(req: gornilo.CheckRequest) -> gornilo.Verdict:
-    pass
+    return gornilo.Verdict.OK()
 
 
 @checker.define_vuln('flag_id is an id of test')
@@ -239,56 +250,69 @@ class RaceChecker(gornilo.VulnChecker):
     def put(req: gornilo.PutRequest) -> gornilo.Verdict:
         url = build_url(req)
 
-        # we must register a user
-        token, err = register_random(url)
-        if err is not None:
-            print(f'put error: {err.error_message}')
-            return err.verdict
+        with requests.Session() as session:
+            # we must register a user
+            token, err = register_random(session, url)
+            if err is not None:
+                print(f'put error: {err.error_message}')
+                return err.verdict
 
-        # create a test with a reward.
-        # WE CAN MAKE TESTS EASIER TO HACK DURING THE COMPETITION BY VARYING QUESTIONS NUM AND ANSWERS PER QUESTION NUM
-        test = generators.gen_test(questions_num=10, answers_num=4, flag=req.flag)
-        test, err = create_rustest(url, token, test)
-        if err is not None:
-            print(f'put error: {err.error_message}')
-            return err.verdict
+            # create a test with a reward.
+            # WE CAN MAKE TESTS EASIER TO HACK DURING THE COMPETITION BY VARYING QUESTIONS NUM AND ANSWERS PER QUESTION NUM
+            test = generators.gen_test(questions_num=10, answers_num=4, flag=req.flag)
+            test, err = create_rustest(session, url, token, test)
+            if err is not None:
+                print(f'put error: {err.error_message}')
+                return err.verdict
 
-        test_id = test['id']
-        # we need to dump all the test, because we need to solve test with correct answers
-        return gornilo.Verdict.OK_WITH_FLAG_ID(test_id, json.dumps(test))
+            test_id = test['id']
+            private_flag_id = {
+                'reward': req.flag,
+                'correct_answers': [question['correct_idx'] for question in test['questions']]
+            }
+
+            # we need to know correct answers in GET
+            return gornilo.Verdict.OK_WITH_FLAG_ID(test_id, json.dumps(private_flag_id))
 
     @staticmethod
     def get(req: gornilo.GetRequest) -> gornilo.Verdict:
         url = build_url(req)
 
-        # we must register a user
-        token, err = register_random(url)
-        if err is not None:
-            print(f'get error: {err.error_message}')
-            return err.verdict
+        with requests.Session() as session:
+            # we must register a user
+            token, err = register_random(session, url)
+            if err is not None:
+                print(f'get error: {err.error_message}')
+                return err.verdict
 
-        test = json.loads(req.flag_id)
-        test_id = req.public_flag_id
-        flag = test['reward']
-        correct_answers = [question['correct_idx'] for question in test['questions']]
+            private_flag_id = json.loads(req.flag_id)
+            test_id = req.public_flag_id
+            flag = private_flag_id['reward']
+            correct_answers = private_flag_id['correct_answers']
 
-        final_state, err = solve_test_with_answers(url, token, test_id, correct_answers)
-        if err is not None:
-            print(f'get error: {err.error_message}')
-            return err.verdict
+            final_state, err = solve_test_with_answers(session, url, token, test_id, correct_answers)
+            if err is not None:
+                print(f'get error: {err.error_message}')
+                return err.verdict
 
-        if final_state['result'] != 'Win' or 'reward' not in final_state:
-            print('wrong state {final_state}')
-            return gornilo.Verdict.CORRUPT('cannot win the victorine to get reward')
+            if final_state['result'] != 'Win' or 'reward' not in final_state:
+                print('wrong state {final_state}')
+                return gornilo.Verdict.CORRUPT('cannot win the victorine to get reward')
 
-        svc_reward = final_state['reward']
-        if svc_reward != flag:
-            print(f'wrong flag (svc flag) != (checker flag) {svc_reward} != {flag}')
-            return gornilo.Verdict.CORRUPT('wrong flag')
+            svc_reward = final_state['reward']
+            if svc_reward != flag:
+                print(f'wrong flag (svc flag) != (checker flag) {svc_reward} != {flag}')
+                return gornilo.Verdict.CORRUPT('wrong flag')
+
+        return gornilo.Verdict.OK()
 
 
 def main():
-    pass
+    # commands = [CHECK, PUT, GET, INFO, TEST]
+    # command, hostname, flag_id, flag, vuln_id
+
+    # command, hostname
+    checker.run(*sys.argv[1:])
 
 
 if __name__ == '__main__':
