@@ -43,6 +43,7 @@ namespace werk::vm {
         struct ParsedInstruction {
             Opcode opcode;
             struct {
+                bool extended;
                 int first;
                 int second;
                 int third;
@@ -98,5 +99,7 @@ namespace werk::vm {
 
         void push16(uint16_t val);
         void pop16(uint16_t *val);
+
+        Status extractAddressArg(ParsedInstruction &instr, uint16_t *out);
     };
 }

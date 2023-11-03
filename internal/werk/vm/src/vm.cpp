@@ -60,6 +60,23 @@ namespace werk::vm {
         *(reinterpret_cast<uint8_t*>(out)) = memoryBytePtr[registers.sp--];
     }
 
+    Vm::Status Vm::extractAddressArg(ParsedInstruction &instr, uint16_t *out) {
+        if (instr.operands.extended && instr.operands.first == 9) {
+            if (!instr.imm.defined) {
+                return Vm::Status::Crashed;
+            }
+            *out = instr.imm.value;
+        }
+
+        auto *trg = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (trg == nullptr) {
+            return Vm::Status::Crashed;
+        }
+        *out = *trg;
+
+        return Status::Running;
+    }
+
     Vm::Status Vm::load(ParsedInstruction &instr) {
         auto *target = registers.GetRegisterByOperandNum(instr.operands.first);
         if (target == nullptr) {
@@ -299,7 +316,26 @@ namespace werk::vm {
     }
 
     Vm::Status Vm::call(ParsedInstruction &instr) {
-        return Status::Crashed;
+        uint16_t addr;
+
+        if (auto st = extractAddressArg(instr, &addr); st != Status::Running) {
+            return st;
+        }
+
+        // next instruction after this
+        push16(registers.pc + instr.size);
+        registers.pc = addr;
+
+        return Vm::Status::Running;
+    }
+
+    Vm::Status Vm::ret(ParsedInstruction &instr) {
+        uint16_t addr;
+
+        pop16(&addr);
+        registers.pc = addr;
+
+        return Status::Running;
     }
 
     Vm::Status Vm::nop(ParsedInstruction &) {
@@ -359,10 +395,6 @@ namespace werk::vm {
     }
 
     Vm::Status Vm::hexouta(ParsedInstruction &) {
-        return Status::Crashed;
-    }
-
-    Vm::Status Vm::ret(ParsedInstruction &) {
         return Status::Crashed;
     }
 
@@ -448,7 +480,9 @@ namespace werk::vm {
             out.size = 4;
         }
 
-        if (IsInstructionWithExtendedArgs(firstPart)) {
+        out.operands.extended = IsInstructionWithExtendedArgs(firstPart);
+
+        if (out.operands.extended) {
             out.operands.first = GetLongInstructionFirstOp(firstPart);
             out.operands.second = GetLongInstructionSecondOp(firstPart);
         } else {
