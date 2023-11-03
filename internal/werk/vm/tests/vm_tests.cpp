@@ -403,6 +403,22 @@ TEST(Vm, CallInstruction) {
             ASSERT_EQ(v->registers.pc, 0x1337);
         }
     );
+
+    uint8_t instructionLong[] = {0x83, 0x6c, 0xfe, 0xca}; // call 0xcafe // 0x6c83 0xcafe
+    testVmRunInstruction(
+        memory,
+        instructionLong,
+        sizeof(instructionLong),
+        0x44ff,
+        RegistersSet{.v = {0, 0, 0, 0, 0xde, 0x1337, 0, 0}, .sp = 0x456},
+        [memory](std::shared_ptr<Vm> v){
+            ASSERT_EQ(v->GetStatus(), Vm::Status::Running);
+            ASSERT_EQ(memory[0x457], 0x03);
+            ASSERT_EQ(memory[0x458], 0x45);
+            ASSERT_EQ(v->registers.sp, 0x458);
+            ASSERT_EQ(v->registers.pc, 0xcafe);
+        }
+    );
 }
 
 TEST(Vm, RetInstruction) {

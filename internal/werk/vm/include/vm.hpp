@@ -101,5 +101,6 @@ namespace werk::vm {
         void pop16(uint16_t *val);
 
         Status extractAddressArg(ParsedInstruction &instr, uint16_t *out);
+        Status jumpArgOnCond(ParsedInstruction &instr, bool cond);
     };
 }

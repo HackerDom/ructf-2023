@@ -66,13 +66,30 @@ namespace werk::vm {
                 return Vm::Status::Crashed;
             }
             *out = instr.imm.value;
+            return Status::Running;
         }
 
         auto *trg = registers.GetRegisterByOperandNum(instr.operands.first);
         if (trg == nullptr) {
-            return Vm::Status::Crashed;
+            return Status::Crashed;
         }
         *out = *trg;
+
+        return Status::Running;
+    }
+
+    Vm::Status Vm::jumpArgOnCond(ParsedInstruction &instr, bool cond) {
+        uint16_t addr;
+
+        if (auto st = extractAddressArg(instr, &addr); st != Status::Running) {
+            return st;
+        }
+
+        if (cond) {
+            registers.pc = addr;
+        } else {
+            registers.pc += instr.size;
+        }
 
         return Status::Running;
     }
@@ -316,15 +333,13 @@ namespace werk::vm {
     }
 
     Vm::Status Vm::call(ParsedInstruction &instr) {
-        uint16_t addr;
-
-        if (auto st = extractAddressArg(instr, &addr); st != Status::Running) {
-            return st;
-        }
-
         // next instruction after this
-        push16(registers.pc + instr.size);
-        registers.pc = addr;
+        auto retAddr = registers.pc + instr.size;
+
+        if (auto s = jumpArgOnCond(instr, true); s != Status::Running) {
+            return s;
+        }
+        push16(retAddr);
 
         return Vm::Status::Running;
     }
@@ -342,32 +357,53 @@ namespace werk::vm {
         return Status::Running;
     }
 
-    Vm::Status Vm::jmp(ParsedInstruction &) {
-        return Status::Crashed;
+    Vm::Status Vm::cmp(ParsedInstruction &instr) {
+        if (!instr.operands.extended) {
+            return Status::Crashed;
+        }
+
+        auto *left = registers.GetRegisterByOperandNum(instr.operands.first);
+        if (left == nullptr) {
+            return Status::Crashed;
+        }
+
+        auto *right = registers.GetRegisterByOperandNum(instr.operands.second);
+        if (right == nullptr) {
+            return Status::Crashed;
+        }
+
+        registers.fEq = (*left == *right);
+        registers.fLess = (*left < *right);
+
+        return Status::Running;
     }
 
-    Vm::Status Vm::jl(ParsedInstruction &) {
-        return Status::Crashed;
+    Vm::Status Vm::jmp(ParsedInstruction &instr) {
+        return jumpArgOnCond(instr, true);
     }
 
-    Vm::Status Vm::jg(ParsedInstruction &) {
-        return Status::Crashed;
+    Vm::Status Vm::jl(ParsedInstruction &instr) {
+        return jumpArgOnCond(instr, registers.fLess);
     }
 
-    Vm::Status Vm::jle(ParsedInstruction &) {
-        return Status::Crashed;
+    Vm::Status Vm::jg(ParsedInstruction &instr) {
+        return jumpArgOnCond(instr, !registers.fLess && !registers.fEq);
     }
 
-    Vm::Status Vm::jge(ParsedInstruction &) {
-        return Status::Crashed;
+    Vm::Status Vm::jle(ParsedInstruction &instr) {
+        return jumpArgOnCond(instr, registers.fLess || registers.fEq);
     }
 
-    Vm::Status Vm::je(ParsedInstruction &) {
-        return Status::Crashed;
+    Vm::Status Vm::jge(ParsedInstruction &instr) {
+        return jumpArgOnCond(instr, !registers.fLess);
     }
 
-    Vm::Status Vm::jne(ParsedInstruction &) {
-        return Status::Crashed;
+    Vm::Status Vm::je(ParsedInstruction &instr) {
+        return jumpArgOnCond(instr, registers.fEq);
+    }
+
+    Vm::Status Vm::jne(ParsedInstruction &instr) {
+        return jumpArgOnCond(instr, !registers.fEq);
     }
 
     Vm::Status Vm::hlt(ParsedInstruction &) {
@@ -379,10 +415,6 @@ namespace werk::vm {
     }
 
     Vm::Status Vm::popb(ParsedInstruction &) {
-        return Status::Crashed;
-    }
-
-    Vm::Status Vm::cmp(ParsedInstruction &) {
         return Status::Crashed;
     }
 
