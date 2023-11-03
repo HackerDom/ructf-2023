@@ -17,3 +17,13 @@ data "digitalocean_ssh_key" "cs" {
 data "digitalocean_ssh_key" "vaspahomov" {
   name = "vaspahomov"
 }
+
+locals {
+  all_ssh_keys = [
+    data.digitalocean_ssh_key.cs.id,
+    data.digitalocean_ssh_key.cerebralobserver.id,
+    data.digitalocean_ssh_key.dvl.id,
+    data.digitalocean_ssh_key.lololozhkin.id,
+    data.digitalocean_ssh_key.vaspahomov.id,
+  ]
+}

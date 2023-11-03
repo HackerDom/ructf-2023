@@ -1,16 +1,10 @@
 resource "digitalocean_droplet" "vpn" {
-  image              = "ubuntu-20-04-x64"
-  name               = "vpn"
-  region             = var.region
-  size               = "g-2vcpu-8gb"
-  private_networking = true
-  vpc_uuid           = digitalocean_vpc.jury.id
-  ssh_keys = [
-    data.digitalocean_ssh_key.cs.id,
-    data.digitalocean_ssh_key.cerebralobserver.id,
-    data.digitalocean_ssh_key.dvl.id,
-    data.digitalocean_ssh_key.lololozhkin.id,
-  ]
+  image    = "ubuntu-20-04-x64"
+  name     = "vpn"
+  region   = var.region
+  size     = "g-2vcpu-8gb"
+  vpc_uuid = digitalocean_vpc.jury.id
+  ssh_keys = local.all_ssh_keys
 }
 
 resource "digitalocean_volume" "vpn" {
