@@ -16,7 +16,7 @@ services:
     volumes:
       - storage:/var/memos/storage:rw
     ports:
-      - "127.0.0.1:17171:31337"
+      - "17171:31337"
 
   cleaner:
     build: cleaner
