@@ -1,10 +1,12 @@
 #!/bin/sh
 printf " * News and announcements: https://t.me/RuCTF\n"
-printf " * Site:                   https://ructf.org\n"
-printf " * Chat:                   https://ructfe.slack.com (register at https://ructfe.org/slack)\n"
-printf " * Monitor:                https://monitor.ructf.org (for oldfags: https://monitor.ructf.org/board)\n"
-printf " * Flags:                  read https://ructf.org/en/flags/, send to http://10.10.10.10/flags\n"
-printf " * Email:                  info@ructf.org\n"
+printf " * Site:                   https://2023.ructf.org\n"
+printf " * Chat:                   https://discord.com/invite/hvEZYCPPgj\n"
+printf " * Monitor:                https://monitor.cloud.ructf.org\n"
+printf " * Rules:                  https://2023.ructf.org/rules\n"
+printf " * Flags:                  Send to https://monitor.cloud.ructf.org/flags\n"
+printf "                                or http://10.10.10.10/flags\n"
+
 printf "\n"
 
 /bin/echo -ne "\x1b[0m"
