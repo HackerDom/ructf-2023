@@ -36,7 +36,7 @@ cs_nginx_auth_password: $apr1$6OmQV6wU$ftVd42g5DkXmOhAt1epsn.
 grafana_admin_pass: At4BpKRW5sxm3Hz7rPgQcC
 
 cs_base_url: https://monitor.cloud.ructf.org/
-cs_admin_auth: root:5uperS3cre7
+cs_admin_auth: root:5uperS3cre747bb1d0c35c885c6
 cs_ctf_name: RuCTF 2023
 cs_flags_secret: N2Y9GudQx3j6BnyFVXwCU7
 cs_round_length: 60
