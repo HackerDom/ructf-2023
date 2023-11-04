@@ -42,7 +42,7 @@ cs_flags_secret: N2Y9GudQx3j6BnyFVXwCU7
 cs_round_length: 60
 cs_flag_life_time: 15
 cs_disable_irrelevant_services: 0
-cs_time: "['2023-10-01 06:00:00', '2023-11-05 06:00:00']"
+cs_time: "['2023-11-04 10:00:00', '2023-11-04 19:00:00']"
 
 cs_scoring: |
     start_flag_price => 10,
