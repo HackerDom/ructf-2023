@@ -6,7 +6,7 @@ import shutil
 import crypt
 
 N = 500
-S = 1
+S = 3
 
 DB_DIR = "db_prod"
 
