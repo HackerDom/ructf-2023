@@ -3,7 +3,6 @@ import json
 import sys
 import traceback
 
-import jsonschema.exceptions
 import requests
 from gornilo import CheckRequest, Verdict, PutRequest, GetRequest, VulnChecker, NewChecker
 
@@ -22,7 +21,6 @@ DOWN_EXCEPTIONS = {
 MUMBLE_EXCEPTIONS = {
     requests.exceptions.HTTPError,
     requests.exceptions.JSONDecodeError,
-    jsonschema.exceptions.ValidationError,
 }
 
 KNOWN_EXCEPTIONS = DOWN_EXCEPTIONS | MUMBLE_EXCEPTIONS
