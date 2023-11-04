@@ -120,6 +120,8 @@ def recognize_text(image: bytes) -> str:
 
     content, _ = process.communicate()
 
+    os.unlink(filename)
+
     return content.decode()
 
 
@@ -189,6 +191,10 @@ def do_get(request: gornilo.GetRequest) -> gornilo.Verdict:
     
     recognized_flag = recognize_text(image)
     recognized_flag = recognized_flag.replace(' ', '').replace('\n', '')
+
+    recognized_flag = ''.join(
+        x for x in recognized_flag if x == '0' or x == '1'
+    )
 
     if recognized_flag != flag:
         return gornilo.Verdict.CORRUPT(f'invalid flag')
