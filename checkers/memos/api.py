@@ -1,11 +1,11 @@
 #!/usr/bin/env python3.11
 
 import re
-import requests
 import dataclasses
 from typing import List, Tuple
 
 import gornilo
+import requests
 
 
 FONTS = [
@@ -57,14 +57,9 @@ def validate_uuid(uuid: str) -> bool:
 
 
 class Api:
-    def __init__(self, hostname: str, port: int = 17171) -> None:
+    def __init__(self, hostname: str, port: int) -> None:
         self.url = f'http://{hostname}:{port}'
         self.session = requests.session()
-
-        return
-    
-    def close(self) -> None:
-        self.session.close()
 
         return
 
