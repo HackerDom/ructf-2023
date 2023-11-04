@@ -83,7 +83,7 @@ public class AncestorService : AncestorServ.AncestorServBase
         ServerCallContext context
     )
     {
-        var user = await _jwtAuthManager.GetUserByContext(context);
+        var user = await _jwtAuthManager.GetCacheUserByContext(context) ?? await _jwtAuthManager.GetUserByContext(context);
 
         var requestId = user.Species == SpeciesType.GreatRuss ? Guid.NewGuid() : ParseGuid(request.Id);
 
