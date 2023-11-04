@@ -42,49 +42,30 @@ def generate_flag_background() -> bytes:
 
 
 def generate_flag_labels(flag: str) -> api.Label:
-    r = random.randrange(0, 100)
-    g = random.randrange(0, 100)
-    b = random.randrange(0, 100)
-
     x = random.randrange(10, 50)
     y = random.randrange(5, 40)
 
     size = random.randrange(24, 32)
     offset = random.randrange(32, 48)
 
-    label1 = api.Label(
-        font = 'bold',
-        color = '#%02x%02x%02x' % (r, g, b),
-        position = (x, y + 1 * offset),
-        size = size,
-        text = flag[:64],
-    )
+    labels = []
 
-    label2 = api.Label(
-        font = 'bold',
-        color = '#%02x%02x%02x' % (r, g, b),
-        position = (x, y + 2 * offset),
-        size = size,
-        text = flag[64:128],
-    )
+    for i in range(4):
+        r = random.randrange(0, 100)
+        g = random.randrange(0, 100)
+        b = random.randrange(0, 100)
 
-    label3 = api.Label(
-        font = 'bold',
-        color = '#%02x%02x%02x' % (r, g, b),
-        position = (x, y + 3 * offset),
-        size = size,
-        text = flag[128:192],
-    )
+        label = api.Label(
+            font = 'bold',
+            color = '#%02x%02x%02x' % (r, g, b),
+            position = (x, y + (i + 1) * offset),
+            size = size,
+            text = flag[i*64 : (i + 1)*64],
+        )
 
-    label4 = api.Label(
-        font = 'bold',
-        color = '#%02x%02x%02x' % (r, g, b),
-        position = (x, y + 4 * offset),
-        size = size,
-        text = flag[192:256],
-    )
+        labels.append(label)
 
-    return [label1, label2, label3, label4]
+    return labels
 
 
 def generate_meme_background() -> bytes:
@@ -183,7 +164,7 @@ def do_get(request: gornilo.GetRequest) -> gornilo.Verdict:
 
     if image is None:
         return gornilo.Verdict.CORRUPT('failed to get flag')
-    
+
     actual_image_hash = hashlib.sha256(image).hexdigest()
 
     if expected_image_hash != actual_image_hash:
@@ -191,6 +172,7 @@ def do_get(request: gornilo.GetRequest) -> gornilo.Verdict:
     
     recognized_flag = recognize_text(image)
     recognized_flag = recognized_flag.replace(' ', '').replace('\n', '')
+    recognized_flag = recognized_flag.replace('O', '0')
 
     recognized_flag = ''.join(
         x for x in recognized_flag if x == '0' or x == '1'
