@@ -1,0 +1,6 @@
+{
+  "server_host": "0.0.0.0",
+  "server_port": 8080,
+  "redis_host": "redis",
+  "redis_port": 6379
+}
