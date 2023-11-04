@@ -6,7 +6,7 @@ pg_cs_user: cs
 pg_cs_pass: A2VFMmd4HQ5Zs8KyPG7RTX
 pg_cs_db: cs
 pg_cs_host: 10.10.10.4
-pg_listen_hosts: 10.10.10.7,10.10.10.8,10.10.10.9,10.10.10.10
+pg_listen_hosts: 10.10.10.7,10.10.10.8,10.10.10.9,10.10.10.10,10.10.10.5,10.10.10.6
 pg_cs_port: 5432
 pg_max_connections: 1024
 pg_shared_buffers: 1GB
