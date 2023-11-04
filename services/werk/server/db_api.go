@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	"math/rand"
 	"time"
 )
 
@@ -45,6 +46,8 @@ func (dbApi *DBApi) Register(username, paymentInfo string) error {
 }
 
 func (dbApi *DBApi) IssueData(username string) (string, string, error) {
+	rand.Seed(time.Now().UnixMilli())
+
 	luckyNumbers := RandomLuckyNumbers()
 	salt := RandomString(20)
 
