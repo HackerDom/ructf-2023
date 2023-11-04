@@ -112,7 +112,7 @@ impl ETCDRustestStorage {
             current_min_revision = resp.kvs.last().unwrap().create_revision + 1;
 
             let mut kvs: &[KeyValue] = &resp.kvs;
-            while kvs.len() > 0 {
+            while !kvs.is_empty() {
                 let offset_bound_revision = kvs.first().unwrap().create_revision;
 
                 offset_to_revision.insert(current_offset as u64, offset_bound_revision);

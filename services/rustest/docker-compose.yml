@@ -16,17 +16,37 @@ services:
       - '--initial-cluster-token=etcd-cluster-token'
     volumes:
       - etcd1:/etcd_data
-    ports:
-      - 2379:2379
-    restart: always
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
+    logging:
+      options:
+        max-file: "2"
+        max-size: "5m"
+    mem_limit: 1G
+    memswap_limit: 1G
+    cpu_count: 1
 
   rustest:
     build: "./"
     ports:
       - 13337:3000
-    restart: always
+    restart: unless-stopped
     environment:
       - ETCD_HOST=http://etcd:2379
+    ulimits:
+      nofile:
+        soft: 32768
+        hard: 32768
+    logging:
+      options:
+        max-file: "2"
+        max-size: "5m"
+    mem_limit: 1G
+    memswap_limit: 1G
+    cpu_count: 1
 
 volumes:
   etcd1:
