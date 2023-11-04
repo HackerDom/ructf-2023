@@ -4,6 +4,8 @@ RUN apt update && apt install -y socat libfreetype6 libjpeg9 libxml2 ghostscript
 
 WORKDIR /var/memos
 
+ENV MAGICK_CONFIGURE_PATH=/var/memos/magick
+
 COPY magick ./magick
 COPY memos entrypoint.sh index.html ./
 
