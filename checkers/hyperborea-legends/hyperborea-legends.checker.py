@@ -78,7 +78,7 @@ async def check_service(request: CheckRequest) -> Verdict:
             print(f'>>Total ancestors: {count + 1}')
 
             print(">>Wait service redis cache")
-            await asyncio.sleep(15)
+            await asyncio.sleep(11)
 
             print(">>Checking ancestors count get...")
             resp = client.get_ancestors_count(token=token)
