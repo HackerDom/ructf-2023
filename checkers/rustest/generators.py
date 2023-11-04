@@ -4,6 +4,7 @@ import string
 import pyjokes
 from typing import Optional
 import logins
+import words
 
 
 def __gen_str(min_str_len: int, max_str_len: int) -> str:
@@ -14,9 +15,8 @@ def __gen_str(min_str_len: int, max_str_len: int) -> str:
     return s[:str_len]
 
 
-def __gen_word(min_word_len: int, max_word_len: int) -> str:
-    word_len = random.randint(min_word_len, max_word_len)
-    return ''.join(random.choice(string.ascii_lowercase) for _ in range(word_len))
+def __gen_word() -> str:
+    return random.choice(words.words)
 
 
 def gen_login() -> str:
@@ -36,12 +36,12 @@ def gen_test_description():
 
 
 def gen_question(answers_num: int) -> dict:
-    question = ' '.join(__gen_word(3, 8) for _ in range(random.randint(3, 10)))
+    question = ' '.join(__gen_word() for _ in range(random.randint(3, 10)))
     question = f'{question.capitalize()}?'
 
     answers = []
     for i in range(answers_num):
-        answer = ' '.join(__gen_word(3, 8) for _ in range(random.randint(4, 8))).capitalize()
+        answer = ' '.join(__gen_word() for _ in range(random.randint(4, 8))).capitalize()
         answers.append(answer)
 
     correct_idx = random.randint(0, answers_num - 1)
@@ -60,7 +60,7 @@ def gen_reward():
 def gen_test(questions_num: int, answers_num: int, flag: Optional[str] = None) -> dict:
     description = gen_test_description()
     questions = [gen_question(answers_num) for _ in range(questions_num)]
-    name = ' '.join(__gen_word(3, 8) for _ in range(random.randint(5, 10))).capitalize()
+    name = ' '.join(__gen_word() for _ in range(random.randint(5, 10))).capitalize()
     if flag is None:
         flag = gen_reward()
 
@@ -73,4 +73,4 @@ def gen_test(questions_num: int, answers_num: int, flag: Optional[str] = None) -
 
 
 if __name__ == '__main__':
-    print(gen_login())
+    print(gen_test_description())
