@@ -1,7 +1,9 @@
 import random
 import base64
 import string
+import pyjokes
 from typing import Optional
+import logins
 
 
 def __gen_str(min_str_len: int, max_str_len: int) -> str:
@@ -18,7 +20,11 @@ def __gen_word(min_word_len: int, max_word_len: int) -> str:
 
 
 def gen_login() -> str:
-    return __gen_str(5, 10)
+    login_pool = logins.female_logins if random.randint(0, 1) else logins.male_logins
+    login = random.choice(login_pool)
+    login = f'{login}{random.randint(1, 10000)}'
+
+    return login
 
 
 def gen_password() -> str:
@@ -26,14 +32,7 @@ def gen_password() -> str:
 
 
 def gen_test_description():
-    sentences_amount = random.randint(1, 4)
-    sentences = []
-    for _ in range(sentences_amount):
-        sentence = ' '.join(__gen_word(3, 8) for _ in range(sentences_amount))
-        sentences.append(sentence.capitalize())
-
-    description = '. '.join(sentences)
-    return f'{description}.'
+    return pyjokes.get_joke(language='en', category='all')
 
 
 def gen_question(answers_num: int) -> dict:
@@ -71,3 +70,7 @@ def gen_test(questions_num: int, answers_num: int, flag: Optional[str] = None) -
         description=description,
         reward=flag
     )
+
+
+if __name__ == '__main__':
+    print(gen_login())

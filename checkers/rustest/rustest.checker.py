@@ -413,10 +413,6 @@ class RaceChecker(gornilo.VulnChecker):
 
 
 def main():
-    # commands = [CHECK, PUT, GET, INFO, TEST]
-    # command, hostname, flag_id, flag, vuln_id
-
-    # command, hostname
     checker.run(*sys.argv[1:])
 
 
