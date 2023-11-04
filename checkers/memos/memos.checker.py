@@ -120,7 +120,7 @@ def generate_meme_labels() -> List[api.Label]:
             x = random.randrange(500, 1000)
             y = random.randrange(500, 1000)
 
-        size = random.randrange(16, 256)
+        size = random.randrange(16, 200)
 
         r = random.randrange(0, 256)
         g = random.randrange(0, 100)
@@ -245,7 +245,7 @@ def do_get(request: gornilo.GetRequest) -> gornilo.Verdict:
     if expected_image_hash != actual_image_hash:
         return gornilo.Verdict.CORRUPT('flag was changed')
     
-    if random.random() < 0.02:
+    if random.random() < 0.2:
         recognized_flag = recognize_text(image)
 
         recognized_flag = recognized_flag.replace(' ', '').replace('\n', '')
