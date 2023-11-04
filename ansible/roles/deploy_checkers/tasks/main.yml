@@ -36,6 +36,6 @@
     ./install_checker_requirements.sh
 
 - name: install sys deps for memos service
-  command: apt install -y libfreetype6 libjpeg9 libxml2 ghostscript
+  command: apt install -y tesseract-ocr
   environment:
     DEBIAN_FRONTEND: noninteractive
