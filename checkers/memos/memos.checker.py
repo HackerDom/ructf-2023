@@ -245,16 +245,18 @@ def do_get(request: gornilo.GetRequest) -> gornilo.Verdict:
     if expected_image_hash != actual_image_hash:
         return gornilo.Verdict.CORRUPT('flag was changed')
     
-    # recognized_flag = recognize_text(image)
-    # recognized_flag = recognized_flag.replace(' ', '').replace('\n', '')
-    # recognized_flag = recognized_flag.replace('O', '0')
+    if random.random() < 0.02:
+        recognized_flag = recognize_text(image)
 
-    # recognized_flag = ''.join(
-    #     x for x in recognized_flag if x == '0' or x == '1'
-    # )
+        recognized_flag = recognized_flag.replace(' ', '').replace('\n', '')
+        recognized_flag = recognized_flag.replace('O', '0')
 
-    # if recognized_flag != flag:
-    #     return gornilo.Verdict.CORRUPT(f'invalid flag')
+        recognized_flag = ''.join(
+            x for x in recognized_flag if x == '0' or x == '1'
+        )
+
+        if recognized_flag != flag:
+            return gornilo.Verdict.CORRUPT(f'invalid flag')
     
     return gornilo.Verdict.OK()
 
