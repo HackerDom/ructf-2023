@@ -34,15 +34,15 @@ class Label:
     size: int
     text: str
 
-    def serialize(self) -> str:
-        return '|'.join(
+    def serialize(self) -> bytes:
+        return b'|'.join(
             [
-                self.font,
-                self.color,
-                str(self.position[0]),
-                str(self.position[1]),
-                str(self.size),
-                self.text,
+                self.font.encode(),
+                self.color.encode(),
+                str(self.position[0]).encode(),
+                str(self.position[1]).encode(),
+                str(self.size).encode(),
+                self.text.encode('utf-8'),
             ],
         )
 
@@ -60,6 +60,11 @@ class Api:
     def __init__(self, hostname: str, port: int) -> None:
         self.url = f'http://{hostname}:{port}'
         self.session = requests.session()
+
+        return
+    
+    def close(self) -> None:
+        self.session.close()
 
         return
 
@@ -154,7 +159,7 @@ class Api:
     def draw_text(self, draft_uuid: str, labels: List[Label]) -> bool | None:
         response = self.session.post(
             f'{self.url}/drafts/text/{draft_uuid}',
-            data = '||'.join(label.serialize() for label in labels),
+            data = b'||'.join(label.serialize() for label in labels),
         )
 
         if response.status_code != 200:
@@ -165,7 +170,7 @@ class Api:
 
         return True
 
-    def draft_release(self, draft_uuid: str, password: str = None) -> str | None:
+    def release_draft(self, draft_uuid: str, password: str = None) -> str | None:
         response = self.session.post(
             f'{self.url}/drafts/release/{draft_uuid}',
             data = password,
