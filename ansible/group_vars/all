@@ -396,7 +396,6 @@ teams: |
   {name => 'JokeCTFteam',           logo => '/logos/team_1.png',  network => '10.61.81.0/24', host => '10.61.81.3', token => 'CLOUD_337_57a94b085d92f10f9e54ff992dc42c37', tags => ['cloud'] },
   {name => 'SBS',           logo => '/logos/team_1.png',  network => '10.61.82.0/24', host => '10.61.82.3', token => 'CLOUD_338_737f4e201b80485589648d3725156586', tags => ['cloud'] },
   {name => 'Fufelshmerds',           logo => '/logos/team_1.png',  network => '10.61.83.0/24', host => '10.61.83.3', token => 'CLOUD_339_ef573a1aef2f9e5387bb3385c12437ce', tags => ['cloud'] },
-  {name => '苍海WraINd',           logo => '/logos/team_1.png',  network => '10.61.84.0/24', host => '10.61.84.3', token => 'CLOUD_340_372a512f2afe8b83d47319735d70c70f', tags => ['cloud'] },
   {name => 'Nonamenoname01',           logo => '/logos/team_1.png',  network => '10.61.85.0/24', host => '10.61.85.3', token => 'CLOUD_341_27a37ff55983a108631623c4fcef3f7c', tags => ['cloud'] },
   {name => 'weason',           logo => '/logos/team_1.png',  network => '10.61.86.0/24', host => '10.61.86.3', token => 'CLOUD_342_1cfa2d3b64d2b20487b9f933f7d25094', tags => ['cloud'] },
   {name => '0N1Y_50K',           logo => '/logos/team_1.png',  network => '10.61.87.0/24', host => '10.61.87.3', token => 'CLOUD_343_59e55c0a8b5d3b1447e8e28ee15c52fd', tags => ['cloud'] },
