@@ -362,7 +362,6 @@ teams: |
   {name => 'xls team',           logo => '/logos/team_1.png',  network => '10.61.46.0/24', host => '10.61.46.3', token => 'CLOUD_302_f34f76c48464261271dc4535332eef9f', tags => ['cloud'] },
   {name => 'pastabase64',           logo => '/logos/team_1.png',  network => '10.61.47.0/24', host => '10.61.47.3', token => 'CLOUD_303_2ce58a11f5e5a528bd369729e9570cc8', tags => ['cloud'] },
   {name => 'Mandromeda',           logo => '/logos/team_1.png',  network => '10.61.48.0/24', host => '10.61.48.3', token => 'CLOUD_304_a64cef41dcfe5b0e8fe077e4647b6f02', tags => ['cloud'] },
-  {name => 'FR13NDS TEAM',           logo => '/logos/team_1.png',  network => '10.61.49.0/24', host => '10.61.49.3', token => 'CLOUD_305_9eee62f83587c44e0cee4a0ff269c72e', tags => ['cloud'] },
   {name => 'flusive',           logo => '/logos/team_1.png',  network => '10.61.50.0/24', host => '10.61.50.3', token => 'CLOUD_306_4354d8d339e1e1fe333a1f3623748784', tags => ['cloud'] },
   {name => 'gencombd',           logo => '/logos/team_1.png',  network => '10.61.51.0/24', host => '10.61.51.3', token => 'CLOUD_307_dfb0d5b58d8cb8ef3bc8e86f6aa843f2', tags => ['cloud'] },
   {name => 'kks',           logo => '/logos/team_1.png',  network => '10.61.52.0/24', host => '10.61.52.3', token => 'CLOUD_308_1a81b20bba02fc51c4be83e5af3551fe', tags => ['cloud'] },
