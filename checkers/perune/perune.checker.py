@@ -91,7 +91,8 @@ class CryptoChecker(VulnChecker):
             res = cli.call_perune(prayer.id)
             
             if prayer.text in res:
-                ec.verdict = Verdict.OK_WITH_FLAG_ID(gift_id.decode(), prayer.id.decode())
+                cli.exit()
+                return Verdict.OK_WITH_FLAG_ID(gift_id.decode(), prayer.id.decode())
             else:
                 ec.verdict = Verdict.MUMBLE("Perune logic is changed!")
 
