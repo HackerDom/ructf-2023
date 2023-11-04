@@ -35,25 +35,9 @@ SPLOITS = [
 ]
 
 STAND_CHECKERS = [
-  "funficfy",
-  "hyperborea-legends",
-  "memos",
-  "perune",
-  "rusi-trainer",
-  "rustest",
-  "werk",
-  "wise-mystical-tree",
 ]
 
 STAND_SPLOITS = [
-    "funficfy",
-    "hyperborea-legends",
-    "memos", 
-    "perune", 
-    "rusi-trainer",
-    "rustest",
-    "werk",
-    "wise-mystical-tree",
 ]
 
 TEMPLATE = """

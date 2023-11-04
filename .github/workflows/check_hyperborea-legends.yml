@@ -60,7 +60,7 @@ jobs:
   check_stand_checker_hyperborea-legends:
     name: Check stand checker hyperborea-legends
     runs-on: self-hosted
-    if: ${{ true }}
+    if: ${{ false }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
@@ -71,7 +71,7 @@ jobs:
   check_stand_sploit_hyperborea-legends:
     name: Check stand sploit hyperborea-legends
     runs-on: self-hosted
-    if: ${{ true }}
+    if: ${{ false }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2

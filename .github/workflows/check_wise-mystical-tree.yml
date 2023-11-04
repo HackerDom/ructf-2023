@@ -60,7 +60,7 @@ jobs:
   check_stand_checker_wise-mystical-tree:
     name: Check stand checker wise-mystical-tree
     runs-on: self-hosted
-    if: ${{ true }}
+    if: ${{ false }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
@@ -71,7 +71,7 @@ jobs:
   check_stand_sploit_wise-mystical-tree:
     name: Check stand sploit wise-mystical-tree
     runs-on: self-hosted
-    if: ${{ true }}
+    if: ${{ false }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2

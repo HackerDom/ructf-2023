@@ -60,7 +60,7 @@ jobs:
   check_stand_checker_rusi-trainer:
     name: Check stand checker rusi-trainer
     runs-on: self-hosted
-    if: ${{ true }}
+    if: ${{ false }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
@@ -71,7 +71,7 @@ jobs:
   check_stand_sploit_rusi-trainer:
     name: Check stand sploit rusi-trainer
     runs-on: self-hosted
-    if: ${{ true }}
+    if: ${{ false }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2

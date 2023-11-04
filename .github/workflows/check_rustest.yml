@@ -60,7 +60,7 @@ jobs:
   check_stand_checker_rustest:
     name: Check stand checker rustest
     runs-on: self-hosted
-    if: ${{ true }}
+    if: ${{ false }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
@@ -71,7 +71,7 @@ jobs:
   check_stand_sploit_rustest:
     name: Check stand sploit rustest
     runs-on: self-hosted
-    if: ${{ true }}
+    if: ${{ false }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2

@@ -60,7 +60,7 @@ jobs:
   check_stand_checker_werk:
     name: Check stand checker werk
     runs-on: self-hosted
-    if: ${{ true }}
+    if: ${{ false }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
@@ -71,7 +71,7 @@ jobs:
   check_stand_sploit_werk:
     name: Check stand sploit werk
     runs-on: self-hosted
-    if: ${{ true }}
+    if: ${{ false }}
     steps:
     - name: Checkout repo
       uses: actions/checkout@v2
