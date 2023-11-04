@@ -415,6 +415,8 @@ teams: |
   {name => '塔罗',           logo => '/logos/team_355.png',  network => '10.61.99.0/24', host => '10.61.99.3', token => 'CLOUD_355_f4a6710c7f3d554d29bc5b1d8a32c43b', tags => ['cloud'] },
   {name => '苍海WraINd',           logo => '/logos/team_356.png',  network => '10.61.100.0/24', host => '10.61.100.3', token => 'CLOUD_356_c21a8b4f1bc5f4659e0dd4413af8dd5d', tags => ['cloud'] },
   {name => '404',           logo => '/logos/team_357.png',  network => '10.61.101.0/24', host => '10.61.101.3', token => 'CLOUD_357_4328a19b02fe8bbfa36da1ffd4c24778', tags => ['cloud'] },
+  {name => 'NPC-1',           logo => '/logos/team_358.png',  network => '10.61.102.0/24', host => '10.61.102.3', token => 'CLOUD_358_0f3ecc6197a14e47c3e0a28dfeaa5996', tags => ['cloud'] },
+  {name => 'TestTeamPlzIgnore',           logo => '/logos/team_359.png',  network => '10.61.103.0/24', host => '10.61.103.3', token => 'CLOUD_359_79208d51723de7c5e371bd269bf7117e', tags => ['cloud'] },
 
 services: |
   {name => 'hyperborea-legends', path => 'checkers/hyperborea-legends/hyperborea-legends.checker.py', timeout => 30, tcp_port => 42424},
