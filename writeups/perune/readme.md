@@ -22,11 +22,11 @@ After that, we get the ID of this Gift, it is the attack_data for the service, t
 
 #### Make prayer
 
-При создании Prayer нам нужно ввести ID Gift-а при этом данный Gift не должен быть соединён с другим Prayer. Также нас попросят ввести пароль для указанного Gift. Содержимое Prayer это просто текст (std::string).
+When creating a Prayer, we need to enter the Gift ID-and this Gift should not be connected to another Prayer. We will also be asked to enter the password for the specified Gift. The content of Prayer is just text (std::string).
 
 ![img](./assets/815fd05741306c82c614f.png)
 
-После создания Prayer мы получим его ID по которому мы можем выполнить функцию Call Perune.
+After creating a Prayer, we will get its ID by which we can perform the Call Perune function.
 
 #### View Gift
 
