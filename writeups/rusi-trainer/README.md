@@ -38,7 +38,7 @@ That symbol is: `ı` - turkish letter
 
 ## Exploitation
 
-In every name of Udar (this is flag id) you can find `i` symbol. 
+The checker generates too long flag_id, so in every name of Udar (this is flag id) you can find `i` symbol. 
 So you need to replace it with `ı` and make `PUT` request to update `trustedRusi` (add your hacker user to the trusted list).
 This will make it possible to read the flag using a regular get request.
 
