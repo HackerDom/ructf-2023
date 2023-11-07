@@ -375,4 +375,4 @@ An example of the execution rallied on the service.
 
 ![img](./assets/ce2818133d968abf10b45.png)
 
-The full exploit can be found in the repository RuCTF 2023 - [https://github.com/HackerDom/ructf-2023/sploits/perune/perune.sploit.py](https://github.com/HackerDom/ructf-2023/sploits/perune/perune.sploit.py)
+The full exploit: - [perune.sploit.py](/sploits/perune/perune.sploit.py)
