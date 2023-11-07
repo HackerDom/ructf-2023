@@ -30,3 +30,9 @@ And our awesome team leader: [@capitanbanana](https://github.com/capitanbanana)
 ---
 
 (C) HackerDom with <3
+
+## Post-mortem
+
+This year we encountered some problems before and during the competition.
+
+Please, read [POSTMORTEM.md](/POSTMORTEM.md) for more information.
