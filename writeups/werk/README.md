@@ -32,6 +32,8 @@ return GetBaseHash(username + salt)
 
 The username could be taken from checksystem as public flag_id. So we need to brutforce the salt.
 
+Example sploit: [werk.sploit.go](/sploits/werk/werk.sploit.go)
+
 Unfortunately, we've made a mistake: the salt space is too large, and simple bruteforcing would take very long time. There are around 60_000 possible salts for every round, so we need to reduce the search space somehow.
 
 One of possible solutions, found by [C4T BuT S4D](https://ctftime.org/team/83435) team, is using checksystem as a side-channel. The checksystem exposes flag_id just after it was generated, so we could continiously download flag_ids and monitor its changes. If there is new flag_id in checksystem, it means that this flag_id was generated between two consecutive checks, so we have a small interval of time which need to be bruteforced.
