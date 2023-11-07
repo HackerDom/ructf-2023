@@ -33,9 +33,9 @@ The conclusion is simple: prepare such critical scripts earlier and review it ha
 
 We started the game with 3 machines for checkers, each have 16 CPU cores (3x16). Shortly after the network was opened there turned out a problem: the checkers was stopped to run. Checksystem had utilize all available cores, and CPU resources was exhausted.
 
-Just after we realized this, we tried to restart workers, but it was not solve the issue. Then we upscaled our infrastructure to 5 machines with 48 cores (5x48), maximum available in DigitalOcean, it took a long time. But it was not enough, since the checking queue on the checksystem's master was full of jobs. We could restart the entire game, but we did not want to do this, because the game was already started and some teams already got flag points for attacks. Instead we just tried to drain queues and restarted checksystem's workers.
+The first assumption regarding the root cause was that one of the checkers was consuming excessive resources. We disabled this checker, but it did not resolve the issue. We also suspected that the checking queue on the checksystem's master was full of jobs, so we attempted to restart the workers, but this action also had not fixed the issue. Then we attempted to upscale the checker's workers' pool size to 5, but it took a while. Simultaneously, we increased the size of the initial workers to 48 cores, the maximum available on DigitalOcean, which finaly helped and services goes "green" on scoreboard. However, immediately after this fix, the checksystem manager (main coordinator) went down due to a misconfiguration issue during the setup of the new workers in ansible. Fix missconfiguration had been fixed asap as well as 2 new workes was added into the pool.
 
-Now we think that it was not a good solution: restarting the entire game was better, because it also would refresh SLA (decreased by not-working checkers).
+We could restart the entire game, but we did not want to do this, because the game was already started and some teams already got flag points for attacks. Now we think that it was not a good solution: restarting the entire game was better, because it also would refresh SLA (decreased by not-working checkers).
 
 Timeline:
 
