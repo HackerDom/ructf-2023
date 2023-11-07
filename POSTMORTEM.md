@@ -33,7 +33,7 @@ The conclusion is simple: prepare such critical scripts earlier and review it ha
 
 We started the game with 3 machines for checkers, each have 16 CPU cores (3x16). Shortly after the network was opened there turned out a problem: the checkers was stopped to run. Checksystem had utilize all available cores, and CPU resources was exhausted.
 
-Just after we realized this, we upscaled our infrastructure to 5 machines with 48 cores (5x48), maximum available in DigitalOcean. But it was not enough, since the checking queue on the checksystem's master was full of jobs. We could restart the entire game, but we did not want to do this, because the game was already started and some teams already got flag points for attacks. Instead we just tried to drain queues and restarted checksystem's workers.
+Just after we realized this, we tried to restart workers, but it was not solve the issue. Then we upscaled our infrastructure to 5 machines with 48 cores (5x48), maximum available in DigitalOcean, it took a long time. But it was not enough, since the checking queue on the checksystem's master was full of jobs. We could restart the entire game, but we did not want to do this, because the game was already started and some teams already got flag points for attacks. Instead we just tried to drain queues and restarted checksystem's workers.
 
 Now we think that it was not a good solution: restarting the entire game was better, because it also would refresh SLA (decreased by not-working checkers).
 
