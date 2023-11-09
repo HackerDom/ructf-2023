@@ -24,6 +24,7 @@ RuCTF 2023 was held on November 4, 2023.
 - Image master: [@danilkaz](https://github.com/danilkaz)
 - Checksystem master: [@1MiKHalyCH1](https://github.com/1MiKHalyCH1)
 - Cloud / network master: [@1MiKHalyCH1](https://github.com/1MiKHalyCH1)
+- Infrastructure support master: [@vaspahomov](https://github.com/vaspahomov)
 
 And our awesome team leader: [@capitanbanana](https://github.com/capitanbanana)
 
